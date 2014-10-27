@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.graphiti.ui.diagramTypes">
+      <diagramType
+            name="State Machine Diagram Type"
+            type="State Machine"
+            id="org.eclipse.tracecompass.tmf.statemachine.graphiti.StateMachineDiagramType">
+      </diagramType>
+   </extension>
+   <extension
+         point="org.eclipse.graphiti.ui.diagramTypeProviders">
+      <diagramTypeProvider
+            name="State Machine Diagram Type Provider"
+            class="org.eclipse.tracecompass.tmf.statemachine.diagram.StateMachineDiagramTypeProvider"
+            id="org.eclipse.tracecompass.tmf.statemachine.graphiti.StateMachineDiagramTypeProvider">
+         <diagramType
+               id="org.eclipse.tracecompass.tmf.statemachine.graphiti.StateMachineDiagramType">
+         </diagramType>
+      </diagramTypeProvider>
+   </extension>
+   
+   <!-- Begin properties-->
+   <extension
+    point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
+    <propertyContributor contributorId="State Machine.PropertyContributor"> 
+        <propertyCategory category="Graphiti"> 
+        </propertyCategory> 
+    </propertyContributor> 
+</extension>
+       
+<extension
+      point="org.eclipse.ui.views.properties.tabbed.propertyTabs">
+   <propertyTabs
+          contributorId="State Machine.PropertyContributor">
+   <propertyTab
+         category="Graphiti"
+         id="graphiti.main.tab"
+         label="Main">
+    </propertyTab>
+   </propertyTabs>
+</extension>
+     
+<extension
+      point="org.eclipse.ui.views.properties.tabbed.propertySections">
+    <propertySections
+          contributorId="State Machine.PropertyContributor">
+        <!--<propertySection
+              class="org.eclipse.tracecompass.tmf.statemachine.property.StatemachineSection"
+              filter="org.eclipse.tracecompass.tmf.statemachine.property.StatemachineFilter"
+              id="graphiti.main.tab.statemachine"
+              tab="graphiti.main.tab">
+        </propertySection>-->
+        <!-- State section -->
+        <propertySection
+              class="org.eclipse.tracecompass.tmf.statemachine.property.StateSection"
+              filter="org.eclipse.tracecompass.tmf.statemachine.property.StateFilter"
+              id="graphiti.main.tab.state"
+              tab="graphiti.main.tab">
+        </propertySection>
+        <!-- Transition section -->
+        <propertySection
+              class="org.eclipse.tracecompass.tmf.statemachine.property.TransitionSection"
+              filter="org.eclipse.tracecompass.tmf.statemachine.property.TransitionFilter"
+              id="graphiti.main.tab.transition"
+              tab="graphiti.main.tab">
+        </propertySection>
+        <!-- Condition section -->
+        <propertySection
+              class="org.eclipse.tracecompass.tmf.statemachine.property.ConditionalStateSection"
+              filter="org.eclipse.tracecompass.tmf.statemachine.property.ConditionalStateFilter"
+              id="graphiti.main.tab.condition"
+              tab="graphiti.main.tab">
+        </propertySection>
+    </propertySections>
+</extension>
+<!-- End properties-->
+
+<!-- Wizard extension
+<extension
+      point="org.eclipse.ui.newWizards">
+      <wizard
+            class="org.eclipse.tracecompass.tmf.statemachine.wizard.StatemachineDiagramWizard"
+            id="org.eclipse.tracecompass.tmf.statemachine.wizards.newDiagram"
+            name="Statemachine diagram">
+      </wizard>
+</extension>-->
+
+</plugin>

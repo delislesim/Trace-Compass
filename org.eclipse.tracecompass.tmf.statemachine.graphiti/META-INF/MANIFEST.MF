@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: State Machine
+Bundle-SymbolicName: org.eclipse.tracecompass.tmf.statemachine.graphiti;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.eclipse.tracecompass.tmf.statemachine.graphiti.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.tracecompass.tmf.statemachine.ecore,
+ org.eclipse.ui.views.properties.tabbed,
+ org.eclipse.graphiti.ui,
+ org.eclipse.graphiti,
+ org.eclipse.core.resources
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Import-Package: org.eclipse.tracecompass.tmf.attributetree.ui.widgets,
+ org.eclipse.ui.wizards.newresource

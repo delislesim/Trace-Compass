@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tmfxml>
+    <stateProvider id="statemachine.exemple.state.provider" version="0">
+        <head>
+            <traceType id="org.eclipse.linuxtools.tmf.core.development"/>
+            <label value="statemachine exemple state provider"/>
+        </head>
+        <definedValue name="RUNNING" value="1"/>
+        <definedValue name="CRITICAL" value="2"/>
+        <definedValue name="WAITING" value="3"/>
+        <eventHandler eventName="start">
+            <stateChange>
+                <stateAttribute type="constant" value="Tasks"/>
+                <stateAttribute type="eventField" value="number"/>
+                <stateValue type="int" value="$RUNNING"/>
+            </stateChange>
+        </eventHandler>
+        <eventHandler eventName="execute">
+            <stateChange>
+                <stateAttribute type="constant" value="Tasks"/>
+                <stateAttribute type="eventField" value="number"/>
+                <stateValue type="int" value="$CRITICAL"/>
+            </stateChange>
+        </eventHandler>
+        <eventHandler eventName="wait">
+            <stateChange>
+                <stateAttribute type="constant" value="Tasks"/>
+                <stateAttribute type="eventField" value="number"/>
+                <stateValue type="int" value="$WAITING"/>
+            </stateChange>
+        </eventHandler>
+        <eventHandler eventName="stop">
+            <stateChange>
+                <stateAttribute type="constant" value="Tasks"/>
+                <stateAttribute type="eventField" value="number"/>
+                <stateValue type="int" value="$NULL"/>
+            </stateChange>
+        </eventHandler>
+    </stateProvider>
+</tmfxml>

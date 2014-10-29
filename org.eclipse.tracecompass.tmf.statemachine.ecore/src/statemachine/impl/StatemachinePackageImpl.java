@@ -410,6 +410,15 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EReference getStateAttribute_StateAttributeQuery() {
+		return (EReference)stateAttributeEClass.getEStructuralFeatures().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public EClass getConditionalState() {
 		return conditionalStateEClass;
 	}
@@ -598,6 +607,7 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		stateAttributeEClass = createEClass(STATE_ATTRIBUTE);
 		createEAttribute(stateAttributeEClass, STATE_ATTRIBUTE__TYPE);
 		createEAttribute(stateAttributeEClass, STATE_ATTRIBUTE__VALUE);
+		createEReference(stateAttributeEClass, STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY);
 
 		conditionalStateEClass = createEClass(CONDITIONAL_STATE);
 		createEReference(conditionalStateEClass, CONDITIONAL_STATE__CONDITION);
@@ -693,6 +703,7 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		initEClass(stateAttributeEClass, StateAttribute.class, "StateAttribute", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getStateAttribute_Type(), this.getStateAttributeType(), "type", null, 0, 1, StateAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getStateAttribute_Value(), ecorePackage.getEString(), "value", null, 0, 1, StateAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getStateAttribute_StateAttributeQuery(), this.getStateAttribute(), null, "stateAttributeQuery", null, 0, -1, StateAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(conditionalStateEClass, ConditionalState.class, "ConditionalState", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getConditionalState_Condition(), this.getAbstractCondition(), null, "condition", null, 0, -1, ConditionalState.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

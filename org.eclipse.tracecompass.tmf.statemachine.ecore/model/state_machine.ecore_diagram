@@ -536,4 +536,17 @@
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_f6x28kmDEeS1w8N3Yw5Jwg" points="[43, 2, -164, -12]$[148, 12, -59, -2]"/>
     <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_f62vcEmDEeS1w8N3Yw5Jwg" id="(0.7650273224043715,0.48)"/>
   </edges>
+  <edges xmi:type="notation:Connector" xmi:id="_FhyRgF-eEeScy7Yc0GvpJA" type="4003" source="_f_aR9kAEEeSFr4nb-cDIYw" target="_f_aR9kAEEeSFr4nb-cDIYw">
+    <children xmi:type="notation:DecorationNode" xmi:id="_Fhy4kF-eEeScy7Yc0GvpJA" type="6002">
+      <layoutConstraint xmi:type="notation:Location" xmi:id="_Fhy4kV-eEeScy7Yc0GvpJA" x="2" y="5"/>
+    </children>
+    <children xmi:type="notation:DecorationNode" xmi:id="_Fhy4kl-eEeScy7Yc0GvpJA" type="6004">
+      <layoutConstraint xmi:type="notation:Location" xmi:id="_Fhy4k1-eEeScy7Yc0GvpJA" x="-1" y="10"/>
+    </children>
+    <styles xmi:type="notation:FontStyle" xmi:id="_FhyRgV-eEeScy7Yc0GvpJA" fontName="Ubuntu"/>
+    <element xmi:type="ecore:EReference" href="state_machine.ecore#//StateAttribute/stateAttributeQuery"/>
+    <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_FhyRgl-eEeScy7Yc0GvpJA" points="[6, -5, -19, -15]$[87, -65, 62, -75]$[111, 31, 86, 21]$[64, 19, 39, 9]"/>
+    <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_Fh4YIF-eEeScy7Yc0GvpJA" id="(0.6464088397790055,0.06666666666666667)"/>
+    <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_Fh4YIV-eEeScy7Yc0GvpJA" id="(0.994475138121547,0.64)"/>
+  </edges>
 </notation:Diagram>

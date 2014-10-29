@@ -17,6 +17,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeValueNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;

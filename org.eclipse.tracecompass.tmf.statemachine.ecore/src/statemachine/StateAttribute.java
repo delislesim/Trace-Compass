@@ -2,6 +2,8 @@
  */
 package statemachine;
 
+import org.eclipse.emf.common.util.EList;
+
 import org.eclipse.emf.ecore.EObject;
 
 /**
@@ -14,6 +16,7 @@ import org.eclipse.emf.ecore.EObject;
  * <ul>
  *   <li>{@link statemachine.StateAttribute#getType <em>Type</em>}</li>
  *   <li>{@link statemachine.StateAttribute#getValue <em>Value</em>}</li>
+ *   <li>{@link statemachine.StateAttribute#getStateAttributeQuery <em>State Attribute Query</em>}</li>
  * </ul>
  * </p>
  *
@@ -76,5 +79,21 @@ public interface StateAttribute extends EObject {
 	 * @generated
 	 */
 	void setValue(String value);
+
+	/**
+	 * Returns the value of the '<em><b>State Attribute Query</b></em>' containment reference list.
+	 * The list contents are of type {@link statemachine.StateAttribute}.
+	 * <!-- begin-user-doc -->
+	 * <p>
+	 * If the meaning of the '<em>State Attribute Query</em>' containment reference list isn't clear,
+	 * there really should be more of a description here...
+	 * </p>
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>State Attribute Query</em>' containment reference list.
+	 * @see statemachine.StatemachinePackage#getStateAttribute_StateAttributeQuery()
+	 * @model containment="true"
+	 * @generated
+	 */
+	EList<StateAttribute> getStateAttributeQuery();
 
 } // StateAttribute

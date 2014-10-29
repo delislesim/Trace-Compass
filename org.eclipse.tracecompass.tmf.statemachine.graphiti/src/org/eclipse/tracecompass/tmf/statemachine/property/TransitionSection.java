@@ -1,5 +1,9 @@
 package org.eclipse.tracecompass.tmf.statemachine.property;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
 import org.eclipse.graphiti.features.IFeature;
 import org.eclipse.graphiti.features.context.IContext;
 import org.eclipse.graphiti.features.context.impl.CustomContext;
@@ -7,6 +11,9 @@ import org.eclipse.graphiti.features.impl.AbstractFeature;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.services.Graphiti;
 import org.eclipse.graphiti.ui.platform.GFPropertySection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -24,6 +31,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
+import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.tracecompass.tmf.statemachine.util.ConvertStatemachineType;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
@@ -31,7 +42,6 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetWidgetFactory;
 
 import statemachine.AbstractTransition;
 import statemachine.StateAttribute;
-import statemachine.StateAttributeType;
 import statemachine.StateChange;
 import statemachine.StateValue;
 import statemachine.StateValueType;
@@ -43,6 +53,8 @@ public class TransitionSection extends GFPropertySection implements ITabbedPrope
 	private Group stateChangeGroup;
 	
 	private ConvertStatemachineType util = new ConvertStatemachineType();
+	
+	private AttributeTreePath selectedPath;
 	
     @Override
     public void createControls(Composite parent, TabbedPropertySheetPage tabbedPropertySheetPage) {
@@ -152,112 +164,6 @@ public class TransitionSection extends GFPropertySection implements ITabbedPrope
 		}
     }
 	
-    /*private void addStateChangeDialog(Display display) {
-        final Shell dialog = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-        GridLayout dialogLayout = new GridLayout();
-        dialogLayout.numColumns = 2;
-        dialog.setLayout (dialogLayout);
-        dialog.setText("Add state attribute");
-        
-        Label stateAttributeTypeLabel = new Label(dialog, SWT.NONE);
-        stateAttributeTypeLabel.setText("Type");
-        
-        final Combo typeCombo = new Combo(dialog, SWT.READ_ONLY);
-        List<StateAttributeType> stateAttributeList = StateAttributeType.VALUES;
-        final String[] stateAttributeTypeString = new String[stateAttributeList.size()];
-        for(int i = 0; i < stateAttributeList.size(); i++) {
-        	stateAttributeTypeString[i] = stateAttributeList.get(i).toString();
-        }
-        typeCombo.setItems(stateAttributeTypeString);
-        typeCombo.select(1); //TODO : C'est pas bon de faire ça !!!
-        
-        Label stateAttributeValueLabel = new Label(dialog, SWT.NONE);
-        stateAttributeValueLabel.setText("Value");
-        
-        final Text stateAttributeValueText = new Text(dialog, SWT.SINGLE);
-                
-        Button addButton = new Button(dialog, SWT.PUSH);
-        addButton.setText("Add");
-        addButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		//saveStateAttribute(stateAttributeTypeString[typeCombo.getSelectionIndex()], stateAttributeValueText.getText());
-        		dialog.close();
-        	}
-		});
-        Button cancelButton = new Button(dialog, SWT.PUSH);
-        cancelButton.setText("Cancel");
-        cancelButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		dialog.close();
-        	}
-		});
-        
-        dialog.pack();
-        dialog.open();
-		while (!dialog.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
-		}
-    }*/
-    
-	/*private void editStateChangeDialog(Display display, int stateChangeIndex) {
-        final Shell dialog = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-        GridLayout dialogLayout = new GridLayout();
-        dialogLayout.numColumns = 2;
-        dialog.setLayout (dialogLayout);
-        
-        AbstractTransition transition = null;
-        PictogramElement pe = getSelectedPictogramElement();
-        if (pe != null) {
-			transition = (AbstractTransition) Graphiti.getLinkService().getBusinessObjectForLinkedPictogramElement(pe);
-        }
-		
-        Label stateAttributeTypeLabel = new Label(dialog, SWT.NONE);
-        stateAttributeTypeLabel.setText("Type");
-        
-        final Combo typeCombo = new Combo(dialog, SWT.READ_ONLY);
-        List<StateAttributeType> stateAttributeList = StateAttributeType.VALUES;
-        final String[] stateAttributeTypeString = new String[stateAttributeList.size()];
-        for(int i = 0; i < stateAttributeList.size(); i++) {
-        	stateAttributeTypeString[i] = stateAttributeList.get(i).toString();
-        }
-        typeCombo.setItems(stateAttributeTypeString);
-        typeCombo.select(1); //TODO : C'est pas bon de faire ça !!!
-        
-        Label stateAttributeValueLabel = new Label(dialog, SWT.NONE);
-        stateAttributeValueLabel.setText("Value");
-        
-        final Text stateAttributeValueText = new Text(dialog, SWT.SINGLE);
-        stateAttributeValueText.setText(transition.getStateChange().get(stateChangeIndex).getStateAttribute().get(0).getValue()); //TODO : Enlever le zero
-                
-        Button okButton = new Button(dialog, SWT.PUSH);
-        okButton.setText("Ok");
-        okButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		//editStateAttribute(stateAttributeTypeString[typeCombo.getSelectionIndex()], stateAttributeValueText.getText());
-        		dialog.close();
-        	}
-		});
-        Button cancelButton = new Button(dialog, SWT.PUSH);
-        cancelButton.setText("Cancel");
-        cancelButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		dialog.close();
-        	}
-		});
-        
-        dialog.pack();
-        dialog.open();
-		while (!dialog.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
-		}
-	}*/
-	
 	private void addEditStateChangeDialog(Display display, final StateChange stateChange) {
 		final Shell dialog = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
         dialog.setLayout (new GridLayout(2, false));
@@ -273,74 +179,88 @@ public class TransitionSection extends GFPropertySection implements ITabbedPrope
         gridData.horizontalSpan = 2;
         stateAttributeGroup.setLayoutData(gridData);
         
-        Label stateAttributeTypeLabel = new Label(stateAttributeGroup, SWT.NONE);
-        stateAttributeTypeLabel.setText("Type");
+        final AttributeTreeComposite attributeTree = new AttributeTreeComposite(stateAttributeGroup, SWT.NONE);
+        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
+        attributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = attributeTree.getSelection();
+				AbstractAttributeNode selectedNode = (AbstractAttributeNode)selection.getFirstElement();
+				selectedPath = new AttributeTreePath(selectedNode);
+				stateChange.getStateAttribute().addAll(selectedPath.getAllStateAttribute());
+			}
+        	
+        });
         
-        final Combo stateAttributeTypeCombo = new Combo(stateAttributeGroup, SWT.READ_ONLY);
-        stateAttributeTypeCombo.setItems(util.getStateAttributeTypeString());
-        stateAttributeTypeCombo.select(1); //TODO : C'est pas bon de faire ça !!!
-        gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        stateAttributeTypeCombo.setLayoutData(gridData);
-        
-        Label stateAttributeValueLabel = new Label(stateAttributeGroup, SWT.NONE);
-        stateAttributeValueLabel.setText("Value");
-        
-        final Text stateAttributeValueText = new Text(stateAttributeGroup, SWT.SINGLE);
-        gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        stateAttributeValueText.setLayoutData(gridData);
-        
-        final Table stateAttributeTable = new Table(stateAttributeGroup, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.verticalAlignment = SWT.FILL;
-        gridData.verticalSpan = 2;
-        stateAttributeTable.setLayoutData(gridData);
-        stateAttributeTable.removeAll();
-		for (int i = 0; i < stateChange.getStateAttribute().size(); i++) {
-			TableItem item = new TableItem(stateAttributeTable, 0);
-			item.setText(stateChange.getStateAttribute().get(i).toString());
-		}
-		stateAttributeTable.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		int selectedAttributeIndex = stateAttributeTable.getSelectionIndex();
-        		StateAttribute selectedAttribute = stateChange.getStateAttribute().get(selectedAttributeIndex);
-        		stateAttributeValueText.setText(selectedAttribute.getValue());
-        		StateAttributeType selectedAttributeType  = selectedAttribute.getType();
-        		int typeComboIndex = util.getIndexFromAttributeType(selectedAttributeType);
-        		stateAttributeTypeCombo.select(typeComboIndex);
-        	}
-		});
-		
-		Button addButton = new Button(stateAttributeGroup, SWT.PUSH);
-		addButton.setText("Add");
-		addButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		StateAttribute stateAttribute = StatemachineFactory.eINSTANCE.createStateAttribute();
-        		stateAttribute.setValue(stateAttributeValueText.getText());
-        		StateAttributeType stateAttributeType = util.getAttributeTypeFromindex(stateAttributeTypeCombo.getSelectionIndex());
-        		stateAttribute.setType(stateAttributeType);
-        		stateChange.getStateAttribute().add(stateAttribute);
-        		TableItem item = new TableItem(stateAttributeTable, 0);
-        		item.setText(stateAttribute.toString());
-        	}
-		});
-		
-		Button removeButton = new Button(stateAttributeGroup, SWT.PUSH);
-		removeButton.setText("Remove");
-		removeButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		int stateAttributeTableIndex = stateAttributeTable.getSelectionIndex();
-        		stateChange.getStateAttribute().remove(stateAttributeTableIndex);
-        		stateAttributeTable.remove(stateAttributeTableIndex);
-        	}
-		});
+//        Label stateAttributeTypeLabel = new Label(stateAttributeGroup, SWT.NONE);
+//        stateAttributeTypeLabel.setText("Type");
+//        
+//        final Combo stateAttributeTypeCombo = new Combo(stateAttributeGroup, SWT.READ_ONLY);
+//        stateAttributeTypeCombo.setItems(util.getStateAttributeTypeString());
+//        stateAttributeTypeCombo.select(1); //TODO : C'est pas bon de faire ça !!!
+//        gridData = new GridData();
+//        gridData.horizontalAlignment = SWT.FILL;
+//        gridData.grabExcessHorizontalSpace = true;
+//        stateAttributeTypeCombo.setLayoutData(gridData);
+//        
+//        Label stateAttributeValueLabel = new Label(stateAttributeGroup, SWT.NONE);
+//        stateAttributeValueLabel.setText("Value");
+//        
+//        final Text stateAttributeValueText = new Text(stateAttributeGroup, SWT.SINGLE);
+//        gridData = new GridData();
+//        gridData.horizontalAlignment = SWT.FILL;
+//        gridData.grabExcessHorizontalSpace = true;
+//        stateAttributeValueText.setLayoutData(gridData);
+//        
+//        final Table stateAttributeTable = new Table(stateAttributeGroup, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+//        gridData = new GridData();
+//        gridData.horizontalAlignment = SWT.FILL;
+//        gridData.verticalAlignment = SWT.FILL;
+//        gridData.verticalSpan = 2;
+//        stateAttributeTable.setLayoutData(gridData);
+//        stateAttributeTable.removeAll();
+//		for (int i = 0; i < stateChange.getStateAttribute().size(); i++) {
+//			TableItem item = new TableItem(stateAttributeTable, 0);
+//			item.setText(stateChange.getStateAttribute().get(i).toString());
+//		}
+//		stateAttributeTable.addSelectionListener(new SelectionAdapter() {
+//        	@Override
+//			public void widgetSelected (SelectionEvent e) {
+//        		int selectedAttributeIndex = stateAttributeTable.getSelectionIndex();
+//        		StateAttribute selectedAttribute = stateChange.getStateAttribute().get(selectedAttributeIndex);
+//        		stateAttributeValueText.setText(selectedAttribute.getValue());
+//        		StateAttributeType selectedAttributeType  = selectedAttribute.getType();
+//        		int typeComboIndex = util.getIndexFromAttributeType(selectedAttributeType);
+//        		stateAttributeTypeCombo.select(typeComboIndex);
+//        	}
+//		});
+//		
+//		Button addButton = new Button(stateAttributeGroup, SWT.PUSH);
+//		addButton.setText("Add");
+//		addButton.addSelectionListener(new SelectionAdapter() {
+//        	@Override
+//			public void widgetSelected (SelectionEvent e) {
+//        		StateAttribute stateAttribute = StatemachineFactory.eINSTANCE.createStateAttribute();
+//        		stateAttribute.setValue(stateAttributeValueText.getText());
+//        		StateAttributeType stateAttributeType = util.getAttributeTypeFromindex(stateAttributeTypeCombo.getSelectionIndex());
+//        		stateAttribute.setType(stateAttributeType);
+//        		stateChange.getStateAttribute().add(stateAttribute);
+//        		TableItem item = new TableItem(stateAttributeTable, 0);
+//        		item.setText(stateAttribute.toString());
+//        	}
+//		});
+//		
+//		Button removeButton = new Button(stateAttributeGroup, SWT.PUSH);
+//		removeButton.setText("Remove");
+//		removeButton.addSelectionListener(new SelectionAdapter() {
+//        	@Override
+//			public void widgetSelected (SelectionEvent e) {
+//        		int stateAttributeTableIndex = stateAttributeTable.getSelectionIndex();
+//        		stateChange.getStateAttribute().remove(stateAttributeTableIndex);
+//        		stateAttributeTable.remove(stateAttributeTableIndex);
+//        	}
+//		});
 		
 		// State value
         Group stateValueGroup = new Group(dialog, SWT.NONE);

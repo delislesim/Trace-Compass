@@ -1,7 +1,5 @@
 package org.eclipse.tracecompass.tmf.attributetree.ui.views;
 
-import java.io.File;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -32,7 +30,7 @@ import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNo
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeValueNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;
-import org.eclipse.tracecompass.tmf.attributetree.ui.Activator;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.ui.IActionBars;
 import org.w3c.dom.Document;
@@ -42,8 +40,9 @@ public class AttributeTreeView extends TmfView {
 	
 	private Composite composite;
 	private AttributeTreeComposite attributeTree;
+	private IPath xmlPath;
 	
-	private static final String ATTRIBUTETREE_XML_DIRECTORY = "attributetree_xml_files";
+	private int GRID_NUM_COLUMNS = 5;
 	
 	private enum NodeType {
 		CONSTANT, VARIABLE, VALUE
@@ -56,7 +55,7 @@ public class AttributeTreeView extends TmfView {
 	@Override
 	public void createPartControl(Composite parent) {
 		composite = new Composite(parent, SWT.NONE);
-		composite.setLayout(new GridLayout(5, false));
+		composite.setLayout(new GridLayout(GRID_NUM_COLUMNS, false));
 		
 		GridData gridData;
 		
@@ -69,6 +68,24 @@ public class AttributeTreeView extends TmfView {
 		addVariableAttributeButton.setText("Variable");
 		gridData = new GridData();
 		addConstantAttributeButton.setLayoutData(gridData);
+		
+		// TODO : à retirer lorsqu'il y aura des right click
+//		Button changeQueryVariableAttributeButton = new Button(composite, SWT.PUSH);
+//		changeQueryVariableAttributeButton.setText("Query");
+//		gridData = new GridData();
+//		changeQueryVariableAttributeButton.setLayoutData(gridData);
+//		
+//		changeQueryVariableAttributeButton.addSelectionListener(new SelectionAdapter() {
+//    		@Override
+//    		public void widgetSelected(SelectionEvent e) {
+//    			IStructuredSelection selection = (IStructuredSelection) attributeTree.getSelection();
+//    			if(!selection.isEmpty()) {
+//    				if(selection.getFirstElement() instanceof VariableAttributeNode) {
+//    					
+//    				}
+//    			}
+//    		}
+//		});
 		
 		Button addAttributeValueButton = new Button(composite, SWT.PUSH);
 		addAttributeValueButton.setText("Value");
@@ -131,9 +148,7 @@ public class AttributeTreeView extends TmfView {
 		});
 		
 		attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
-		IPath xmlPath = Activator.getDefault().getStateLocation();
-		xmlPath = xmlPath.addTrailingSeparator().append(ATTRIBUTETREE_XML_DIRECTORY);
-		xmlPath = xmlPath.addTrailingSeparator().append("attributetree.xml");
+		xmlPath = AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME);
 		if(xmlPath.toFile().exists()) {
 			attributeTree.setTreeViewerInput(xmlPath.toFile());
 		} else {
@@ -165,14 +180,6 @@ public class AttributeTreeView extends TmfView {
     				Transformer transformer = transformerFactory.newTransformer();
     				DOMSource source = new DOMSource(xmlFile);
     				
-    				IPath xmlPath = Activator.getDefault().getStateLocation();
-    				xmlPath = xmlPath.addTrailingSeparator().append(ATTRIBUTETREE_XML_DIRECTORY);
-    		        /* Check if directory exists, otherwise create it */
-    		        File dir = xmlPath.toFile();
-    		        if (!dir.exists() || !dir.isDirectory()) {
-    		            dir.mkdirs();
-    		        }
-    		        xmlPath = xmlPath.addTrailingSeparator().append("attributetree.xml");
     				StreamResult result = new StreamResult(xmlPath.toFile());
     				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");

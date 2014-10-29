@@ -2,12 +2,21 @@
  */
 package statemachine.impl;
 
+import java.util.Collection;
+
 import org.eclipse.emf.common.notify.Notification;
+import org.eclipse.emf.common.notify.NotificationChain;
+
+import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+
+import org.eclipse.emf.ecore.util.EObjectContainmentEList;
+import org.eclipse.emf.ecore.util.InternalEList;
 
 import statemachine.StateAttribute;
 import statemachine.StateAttributeType;
@@ -22,6 +31,7 @@ import statemachine.StatemachinePackage;
  * <ul>
  *   <li>{@link statemachine.impl.StateAttributeImpl#getType <em>Type</em>}</li>
  *   <li>{@link statemachine.impl.StateAttributeImpl#getValue <em>Value</em>}</li>
+ *   <li>{@link statemachine.impl.StateAttributeImpl#getStateAttributeQuery <em>State Attribute Query</em>}</li>
  * </ul>
  * </p>
  *
@@ -67,6 +77,16 @@ public class StateAttributeImpl extends MinimalEObjectImpl.Container implements 
 	 * @ordered
 	 */
 	protected String value = VALUE_EDEFAULT;
+
+	/**
+	 * The cached value of the '{@link #getStateAttributeQuery() <em>State Attribute Query</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getStateAttributeQuery()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<StateAttribute> stateAttributeQuery;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -134,6 +154,32 @@ public class StateAttributeImpl extends MinimalEObjectImpl.Container implements 
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EList<StateAttribute> getStateAttributeQuery() {
+		if (stateAttributeQuery == null) {
+			stateAttributeQuery = new EObjectContainmentEList<StateAttribute>(StateAttribute.class, this, StatemachinePackage.STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY);
+		}
+		return stateAttributeQuery;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
+		switch (featureID) {
+			case StatemachinePackage.STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY:
+				return ((InternalEList<?>)getStateAttributeQuery()).basicRemove(otherEnd, msgs);
+		}
+		return super.eInverseRemove(otherEnd, featureID, msgs);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
@@ -141,6 +187,8 @@ public class StateAttributeImpl extends MinimalEObjectImpl.Container implements 
 				return getType();
 			case StatemachinePackage.STATE_ATTRIBUTE__VALUE:
 				return getValue();
+			case StatemachinePackage.STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY:
+				return getStateAttributeQuery();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -150,6 +198,7 @@ public class StateAttributeImpl extends MinimalEObjectImpl.Container implements 
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
@@ -158,6 +207,10 @@ public class StateAttributeImpl extends MinimalEObjectImpl.Container implements 
 				return;
 			case StatemachinePackage.STATE_ATTRIBUTE__VALUE:
 				setValue((String)newValue);
+				return;
+			case StatemachinePackage.STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY:
+				getStateAttributeQuery().clear();
+				getStateAttributeQuery().addAll((Collection<? extends StateAttribute>)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -177,6 +230,9 @@ public class StateAttributeImpl extends MinimalEObjectImpl.Container implements 
 			case StatemachinePackage.STATE_ATTRIBUTE__VALUE:
 				setValue(VALUE_EDEFAULT);
 				return;
+			case StatemachinePackage.STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY:
+				getStateAttributeQuery().clear();
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -193,6 +249,8 @@ public class StateAttributeImpl extends MinimalEObjectImpl.Container implements 
 				return type != TYPE_EDEFAULT;
 			case StatemachinePackage.STATE_ATTRIBUTE__VALUE:
 				return VALUE_EDEFAULT == null ? value != null : !VALUE_EDEFAULT.equals(value);
+			case StatemachinePackage.STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY:
+				return stateAttributeQuery != null && !stateAttributeQuery.isEmpty();
 		}
 		return super.eIsSet(featureID);
 	}

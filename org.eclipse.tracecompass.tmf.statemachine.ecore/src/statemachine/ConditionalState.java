@@ -4,7 +4,6 @@ package statemachine;
 
 import org.eclipse.emf.common.util.EList;
 
-
 /**
  * <!-- begin-user-doc -->
  * A representation of the model object '<em><b>Conditional State</b></em>'.
@@ -28,7 +27,7 @@ public interface ConditionalState extends AbstractState {
 	 * The list contents are of type {@link statemachine.AbstractCondition}.
 	 * <!-- begin-user-doc -->
 	 * <p>
-	 * If the meaning of the '<em>Condition</em>' containment reference isn't clear,
+	 * If the meaning of the '<em>Condition</em>' containment reference list isn't clear,
 	 * there really should be more of a description here...
 	 * </p>
 	 * <!-- end-user-doc -->

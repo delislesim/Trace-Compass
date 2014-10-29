@@ -39,7 +39,7 @@ public interface StatemachinePackage extends EPackage {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	String eNS_URI = "org.eclipse.linuxtools.tmf.statemachine";
+	String eNS_URI = "org.eclipse.tracecompass.tmf.statemachine";
 
 	/**
 	 * The package namespace name.
@@ -564,13 +564,22 @@ public interface StatemachinePackage extends EPackage {
 	int STATE_ATTRIBUTE__VALUE = 1;
 
 	/**
+	 * The feature id for the '<em><b>State Attribute Query</b></em>' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY = 2;
+
+	/**
 	 * The number of structural features of the '<em>State Attribute</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int STATE_ATTRIBUTE_FEATURE_COUNT = 2;
+	int STATE_ATTRIBUTE_FEATURE_COUNT = 3;
 
 	/**
 	 * The number of operations of the '<em>State Attribute</em>' class.
@@ -1078,6 +1087,17 @@ public interface StatemachinePackage extends EPackage {
 	EAttribute getStateAttribute_Value();
 
 	/**
+	 * Returns the meta object for the containment reference list '{@link statemachine.StateAttribute#getStateAttributeQuery <em>State Attribute Query</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the containment reference list '<em>State Attribute Query</em>'.
+	 * @see statemachine.StateAttribute#getStateAttributeQuery()
+	 * @see #getStateAttribute()
+	 * @generated
+	 */
+	EReference getStateAttribute_StateAttributeQuery();
+
+	/**
 	 * Returns the meta object for class '{@link statemachine.ConditionalState <em>Conditional State</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1439,6 +1459,14 @@ public interface StatemachinePackage extends EPackage {
 		 * @generated
 		 */
 		EAttribute STATE_ATTRIBUTE__VALUE = eINSTANCE.getStateAttribute_Value();
+
+		/**
+		 * The meta object literal for the '<em><b>State Attribute Query</b></em>' containment reference list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference STATE_ATTRIBUTE__STATE_ATTRIBUTE_QUERY = eINSTANCE.getStateAttribute_StateAttributeQuery();
 
 		/**
 		 * The meta object literal for the '{@link statemachine.impl.ConditionalStateImpl <em>Conditional State</em>}' class.

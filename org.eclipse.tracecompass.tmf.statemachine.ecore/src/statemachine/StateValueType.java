@@ -96,7 +96,9 @@ public enum StateValueType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	QUERY(7, "query", "query"), /**
+	QUERY(7, "query", "query"),
+
+	/**
 	 * The '<em><b>Defined State</b></em>' literal object.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->

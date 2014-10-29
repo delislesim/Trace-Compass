@@ -1,6 +1,9 @@
 package org.eclipse.tracecompass.tmf.attributetree.core.model;
 
 public class VariableAttributeNode extends AbstractAttributeNode {
+	
+	private boolean isQuery = false;
+	private AttributeTreePath QueryPath;
 
 	public VariableAttributeNode(AbstractAttributeNode parent) {
 		super(parent);
@@ -11,5 +14,21 @@ public class VariableAttributeNode extends AbstractAttributeNode {
 		super(parent);
 		nodeName = name;	
 	}
-
+	
+	public void setIsQuery(boolean query) {
+		isQuery = query;
+	}
+	
+	public boolean getIsQuery() {
+		return isQuery;
+	}
+	
+	public void setQueryPath(AttributeTreePath path) {
+		isQuery = true;
+		QueryPath = path;
+	}
+	
+	public AttributeTreePath getQueryPath() {
+		return QueryPath;
+	}
 }

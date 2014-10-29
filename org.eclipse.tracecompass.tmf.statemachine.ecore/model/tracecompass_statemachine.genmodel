@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/org.eclipse.tracecompass.tmf.statemachine.ecore/src"
+    modelPluginID="org.eclipse.tracecompass.tmf.statemachine.ecore" modelName="Tracecompass_statemachine"
+    rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container" importerID="org.eclipse.emf.importer.ecore"
+    complianceLevel="7.0" copyrightFields="false" operationReflection="true" importOrganizing="true">
+  <foreignModel>state_machine.ecore</foreignModel>
+  <genPackages prefix="Statemachine" disposableProviderFactory="true" ecorePackage="state_machine.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="state_machine.ecore#//StateValueType">
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/int"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/null"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/string"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/long"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/eventField"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/eventName"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/delete"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/query"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateValueType/definedState"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="state_machine.ecore#//StateAttributeType">
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateAttributeType/null"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateAttributeType/constant"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateAttributeType/eventField"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateAttributeType/location"/>
+      <genEnumLiterals ecoreEnumLiteral="state_machine.ecore#//StateAttributeType/query"/>
+    </genEnums>
+    <genClasses ecoreClass="state_machine.ecore#//Statemachine">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//Statemachine/states"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//Named">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//Named/name"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="state_machine.ecore#//AbstractState">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//AbstractState/transitions"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="state_machine.ecore#//AbstractTransition">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference state_machine.ecore#//AbstractTransition/state"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//AbstractTransition/stateChange"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//InitialState"/>
+    <genClasses ecoreClass="state_machine.ecore#//FinalState"/>
+    <genClasses ecoreClass="state_machine.ecore#//State"/>
+    <genClasses ecoreClass="state_machine.ecore#//Transition"/>
+    <genClasses ecoreClass="state_machine.ecore#//ConditionalTransition"/>
+    <genClasses ecoreClass="state_machine.ecore#//StateValue">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//StateValue/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//StateValue/value"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//StateAttribute">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//StateAttribute/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//StateAttribute/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//StateAttribute/stateAttributeQuery"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//ConditionalState">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//ConditionalState/condition"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//ConditionalState/andExpression"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//StateChange">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//StateChange/stateAttribute"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//StateChange/stateValue"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//AbstractCondition">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//AbstractCondition/stateValue"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//AbstractCondition/isNotCondition"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//FieldCondition">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute state_machine.ecore#//FieldCondition/fieldName"/>
+    </genClasses>
+    <genClasses ecoreClass="state_machine.ecore#//AttributeCondition">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference state_machine.ecore#//AttributeCondition/stateAttribute"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

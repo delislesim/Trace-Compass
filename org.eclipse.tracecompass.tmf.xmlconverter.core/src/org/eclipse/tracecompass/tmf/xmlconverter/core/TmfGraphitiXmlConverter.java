@@ -39,7 +39,6 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 	private String fInitialStateTag = "statemachine:InitialState";
 	private String fFinalStateTag = "statemachine:FinalState";
 	private String fTransitionsTag = "statemachine:Transition";
-	private String fConditionalTransitionsTag = "statemachine:ConditionalTransitions";
 	
 	private Map<Integer, Node> fStatesList = new HashMap<Integer, Node>();
 	private Map<Integer, Node> fTransitionsList = new HashMap<Integer, Node>();

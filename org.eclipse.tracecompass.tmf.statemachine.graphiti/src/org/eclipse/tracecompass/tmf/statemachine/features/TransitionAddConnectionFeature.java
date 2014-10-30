@@ -51,7 +51,7 @@ public class TransitionAddConnectionFeature extends AbstractAddFeature {
 		Transition addedTransition = (Transition) context.getNewObject();
 		if(addedTransition.eResource() == null) {
 			getDiagram().eResource().getContents().add(addedTransition);
-		}		
+		}
 		link(connection, addedTransition);
 		
 		ConnectionDecorator nameDecorator = peCreateService.createConnectionDecorator(connection, true, 0.5, true);

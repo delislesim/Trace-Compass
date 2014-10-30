@@ -1,9 +1,5 @@
 package org.eclipse.tracecompass.tmf.statemachine.property;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
 import org.eclipse.graphiti.features.IFeature;
 import org.eclipse.graphiti.features.context.IContext;
 import org.eclipse.graphiti.features.context.impl.CustomContext;
@@ -41,7 +37,6 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetWidgetFactory;
 
 import statemachine.AbstractTransition;
-import statemachine.StateAttribute;
 import statemachine.StateChange;
 import statemachine.StateValue;
 import statemachine.StateValueType;
@@ -188,7 +183,6 @@ public class TransitionSection extends GFPropertySection implements ITabbedPrope
 				IStructuredSelection selection = attributeTree.getSelection();
 				AbstractAttributeNode selectedNode = (AbstractAttributeNode)selection.getFirstElement();
 				selectedPath = new AttributeTreePath(selectedNode);
-				stateChange.getStateAttribute().addAll(selectedPath.getAllStateAttribute());
 			}
         	
         });
@@ -314,6 +308,7 @@ public class TransitionSection extends GFPropertySection implements ITabbedPrope
         		stateValue.setValue(stateValueText.getText());
         		stateValue.setType(util.getStateValueTypeFromindex(stateValueTypeCombo.getSelectionIndex()));
         		stateChange.setStateValue(stateValue);
+        		stateChange.getStateAttribute().addAll(selectedPath.getAllStateAttribute());
         		saveStateChange(stateChange);
         		dialog.close();
         	}

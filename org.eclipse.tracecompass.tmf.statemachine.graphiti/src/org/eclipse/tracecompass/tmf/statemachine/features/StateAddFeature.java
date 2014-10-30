@@ -8,7 +8,6 @@ import org.eclipse.graphiti.mm.algorithms.Ellipse;
 import org.eclipse.graphiti.mm.algorithms.Text;
 import org.eclipse.graphiti.mm.algorithms.styles.Orientation;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
-import org.eclipse.graphiti.mm.pictograms.Diagram;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.mm.pictograms.Shape;
 import org.eclipse.graphiti.services.Graphiti;
@@ -16,6 +15,7 @@ import org.eclipse.graphiti.services.IGaService;
 import org.eclipse.graphiti.services.IPeCreateService;
 
 import statemachine.State;
+import statemachine.Statemachine;
 
 public class StateAddFeature extends AbstractAddFeature {
 	
@@ -29,24 +29,22 @@ public class StateAddFeature extends AbstractAddFeature {
 	public boolean canAdd(IAddContext context) {
 		final Object newObject = context.getNewObject();
 		if(newObject instanceof State){
-			if(context.getTargetContainer() instanceof Diagram){
-				return true;
-			}
+			Object bo = getBusinessObjectForPictogramElement(context.getTargetContainer().getLink().getPictogramElement());
+			return bo instanceof Statemachine;
 		}
 		return false;
 	}
 
 	@Override
 	public PictogramElement add(IAddContext context) {
-		Diagram targetDiagram = (Diagram) context.getTargetContainer();
+		ContainerShape targetStateMachine = context.getTargetContainer();
 		IPeCreateService peCreateService = Graphiti.getPeCreateService();
 		IGaService gaService = Graphiti.getGaService();
 		
 		State addedState = (State) context.getNewObject();
 
-		ContainerShape containerShape = peCreateService.createContainerShape(targetDiagram, true);
+		ContainerShape containerShape = peCreateService.createContainerShape(targetStateMachine, true);
 		Ellipse ellipse = gaService.createEllipse(containerShape);
-		//RoundedRectangle roundedRectangle = gaService.createRoundedRectangle(containerShape, 5, 5);
 		gaService.setLocationAndSize(ellipse, context.getX(), context.getY(), context.getWidth(), context.getHeight());
 		ellipse.setFilled(false);
 		ellipse.setHeight(stateSize);

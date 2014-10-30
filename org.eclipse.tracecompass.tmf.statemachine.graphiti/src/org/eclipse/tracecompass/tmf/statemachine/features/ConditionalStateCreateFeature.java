@@ -3,9 +3,8 @@ package org.eclipse.tracecompass.tmf.statemachine.features;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.ICreateContext;
 import org.eclipse.graphiti.features.impl.AbstractCreateFeature;
-import org.eclipse.graphiti.mm.pictograms.Diagram;
-
 import statemachine.ConditionalState;
+import statemachine.Statemachine;
 import statemachine.StatemachineFactory;
 
 public class ConditionalStateCreateFeature extends AbstractCreateFeature {
@@ -16,13 +15,16 @@ public class ConditionalStateCreateFeature extends AbstractCreateFeature {
 
 	@Override
 	public boolean canCreate(ICreateContext context) {
-		return context.getTargetContainer() instanceof Diagram;
+		Object bo = getBusinessObjectForPictogramElement(context.getTargetContainer().getLink().getPictogramElement());
+		return bo instanceof Statemachine;
 	}
 
 	@Override
 	public Object[] create(ICreateContext context) {
 		ConditionalState conditionalState = StatemachineFactory.eINSTANCE.createConditionalState();
 		conditionalState.setName("Condition");
+		Statemachine bo = (Statemachine) getBusinessObjectForPictogramElement(context.getTargetContainer().getLink().getPictogramElement());
+		bo.getStates().add(conditionalState);
 		addGraphicalRepresentation(context, conditionalState);
 		getFeatureProvider().getDirectEditingInfo().setActive(true);
 		return new Object[] { conditionalState };

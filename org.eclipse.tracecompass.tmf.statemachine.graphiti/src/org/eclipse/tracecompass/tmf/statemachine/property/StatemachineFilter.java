@@ -5,6 +5,8 @@ import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.services.Graphiti;
 import org.eclipse.graphiti.ui.platform.AbstractPropertySectionFilter;
 
+import statemachine.Statemachine;
+
 public class StatemachineFilter extends AbstractPropertySectionFilter {
 
 	@Override
@@ -12,7 +14,7 @@ public class StatemachineFilter extends AbstractPropertySectionFilter {
 		EObject eObject =
 	            Graphiti.getLinkService()
 	            .getBusinessObjectForLinkedPictogramElement(pictogramElement);
-	        if (eObject instanceof EObject) {
+	        if (eObject instanceof Statemachine) {
 	            return true;
 	        }
 	        return false;

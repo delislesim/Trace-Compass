@@ -52,6 +52,8 @@ public class StatemachineAddFeature extends AbstractAddFeature {
 		
 		RoundedRectangle roundedRectangle = gaService.createRoundedRectangle(containerShape, 5, 5);
 		roundedRectangle.setForeground(manageColor(IColorConstant.BLACK));
+		roundedRectangle.setBackground(manageColor(IColorConstant.WHITE));
+		roundedRectangle.setTransparency(0.7);
 		roundedRectangle.setLineWidth(2);
 		gaService.setLocationAndSize(roundedRectangle, context.getX(), context.getY(), width, height);
 		

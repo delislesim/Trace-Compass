@@ -46,23 +46,12 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 		}
 		
 		if(sourceState != null) {
-			//TODO: Ajouter la transition au tableau du state source
-//			TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(sourceState);
-//
-//			editingDomain.getCommandStack().execute(new RecordingCommand(editingDomain) {
-//
-//				@Override
-//				protected void doExecute() {
-//					sourceState.getTransitions().add(transition);
-//				}
-//			});
+			sourceState.getTransitions().add(transition);
 		}
 		
 		AddConnectionContext addContext = new AddConnectionContext(context.getSourceAnchor(), context.getTargetAnchor());
 		addContext.setNewObject(transition);
 		newConnection = (Connection) getFeatureProvider().addIfPossible(addContext);
-		
-		getDiagram().eResource().getContents().add(transition);
 
 		return newConnection;
 	}

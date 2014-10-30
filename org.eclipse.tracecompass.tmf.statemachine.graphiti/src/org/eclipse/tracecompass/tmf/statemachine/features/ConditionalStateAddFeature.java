@@ -5,13 +5,14 @@ import org.eclipse.graphiti.features.context.IAddContext;
 import org.eclipse.graphiti.features.impl.AbstractAddFeature;
 import org.eclipse.graphiti.mm.algorithms.Polygon;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
-import org.eclipse.graphiti.mm.pictograms.Diagram;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.services.Graphiti;
 import org.eclipse.graphiti.services.IGaService;
 import org.eclipse.graphiti.services.IPeCreateService;
 
+import statemachine.AbstractState;
 import statemachine.ConditionalState;
+import statemachine.Statemachine;
 
 public class ConditionalStateAddFeature extends AbstractAddFeature {
 	
@@ -24,23 +25,22 @@ public class ConditionalStateAddFeature extends AbstractAddFeature {
 	@Override
 	public boolean canAdd(IAddContext context) {
 		final Object newObject = context.getNewObject();
-		if(newObject instanceof ConditionalState){
-			if(context.getTargetContainer() instanceof Diagram){
-				return true;
-			}
+		if(newObject instanceof AbstractState){
+			Object bo = getBusinessObjectForPictogramElement(context.getTargetContainer().getLink().getPictogramElement());
+			return bo instanceof Statemachine;
 		}
 		return false;
 	}
 
 	@Override
 	public PictogramElement add(IAddContext context) {
-		Diagram targetDiagram = (Diagram) context.getTargetContainer();
+		ContainerShape targetStateMachine = context.getTargetContainer();
 		IPeCreateService peCreateService = Graphiti.getPeCreateService();
 		IGaService gaService = Graphiti.getGaService();
 		
 		ConditionalState addedCondition = (ConditionalState) context.getNewObject();
 
-		ContainerShape containerShape = peCreateService.createContainerShape(targetDiagram, true);
+		ContainerShape containerShape = peCreateService.createContainerShape(targetStateMachine, true);
 		// top, middle-right, bottom, middle-left
 		int xy[] = new int[] { 50, 0, 100, 50, 50, 100, 0, 50 };
 		Polygon diamond = gaService.createPlainPolygon(containerShape, xy);

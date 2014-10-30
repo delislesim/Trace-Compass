@@ -15,7 +15,7 @@
       <styles xmi:type="notation:FilteringStyle" xmi:id="_f_NdokAEEeSFr4nb-cDIYw"/>
     </children>
     <element xmi:type="ecore:EClass" href="state_machine.ecore#//Statemachine"/>
-    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_f_GI4UAEEeSFr4nb-cDIYw" x="72" y="264"/>
+    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_f_GI4UAEEeSFr4nb-cDIYw" x="60" y="240"/>
   </children>
   <children xmi:type="notation:Shape" xmi:id="_f_Ndo0AEEeSFr4nb-cDIYw" type="2001" fontName="Segoe UI">
     <children xmi:type="notation:DecorationNode" xmi:id="_f_OEsEAEEeSFr4nb-cDIYw" type="5001"/>

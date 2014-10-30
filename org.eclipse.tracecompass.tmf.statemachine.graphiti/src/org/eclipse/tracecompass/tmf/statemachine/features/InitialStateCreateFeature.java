@@ -3,9 +3,8 @@ package org.eclipse.tracecompass.tmf.statemachine.features;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.ICreateContext;
 import org.eclipse.graphiti.features.impl.AbstractCreateFeature;
-import org.eclipse.graphiti.mm.pictograms.Diagram;
-
 import statemachine.InitialState;
+import statemachine.Statemachine;
 import statemachine.StatemachineFactory;
 
 public class InitialStateCreateFeature extends AbstractCreateFeature {
@@ -16,15 +15,17 @@ public class InitialStateCreateFeature extends AbstractCreateFeature {
 
 	@Override
 	public boolean canCreate(ICreateContext context) {
-		return context.getTargetContainer() instanceof Diagram;
+		Object bo = getBusinessObjectForPictogramElement(context.getTargetContainer().getLink().getPictogramElement());
+		return bo instanceof Statemachine;
 	}
 
 	@Override
 	public Object[] create(ICreateContext context) {
 		InitialState initialState = StatemachineFactory.eINSTANCE.createInitialState();
 		initialState.setName("Initial State");
+		Statemachine bo = (Statemachine) getBusinessObjectForPictogramElement(context.getTargetContainer().getLink().getPictogramElement());
+		bo.getStates().add(initialState);
 		addGraphicalRepresentation(context, initialState);
-		getDiagram().eResource().getContents().add(initialState);
 		
 		return new Object[] { initialState };
 	}

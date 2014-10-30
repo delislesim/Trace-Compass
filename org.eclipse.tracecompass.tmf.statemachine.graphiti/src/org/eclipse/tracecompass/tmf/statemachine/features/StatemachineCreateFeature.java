@@ -1,9 +1,13 @@
 package org.eclipse.tracecompass.tmf.statemachine.features;
 
+import java.util.Vector;
+
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.ICreateContext;
 import org.eclipse.graphiti.features.impl.AbstractCreateFeature;
 import org.eclipse.graphiti.mm.pictograms.Diagram;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
 
 import statemachine.Statemachine;
 import statemachine.StatemachineFactory;

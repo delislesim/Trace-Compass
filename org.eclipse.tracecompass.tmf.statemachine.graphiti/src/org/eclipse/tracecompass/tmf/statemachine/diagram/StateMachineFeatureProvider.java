@@ -19,8 +19,6 @@ import org.eclipse.graphiti.ui.features.DefaultFeatureProvider;
 import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalStateAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalStateCreateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalStateLayoutFeature;
-import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalTransitionAddConnectionFeature;
-import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalTransitionCreateConnectionFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.FinalStateAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.FinalStateCreateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.InitialStateAddFeature;
@@ -39,7 +37,6 @@ import org.eclipse.tracecompass.tmf.statemachine.features.TransitionsUpdateFeatu
 import statemachine.AbstractState;
 import statemachine.AbstractTransition;
 import statemachine.ConditionalState;
-import statemachine.ConditionalTransition;
 import statemachine.FinalState;
 import statemachine.InitialState;
 import statemachine.State;
@@ -60,7 +57,7 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 	
 	@Override
 	public ICreateConnectionFeature[] getCreateConnectionFeatures() {
-		return new ICreateConnectionFeature[] {new TransitionCreateConnectionFeature(this), new ConditionalTransitionCreateConnectionFeature(this)};
+		return new ICreateConnectionFeature[] {new TransitionCreateConnectionFeature(this)};
 	}
 	
 	@Override
@@ -68,8 +65,6 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 		if (context instanceof IAddConnectionContext) {
 			if (context.getNewObject() instanceof Transition) {
 				return new TransitionAddConnectionFeature(this);
-			} else if (context.getNewObject() instanceof ConditionalTransition) {
-				return new ConditionalTransitionAddConnectionFeature(this);
 			}
 		} else if (context instanceof IAddContext) {
 			if (context.getNewObject() instanceof State) {

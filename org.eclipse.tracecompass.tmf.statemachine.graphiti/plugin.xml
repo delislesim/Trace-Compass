@@ -47,12 +47,12 @@
       point="org.eclipse.ui.views.properties.tabbed.propertySections">
     <propertySections
           contributorId="State Machine.PropertyContributor">
-        <!--<propertySection
+        <propertySection
               class="org.eclipse.tracecompass.tmf.statemachine.property.StatemachineSection"
               filter="org.eclipse.tracecompass.tmf.statemachine.property.StatemachineFilter"
               id="graphiti.main.tab.statemachine"
               tab="graphiti.main.tab">
-        </propertySection>-->
+        </propertySection>
         <!-- State section -->
         <propertySection
               class="org.eclipse.tracecompass.tmf.statemachine.property.StateSection"

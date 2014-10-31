@@ -186,75 +186,6 @@ public class TransitionSection extends GFPropertySection implements ITabbedPrope
 			}
         	
         });
-        
-//        Label stateAttributeTypeLabel = new Label(stateAttributeGroup, SWT.NONE);
-//        stateAttributeTypeLabel.setText("Type");
-//        
-//        final Combo stateAttributeTypeCombo = new Combo(stateAttributeGroup, SWT.READ_ONLY);
-//        stateAttributeTypeCombo.setItems(util.getStateAttributeTypeString());
-//        stateAttributeTypeCombo.select(1); //TODO : C'est pas bon de faire ça !!!
-//        gridData = new GridData();
-//        gridData.horizontalAlignment = SWT.FILL;
-//        gridData.grabExcessHorizontalSpace = true;
-//        stateAttributeTypeCombo.setLayoutData(gridData);
-//        
-//        Label stateAttributeValueLabel = new Label(stateAttributeGroup, SWT.NONE);
-//        stateAttributeValueLabel.setText("Value");
-//        
-//        final Text stateAttributeValueText = new Text(stateAttributeGroup, SWT.SINGLE);
-//        gridData = new GridData();
-//        gridData.horizontalAlignment = SWT.FILL;
-//        gridData.grabExcessHorizontalSpace = true;
-//        stateAttributeValueText.setLayoutData(gridData);
-//        
-//        final Table stateAttributeTable = new Table(stateAttributeGroup, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-//        gridData = new GridData();
-//        gridData.horizontalAlignment = SWT.FILL;
-//        gridData.verticalAlignment = SWT.FILL;
-//        gridData.verticalSpan = 2;
-//        stateAttributeTable.setLayoutData(gridData);
-//        stateAttributeTable.removeAll();
-//		for (int i = 0; i < stateChange.getStateAttribute().size(); i++) {
-//			TableItem item = new TableItem(stateAttributeTable, 0);
-//			item.setText(stateChange.getStateAttribute().get(i).toString());
-//		}
-//		stateAttributeTable.addSelectionListener(new SelectionAdapter() {
-//        	@Override
-//			public void widgetSelected (SelectionEvent e) {
-//        		int selectedAttributeIndex = stateAttributeTable.getSelectionIndex();
-//        		StateAttribute selectedAttribute = stateChange.getStateAttribute().get(selectedAttributeIndex);
-//        		stateAttributeValueText.setText(selectedAttribute.getValue());
-//        		StateAttributeType selectedAttributeType  = selectedAttribute.getType();
-//        		int typeComboIndex = util.getIndexFromAttributeType(selectedAttributeType);
-//        		stateAttributeTypeCombo.select(typeComboIndex);
-//        	}
-//		});
-//		
-//		Button addButton = new Button(stateAttributeGroup, SWT.PUSH);
-//		addButton.setText("Add");
-//		addButton.addSelectionListener(new SelectionAdapter() {
-//        	@Override
-//			public void widgetSelected (SelectionEvent e) {
-//        		StateAttribute stateAttribute = StatemachineFactory.eINSTANCE.createStateAttribute();
-//        		stateAttribute.setValue(stateAttributeValueText.getText());
-//        		StateAttributeType stateAttributeType = util.getAttributeTypeFromindex(stateAttributeTypeCombo.getSelectionIndex());
-//        		stateAttribute.setType(stateAttributeType);
-//        		stateChange.getStateAttribute().add(stateAttribute);
-//        		TableItem item = new TableItem(stateAttributeTable, 0);
-//        		item.setText(stateAttribute.toString());
-//        	}
-//		});
-//		
-//		Button removeButton = new Button(stateAttributeGroup, SWT.PUSH);
-//		removeButton.setText("Remove");
-//		removeButton.addSelectionListener(new SelectionAdapter() {
-//        	@Override
-//			public void widgetSelected (SelectionEvent e) {
-//        		int stateAttributeTableIndex = stateAttributeTable.getSelectionIndex();
-//        		stateChange.getStateAttribute().remove(stateAttributeTableIndex);
-//        		stateAttributeTable.remove(stateAttributeTableIndex);
-//        	}
-//		});
 		
 		// State value
         Group stateValueGroup = new Group(dialog, SWT.NONE);
@@ -381,36 +312,4 @@ public class TransitionSection extends GFPropertySection implements ITabbedPrope
 		}
 		return null;
 	}
-	/*private void saveStateAttribute(String stateAttributeTypeString, String stateAttributeValue) {
-		StateAttribute stateAttribute = StatemachineFactory.eINSTANCE.createStateAttribute();
-		stateAttribute.setValue(stateAttributeValue);
-		StateAttributeType stateAttributeType = StateAttributeType.getByName(stateAttributeTypeString);
-		stateAttribute.setType(stateAttributeType);
-		
-		final StateChange stateChange = StatemachineFactory.eINSTANCE.createStateChange();
-		stateChange.getStateAttribute().add(stateAttribute);
-		
-		IFeature feature = new AbstractFeature(getDiagramTypeProvider().getFeatureProvider()) {
-
-			@Override
-			public boolean canExecute(IContext arg0) {
-				return true;
-			}
-
-			@Override
-			public void execute(IContext arg0) {
-				PictogramElement pe = getSelectedPictogramElement();
-				if (pe != null) {
-					Object bo = Graphiti.getLinkService().getBusinessObjectForLinkedPictogramElement(pe);
-					if (bo == null)
-						return;
-        			if(bo instanceof AbstractTransition) {
-        				((AbstractTransition) bo).getStateChange().add(stateChange);
-        			}        					
-				}
-			}
-		};
-		CustomContext context = new CustomContext();
-		execute(feature, context);
-	}*/
 }

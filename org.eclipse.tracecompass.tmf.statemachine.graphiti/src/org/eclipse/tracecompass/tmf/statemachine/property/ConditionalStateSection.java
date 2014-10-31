@@ -7,6 +7,9 @@ import org.eclipse.graphiti.features.impl.AbstractFeature;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.services.Graphiti;
 import org.eclipse.graphiti.ui.platform.GFPropertySection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -24,6 +27,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
+import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.tracecompass.tmf.statemachine.util.ConvertStatemachineType;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
@@ -33,7 +40,6 @@ import statemachine.AbstractCondition;
 import statemachine.AttributeCondition;
 import statemachine.ConditionalState;
 import statemachine.FieldCondition;
-import statemachine.StateAttribute;
 import statemachine.StateValue;
 import statemachine.StatemachineFactory;
 
@@ -44,6 +50,8 @@ public class ConditionalStateSection extends GFPropertySection implements ITabbe
 	
 	private Button ANDButton;
 	private Button ORButton;
+	
+	private AttributeTreePath selectedPath;
 	
 	private ConvertStatemachineType statemachineUtil = new ConvertStatemachineType();
 	
@@ -319,58 +327,18 @@ public class ConditionalStateSection extends GFPropertySection implements ITabbe
         gridData.horizontalSpan = 2;
         stateValueGroup.setLayoutData(gridData);
         
-        Label stateAttributeTypeLabel = new Label(stateAttributeGroup, SWT.NONE);
-        stateAttributeTypeLabel.setText("Type");
-        
-        final Combo stateAttributeTypeCombo = new Combo(stateAttributeGroup, SWT.READ_ONLY);
-        stateAttributeTypeCombo.setItems(statemachineUtil.getStateAttributeTypeString());
-        gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        stateAttributeTypeCombo.setLayoutData(gridData);
-        
-        Label stateAttributeValueLabel = new Label(stateAttributeGroup, SWT.NONE);
-        stateAttributeValueLabel.setText("Value");
-        
-        final Text stateAttributeValueText = new Text(stateAttributeGroup, SWT.SINGLE);
-        gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        stateAttributeValueText.setLayoutData(gridData);
-        
-        final Table stateAttributeTable = new Table(stateAttributeGroup, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.verticalAlignment = SWT.FILL;
-        gridData.verticalSpan = 2;
-        stateAttributeTable.setLayoutData(gridData);
-        
-        Button addButton = new Button(stateAttributeGroup, SWT.PUSH);
-        addButton.setText("Add attribute");
-        addButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		StateAttribute stateAttribute = StatemachineFactory.eINSTANCE.createStateAttribute();
-        		stateAttribute.setType(statemachineUtil.getAttributeTypeFromindex(stateAttributeTypeCombo.getSelectionIndex()));
-        		stateAttribute.setValue(stateAttributeValueText.getText());
-        		condition.getStateAttribute().add(stateAttribute);
-        		TableItem item = new TableItem(stateAttributeTable, 0);
-        		item.setText(stateAttribute.toString());
-        	}
+        final AttributeTreeComposite attributeTree = new AttributeTreeComposite(stateAttributeGroup, SWT.NONE);
+        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
+        attributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = attributeTree.getSelection();
+				AbstractAttributeNode selectedNode = (AbstractAttributeNode)selection.getFirstElement();
+				selectedPath = new AttributeTreePath(selectedNode);
+			}
+        	
         });
-        
-        Button removeButton = new Button(stateAttributeGroup, SWT.PUSH);
-        removeButton.setText("Remove attribute");
-        removeButton.addSelectionListener(new SelectionAdapter() {
-        	@Override
-			public void widgetSelected (SelectionEvent e) {
-        		int removeIndex = stateAttributeTable.getSelectionIndex();
-        		if(removeIndex >= 0) {
-        			condition.getStateAttribute().remove(removeIndex);
-        			stateAttributeTable.remove(removeIndex);
-        		}
-        	}
-		});
         
         Label stateValueTypeLabel = new Label(stateValueGroup, SWT.NONE);
         stateValueTypeLabel.setText("Type");
@@ -413,11 +381,12 @@ public class ConditionalStateSection extends GFPropertySection implements ITabbe
         okButton.addSelectionListener(new SelectionAdapter() {
         	@Override
 			public void widgetSelected (SelectionEvent e) {
+        		condition.getStateAttribute().addAll(selectedPath.getAllStateAttribute());
+        		
         		StateValue stateValue = StatemachineFactory.eINSTANCE.createStateValue();
         		stateValue.setType(statemachineUtil.getStateValueTypeFromindex(stateValueTypeCombo.getSelectionIndex()));
         		stateValue.setValue(stateValueText.getText());
         		condition.setStateValue(stateValue);
-        		
         		condition.setIsNotCondition(isNotConditionButton.getSelection());
         		
         		saveCondition(condition);

@@ -27,6 +27,7 @@ import org.eclipse.tracecompass.tmf.statemachine.features.StateAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StateCreateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatemachineAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatemachineCreateFeature;
+import org.eclipse.tracecompass.tmf.statemachine.features.StatemachineUpdateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatesDirectEditFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatesLayoutFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatesUpdateFeature;
@@ -115,6 +116,8 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 				return new StatesUpdateFeature(this);
 			} else if (bo instanceof AbstractTransition) {
 				return new TransitionsUpdateFeature(this);
+			} else if (bo instanceof Statemachine) {
+				return new StatemachineUpdateFeature(this);
 			}
 		}
 		return super.getUpdateFeature(context);

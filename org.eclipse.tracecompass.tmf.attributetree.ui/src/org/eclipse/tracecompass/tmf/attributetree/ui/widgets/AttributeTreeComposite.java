@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.tmf.attributetree.ui.widgets;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Stack;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,6 +24,7 @@ import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNo
 import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.ui.views.AttributeTreeContentProvider;
 import org.eclipse.tracecompass.tmf.attributetree.ui.views.AttributeTreeLabelProvider;
+import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,6 +36,8 @@ public class AttributeTreeComposite extends Composite {
 	private TreeViewer treeViewer;
 	
 	private AbstractAttributeNode invisibleRoot; // Hack pour voir la racine
+	
+	private Stack<Pair<AbstractAttributeNode, String>> queryNodeStack = new Stack<>();
 
 	public AttributeTreeComposite(Composite parent, int style) {
 		super(parent, style);
@@ -50,7 +54,8 @@ public class AttributeTreeComposite extends Composite {
         gridData.grabExcessVerticalSpace = true;
         treeViewer.getTree().setLayoutData(gridData);
         
-		treeViewer.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
+        treeViewer.setAutoExpandLevel(3);
+		//treeViewer.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
 		treeViewer.setContentProvider(new AttributeTreeContentProvider());
 		treeViewer.setLabelProvider(new AttributeTreeLabelProvider());
 		
@@ -105,6 +110,7 @@ public class AttributeTreeComposite extends Composite {
 		Node xmlRootNode = nodeList.item(0); // Only one root
 		invisibleRoot = new ConstantAttributeNode(null, ((Element)xmlRootNode).getAttribute("name"));
 		getTreeFromXml(xmlRootNode, invisibleRoot);
+		addQueryToTree();
 	}
 	
 	private void getTreeFromXml(Node parentNode, AbstractAttributeNode parentAttribute) {
@@ -120,10 +126,45 @@ public class AttributeTreeComposite extends Composite {
 				parent = new ConstantAttributeNode(parentAttribute, childElement.getAttribute("name"));
 			} else if (childElement.getAttribute("type").equals(VariableAttributeNode.class.getSimpleName())) {
 				parent = new VariableAttributeNode(parentAttribute, childElement.getAttribute("name"));
+				
+				String xpathQuery = childElement.getAttribute("query");
+				if(!xpathQuery.equals("")) {
+					queryNodeStack.push(new Pair<AbstractAttributeNode, String>(parent, xpathQuery));
+				}
 			} else if (childElement.getAttribute("type").equals(AttributeValueNode.class.getSimpleName())) {
 				parent = new AttributeValueNode(parentAttribute, childElement.getAttribute("name"));
 			}
 			getTreeFromXml(childNode, parent);
 		}
+	}
+	
+	private void addQueryToTree() {
+		while (!queryNodeStack.empty()) {
+			Pair<AbstractAttributeNode, String> queryPair = queryNodeStack.pop();
+			VariableAttributeNode node = (VariableAttributeNode) queryPair.getFirst();
+			String path = queryPair.getSecond();
+
+			String[] splitedPath = path.split("/");
+			AbstractAttributeNode currentNode = invisibleRoot;
+			for (int i = 2; i < splitedPath.length; i++) { // Skip root + empty string
+				currentNode = searchNode(currentNode, splitedPath[i]);
+			}
+			node.setIsQuery(true);
+			node.setQueryPath(new AttributeTreePath(currentNode));
+		}
+	}
+	
+	private AbstractAttributeNode searchNode(AbstractAttributeNode parent, String nodeName) {
+		if(!parent.hasChildren()) {
+			return parent;
+		}
+		
+		for(AbstractAttributeNode child : parent.getChildren()) {
+			if(child.getName().replace(" ", "").equals(nodeName)) {
+				return child;
+			}
+		}
+		
+		return null;
 	}
 }

@@ -13,7 +13,9 @@ import javax.xml.transform.stream.StreamResult;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -27,6 +29,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeValueNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;
@@ -70,22 +73,29 @@ public class AttributeTreeView extends TmfView {
 		addConstantAttributeButton.setLayoutData(gridData);
 		
 		// TODO : à retirer lorsqu'il y aura des right click
-//		Button changeQueryVariableAttributeButton = new Button(composite, SWT.PUSH);
-//		changeQueryVariableAttributeButton.setText("Query");
-//		gridData = new GridData();
-//		changeQueryVariableAttributeButton.setLayoutData(gridData);
-//		
-//		changeQueryVariableAttributeButton.addSelectionListener(new SelectionAdapter() {
-//    		@Override
-//    		public void widgetSelected(SelectionEvent e) {
-//    			IStructuredSelection selection = (IStructuredSelection) attributeTree.getSelection();
-//    			if(!selection.isEmpty()) {
-//    				if(selection.getFirstElement() instanceof VariableAttributeNode) {
-//    					
-//    				}
-//    			}
-//    		}
-//		});
+		Button changeQueryVariableAttributeButton = new Button(composite, SWT.PUSH);
+		changeQueryVariableAttributeButton.setText("Query");
+		gridData = new GridData();
+		changeQueryVariableAttributeButton.setLayoutData(gridData);
+		
+		changeQueryVariableAttributeButton.addSelectionListener(new SelectionAdapter() {
+    		@Override
+    		public void widgetSelected(SelectionEvent e) {
+    			IStructuredSelection selection = (IStructuredSelection) attributeTree.getSelection();
+    			if(!selection.isEmpty()) {
+    				if(selection.getFirstElement() instanceof VariableAttributeNode) {
+    					VariableAttributeNode queryNode = (VariableAttributeNode)selection.getFirstElement();
+    					if(queryNode.getIsQuery()) {
+    						queryNode.setIsQuery(false);
+    						queryNode.setQueryPath(null);
+    					} else {
+	    					queryDialog(composite.getDisplay(), queryNode);
+    					}
+    					attributeTree.refresh();
+    				}
+    			}
+    		}
+		});
 		
 		Button addAttributeValueButton = new Button(composite, SWT.PUSH);
 		addAttributeValueButton.setText("Value");
@@ -261,6 +271,36 @@ public class AttributeTreeView extends TmfView {
         		dialog.close();
         	}
 		});
+        
+        dialog.pack();
+        dialog.open();
+		while (!dialog.isDisposed()) {
+			if (!display.readAndDispatch())
+				display.sleep();
+		}
+	}
+	
+	// TODO A corriger (mettre en mémoire l'arbre)
+	private void queryDialog(Display display, final VariableAttributeNode queryNode) {
+		final Shell dialog = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+        dialog.setLayout (new GridLayout(1, false));
+        dialog.setText("Query path");
+        
+        final AttributeTreeComposite queryAttributeTree = new AttributeTreeComposite(dialog, SWT.NONE);
+        queryAttributeTree.setTreeViewerInput(xmlPath.toFile());
+        
+        queryAttributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = queryAttributeTree.getSelection();
+				AbstractAttributeNode selectedNode = (AbstractAttributeNode)selection.getFirstElement();
+				queryNode.setIsQuery(true);
+				queryNode.setQueryPath(new AttributeTreePath(selectedNode));
+				dialog.close();
+			}
+        	
+        });
         
         dialog.pack();
         dialog.open();

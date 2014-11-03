@@ -24,7 +24,6 @@ public class VariableAttributeNode extends AbstractAttributeNode {
 	}
 	
 	public void setQueryPath(AttributeTreePath path) {
-		isQuery = true;
 		QueryPath = path;
 	}
 	

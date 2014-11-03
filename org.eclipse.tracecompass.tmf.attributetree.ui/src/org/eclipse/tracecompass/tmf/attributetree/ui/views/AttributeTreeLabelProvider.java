@@ -52,7 +52,12 @@ public class AttributeTreeLabelProvider implements ILabelProvider {
 
 	@Override
 	public String getText(Object element) {
-		if (element instanceof AbstractAttributeNode) {
+		if (element instanceof VariableAttributeNode) {
+			if(((VariableAttributeNode) element).getIsQuery()) {
+				return "$ " + ((VariableAttributeNode) element).getName() + " (" + ((VariableAttributeNode) element).getQueryPath().getXpathFromAttributeTreePath() + ")";
+			}
+			return "$ " + ((VariableAttributeNode) element).getName();
+		} else if (element instanceof AbstractAttributeNode) {
 			return ((AbstractAttributeNode) element).getName();
 		}
 		return null;

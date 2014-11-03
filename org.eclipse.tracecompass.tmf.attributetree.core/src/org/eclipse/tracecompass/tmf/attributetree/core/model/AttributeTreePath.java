@@ -14,6 +14,14 @@ public class AttributeTreePath {
 		buildTreePath(leaf);
 	}
 	
+	private void buildTreePath(AbstractAttributeNode leafNode) {
+		path.add(leafNode);
+		if(leafNode.getParent() == null) {
+			return;
+		}
+		buildTreePath(leafNode.getParent());
+	}
+	
 	public Vector<AbstractAttributeNode> getPath() {
 		return path;
 	}
@@ -24,7 +32,7 @@ public class AttributeTreePath {
 			StateAttribute stateAttribute = StatemachineFactory.eINSTANCE.createStateAttribute();
 			stateAttribute.setValue(path.get(i).getName());
 			StateAttributeType stateAttributeType;
-			if(path.get(i) instanceof VariableAttributeNode) {			
+			if(path.get(i) instanceof VariableAttributeNode) {	
 				VariableAttributeNode variableNode = (VariableAttributeNode)path.get(i);
 				if(variableNode.getIsQuery()) {
 					stateAttributeType = StateAttributeType.QUERY;
@@ -41,11 +49,11 @@ public class AttributeTreePath {
 		return stateAttributeList;
 	}
 	
-	private void buildTreePath(AbstractAttributeNode leafNode) {
-		path.add(leafNode);
-		if(leafNode.getParent() == null) {
-			return;
+	public String getXpathFromAttributeTreePath() {
+		String xPath = "";
+		for(int i = path.size()-1; i >= 0; i--) {
+			xPath += "/" + path.get(i).getName().replace(" ", "");
 		}
-		buildTreePath(leafNode.getParent());
+		return xPath;
 	}
 }

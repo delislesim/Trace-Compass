@@ -58,6 +58,9 @@ public abstract class AbstractAttributeNode {
 		Element node = xml.createElement(rootNode.getName().replace(" ", ""));
 		node.setAttribute("type", rootNode.getClass().getSimpleName());
 		node.setAttribute("name", rootNode.getName());
+		if(rootNode instanceof VariableAttributeNode && ((VariableAttributeNode) rootNode).getIsQuery()) {
+			node.setAttribute("query", ((VariableAttributeNode) rootNode).getQueryPath().getXpathFromAttributeTreePath());
+		}
 		for(AbstractAttributeNode child : rootNode.getChildren()) {
 			node.appendChild(createElement(child, xml));
 		}

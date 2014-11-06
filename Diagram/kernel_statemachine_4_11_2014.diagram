@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="ASCII"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:al="http://eclipse.org/graphiti/mm/algorithms" xmlns:pi="http://eclipse.org/graphiti/mm/pictograms" xmlns:statemachine="org.eclipse.tracecompass.tmf.statemachine">
+  <pi:Diagram visible="true" gridUnit="10" diagramTypeId="State Machine" name="kernel_statemachine" snapToGrid="true" pictogramLinks="/0/@children.0/@link /0/@children.0/@children.1/@link /0/@children.0/@children.2/@link /0/@children.0/@children.3/@link /0/@children.0/@children.4/@link /0/@children.0/@children.5/@link /0/@children.0/@children.6/@link /0/@children.0/@children.7/@link /0/@connections.0/@link /0/@children.0/@children.8/@link /0/@connections.1/@link /0/@children.0/@children.9/@link /0/@connections.2/@link /0/@connections.3/@link /0/@connections.4/@link /0/@children.0/@children.10/@link /0/@connections.5/@link /0/@connections.6/@link /0/@connections.7/@link /0/@connections.8/@link /0/@connections.9/@link /0/@connections.10/@link /0/@children.0/@children.11/@link /0/@children.0/@children.12/@link /0/@connections.11/@link /0/@connections.12/@link /0/@connections.13/@link /0/@connections.14/@link /0/@connections.15/@link /0/@connections.16/@link" version="0.11.0">
+    <graphicsAlgorithm xsi:type="al:Rectangle" background="/0/@colors.1" foreground="/0/@colors.0" lineWidth="1" transparency="0.0" width="1000" height="1000"/>
+    <children xsi:type="pi:ContainerShape" visible="true" active="true">
+      <graphicsAlgorithm xsi:type="al:RoundedRectangle" background="/0/@colors.1" foreground="/0/@colors.2" lineWidth="2" transparency="0.7" width="1116" height="500" x="20" y="42" cornerHeight="5" cornerWidth="5"/>
+      <link businessObjects="/1"/>
+      <children visible="true">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="2" filled="false" transparency="0.0">
+          <points y="50"/>
+          <points x="800" y="50"/>
+        </graphicsAlgorithm>
+      </children>
+      <children visible="true">
+        <graphicsAlgorithm xsi:type="al:Text" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0" width="800" height="50" horizontalAlignment="ALIGNMENT_CENTER" value="CPU"/>
+        <link businessObjects="/1"/>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Ellipse" lineWidth="1" filled="false" transparency="0.0" width="131" height="92" x="555" y="131"/>
+        <link businessObjects="/1/@states.0"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.14 /0/@connections.16" incomingConnections="/0/@connections.0 /0/@connections.2 /0/@connections.12"/>
+        <children visible="true">
+          <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" width="131" height="92" horizontalAlignment="ALIGNMENT_CENTER" value="CPU_USERMODE"/>
+        </children>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Ellipse" lineWidth="1" filled="false" transparency="0.0" width="121" height="92" x="560" y="306"/>
+        <link businessObjects="/1/@states.1"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.0 /0/@connections.15" incomingConnections="/0/@connections.3 /0/@connections.13 /0/@connections.16"/>
+        <children visible="true">
+          <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" width="121" height="92" horizontalAlignment="ALIGNMENT_CENTER" value="CPU_SYSCALL"/>
+        </children>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Ellipse" lineWidth="1" filled="false" transparency="0.0" width="75" height="75" x="220" y="271"/>
+        <link businessObjects="/1/@states.2"/>
+        <anchors xsi:type="pi:ChopboxAnchor" incomingConnections="/0/@connections.5"/>
+        <children visible="true">
+          <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" width="75" height="75" horizontalAlignment="ALIGNMENT_CENTER" value="CPU_IDLE"/>
+        </children>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Ellipse" lineWidth="1" filled="false" transparency="0.0" width="75" height="75" x="346" y="81"/>
+        <link businessObjects="/1/@states.3"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.4 /0/@connections.6" incomingConnections="/0/@connections.1"/>
+        <children visible="true">
+          <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" width="75" height="75" horizontalAlignment="ALIGNMENT_CENTER" value="CPU_IRQ"/>
+        </children>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Ellipse" lineWidth="1" filled="false" transparency="0.0" width="75" height="75" x="10" y="241"/>
+        <link businessObjects="/1/@states.4"/>
+        <anchors xsi:type="pi:ChopboxAnchor" incomingConnections="/0/@connections.10"/>
+        <children visible="true">
+          <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" width="75" height="75" horizontalAlignment="ALIGNMENT_CENTER" value="SOFT_IRQ"/>
+        </children>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Ellipse" lineWidth="1" filled="false" transparency="0.0" width="121" height="82" x="330" y="341"/>
+        <link businessObjects="/1/@states.5"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.8 /0/@connections.9" incomingConnections="/0/@connections.7"/>
+        <children visible="true">
+          <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" width="121" height="82" horizontalAlignment="ALIGNMENT_CENTER" value="CPU_SOFTIRQ"/>
+        </children>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Ellipse" lineWidth="1" filled="false" transparency="0.0" width="81" height="75" x="130" y="161"/>
+        <link businessObjects="/1/@states.6"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.1 /0/@connections.7 /0/@connections.10"/>
+        <children visible="true">
+          <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" width="81" height="75" horizontalAlignment="ALIGNMENT_CENTER" value="ALL_STATE"/>
+        </children>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Polygon" lineStyle="UNSPECIFIED" filled="false" width="50" height="50" x="440" y="200">
+          <points x="25"/>
+          <points x="50" y="25"/>
+          <points x="25" y="50"/>
+          <points y="25"/>
+        </graphicsAlgorithm>
+        <link businessObjects="/1/@states.7"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.2 /0/@connections.3" incomingConnections="/0/@connections.4 /0/@connections.8"/>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Polygon" lineStyle="UNSPECIFIED" filled="false" width="50" height="50" x="310" y="211">
+          <points x="25"/>
+          <points x="50" y="25"/>
+          <points x="25" y="50"/>
+          <points y="25"/>
+        </graphicsAlgorithm>
+        <link businessObjects="/1/@states.8"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.5" incomingConnections="/0/@connections.6 /0/@connections.9"/>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Polygon" lineStyle="UNSPECIFIED" filled="false" width="50" height="50" x="770" y="241">
+          <points x="25"/>
+          <points x="50" y="25"/>
+          <points x="25" y="50"/>
+          <points y="25"/>
+        </graphicsAlgorithm>
+        <link businessObjects="/1/@states.9"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.11" incomingConnections="/0/@connections.14 /0/@connections.15"/>
+      </children>
+      <children xsi:type="pi:ContainerShape" visible="true" active="true">
+        <graphicsAlgorithm xsi:type="al:Polygon" lineStyle="UNSPECIFIED" filled="false" width="50" height="50" x="900" y="241">
+          <points x="25"/>
+          <points x="50" y="25"/>
+          <points x="25" y="50"/>
+          <points y="25"/>
+        </graphicsAlgorithm>
+        <link businessObjects="/1/@states.10"/>
+        <anchors xsi:type="pi:ChopboxAnchor" outgoingConnections="/0/@connections.12 /0/@connections.13" incomingConnections="/0/@connections.11"/>
+      </children>
+    </children>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.3/@anchors.0" end="/0/@children.0/@children.2/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.1/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="10" font="/0/@fonts.0" value="exit_syscall"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+      <bendpoints x="677" y="306"/>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.8/@anchors.0" end="/0/@children.0/@children.5/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.6/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-78" y="-27" font="/0/@fonts.0" value="irq_handler_entry"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.9/@anchors.0" end="/0/@children.0/@children.2/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.7/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="10" font="/0/@fonts.0" value="then"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.9/@anchors.0" end="/0/@children.0/@children.3/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.7/@transitions.1"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="10" font="/0/@fonts.0" value="else"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.5/@anchors.0" end="/0/@children.0/@children.9/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.3/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="1" y="-17" font="/0/@fonts.0" value="irq_handler_exit"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.10/@anchors.0" end="/0/@children.0/@children.4/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.8/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="10" font="/0/@fonts.0" value=""/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.5/@anchors.0" end="/0/@children.0/@children.10/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.3/@transitions.1"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-59" y="-2" font="/0/@fonts.0" value="irq_handler_exit"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.8/@anchors.0" end="/0/@children.0/@children.7/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.6/@transitions.1"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-22" y="20" font="/0/@fonts.0" value="softirq_entry"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+      <bendpoints x="129" y="418"/>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.7/@anchors.0" end="/0/@children.0/@children.9/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.5/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="3" y="-1" font="/0/@fonts.0" value="softirq_exit"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.7/@anchors.0" end="/0/@children.0/@children.10/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.5/@transitions.1"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" y="-30" font="/0/@fonts.0" value="softirq_exit"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.8/@anchors.0" end="/0/@children.0/@children.6/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.6/@transitions.2"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-57" y="-20" font="/0/@fonts.0" value="softirq_raise"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.11/@anchors.0" end="/0/@children.0/@children.12/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.9/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-10" y="6" font="/0/@fonts.0" value="then"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.12/@anchors.0" end="/0/@children.0/@children.2/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.10/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="16" y="-6" font="/0/@fonts.0" value="then"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+      <bendpoints x="825" y="218"/>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.12/@anchors.0" end="/0/@children.0/@children.3/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.10/@transitions.1"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="9" y="7" font="/0/@fonts.0" value="else"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+      <bendpoints x="838" y="393"/>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.2/@anchors.0" end="/0/@children.0/@children.11/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.0/@transitions.0"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-8" y="-20" font="/0/@fonts.0" value="sched_switch"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.3/@anchors.0" end="/0/@children.0/@children.11/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.1/@transitions.1"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-5" y="2" font="/0/@fonts.0" value="sched_switch"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+    </connections>
+    <connections xsi:type="pi:FreeFormConnection" visible="true" active="true" start="/0/@children.0/@children.2/@anchors.0" end="/0/@children.0/@children.3/@anchors.0">
+      <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineStyle="UNSPECIFIED"/>
+      <link businessObjects="/1/@states.0/@transitions.1"/>
+      <connectionDecorators visible="true" active="true" locationRelative="true" location="0.5">
+        <graphicsAlgorithm xsi:type="al:Text" lineWidth="1" filled="false" transparency="0.0" x="-46" y="-14" font="/0/@fonts.0" value="sys_*, compat_sys_*"/>
+      </connectionDecorators>
+      <connectionDecorators visible="true" locationRelative="true" location="1.0">
+        <graphicsAlgorithm xsi:type="al:Polyline" foreground="/0/@colors.2" lineWidth="1" filled="false" transparency="0.0">
+          <points x="-15" y="10"/>
+          <points/>
+          <points x="-15" y="-10"/>
+        </graphicsAlgorithm>
+      </connectionDecorators>
+      <bendpoints x="606" y="306"/>
+    </connections>
+    <colors red="227" green="238" blue="249"/>
+    <colors red="255" green="255" blue="255"/>
+    <colors/>
+    <fonts name="Arial" size="8"/>
+  </pi:Diagram>
+  <statemachine:Statemachine name="CPU">
+    <states xsi:type="statemachine:State" name="CPU_USERMODE">
+      <transitions xsi:type="statemachine:Transition" name="sched_switch" state="/1/@states.9">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Current_thread"/>
+          <stateValue type="eventField" value="next_tid"/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="sys_*, compat_sys_*" state="/1/@states.1">
+        <stateChange>
+          <stateAttribute type="constant" value="Threads"/>
+          <stateAttribute type="query" value="thread">
+            <stateAttributeQuery type="constant" value="CPUs"/>
+            <stateAttributeQuery type="eventField" value="cpu"/>
+            <stateAttributeQuery type="constant" value="Current_thread"/>
+          </stateAttribute>
+          <stateAttribute type="constant" value="System_call"/>
+          <stateValue type="eventName" value=""/>
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_SYSCALL"/>
+        </stateChange>
+      </transitions>
+    </states>
+    <states xsi:type="statemachine:State" name="CPU_SYSCALL">
+      <transitions xsi:type="statemachine:Transition" name="exit_syscall" state="/1/@states.0">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_USERMODE"/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="sched_switch" state="/1/@states.9">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Current_thread"/>
+          <stateValue type="eventField" value="next_tid"/>
+        </stateChange>
+      </transitions>
+    </states>
+    <states xsi:type="statemachine:State" name="CPU_IDLE"/>
+    <states xsi:type="statemachine:State" name="CPU_IRQ">
+      <transitions xsi:type="statemachine:Transition" name="irq_handler_exit" state="/1/@states.7">
+        <stateChange>
+          <stateAttribute type="constant" value="Ressources"/>
+          <stateAttribute type="constant" value="IRQs"/>
+          <stateAttribute type="eventField" value="irq"/>
+          <stateValue type="null" value=""/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="irq_handler_exit" state="/1/@states.8"/>
+    </states>
+    <states xsi:type="statemachine:State" name="SOFT_IRQ"/>
+    <states xsi:type="statemachine:State" name="CPU_SOFTIRQ">
+      <transitions xsi:type="statemachine:Transition" name="softirq_exit" state="/1/@states.7">
+        <stateChange>
+          <stateAttribute type="constant" value="Ressources"/>
+          <stateAttribute type="constant" value="Soft_IRQs"/>
+          <stateAttribute type="eventField" value="vec"/>
+          <stateValue type="null" value=""/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="softirq_exit" state="/1/@states.8"/>
+    </states>
+    <states xsi:type="statemachine:State" name="ALL_STATE">
+      <transitions xsi:type="statemachine:Transition" name="irq_handler_entry" state="/1/@states.3">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_IRQ"/>
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="Ressources"/>
+          <stateAttribute type="constant" value="IRQs"/>
+          <stateAttribute type="eventField" value="irq"/>
+          <stateValue type="eventField" value="cpu"/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="softirq_entry" state="/1/@states.5">
+        <stateChange>
+          <stateAttribute type="constant" value="Ressources"/>
+          <stateAttribute type="constant" value="Soft_IRQs"/>
+          <stateAttribute type="eventField" value="vec"/>
+          <stateValue type="eventField" value="cpu"/>
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_SOFTIRQ"/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="softirq_raise" state="/1/@states.4">
+        <stateChange>
+          <stateAttribute type="constant" value="Ressources"/>
+          <stateAttribute type="constant" value="Soft_IRQs"/>
+          <stateAttribute type="eventField" value="vec"/>
+          <stateValue type="definedState" value="SOFT_IRQ"/>
+        </stateChange>
+      </transitions>
+    </states>
+    <states xsi:type="statemachine:ConditionalState" name="irq_exit_condition">
+      <transitions xsi:type="statemachine:Transition" name="then" state="/1/@states.0">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_USERMODE"/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="else" state="/1/@states.1">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_SYSCALL"/>
+        </stateChange>
+      </transitions>
+      <condition xsi:type="statemachine:AttributeCondition">
+        <stateValue type="null" value=""/>
+        <stateAttribute type="constant" value="Threads"/>
+        <stateAttribute type="query" value="thread">
+          <stateAttributeQuery type="constant" value="CPUs"/>
+          <stateAttributeQuery type="eventField" value="cpu"/>
+          <stateAttributeQuery type="constant" value="Current_thread"/>
+        </stateAttribute>
+        <stateAttribute type="constant" value="System_call"/>
+      </condition>
+    </states>
+    <states xsi:type="statemachine:ConditionalState" name="irq_exit_condition_idle" andExpression="false">
+      <transitions xsi:type="statemachine:Transition" name="" state="/1/@states.2">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_IDLE"/>
+        </stateChange>
+      </transitions>
+      <condition xsi:type="statemachine:AttributeCondition">
+        <stateValue type="null" value=""/>
+        <stateAttribute type="constant" value="CPUs"/>
+        <stateAttribute type="eventField" value="cpu"/>
+        <stateAttribute type="constant" value="Current_thread"/>
+      </condition>
+      <condition xsi:type="statemachine:AttributeCondition">
+        <stateValue value="0"/>
+        <stateAttribute type="constant" value="CPUs"/>
+        <stateAttribute type="eventField" value="cpu"/>
+        <stateAttribute type="constant" value="Current_thread"/>
+      </condition>
+    </states>
+    <states xsi:type="statemachine:ConditionalState" name="shed_switch_condition">
+      <transitions xsi:type="statemachine:Transition" name="then" state="/1/@states.10"/>
+      <condition xsi:type="statemachine:FieldCondition" isNotCondition="true" fieldName="next_tid">
+        <stateValue type="long" value="0"/>
+      </condition>
+    </states>
+    <states xsi:type="statemachine:ConditionalState" name="shed_switch_condition2">
+      <transitions xsi:type="statemachine:Transition" name="then" state="/1/@states.0">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_USERMODE"/>
+        </stateChange>
+      </transitions>
+      <transitions xsi:type="statemachine:Transition" name="else" state="/1/@states.1">
+        <stateChange>
+          <stateAttribute type="constant" value="CPUs"/>
+          <stateAttribute type="eventField" value="cpu"/>
+          <stateAttribute type="constant" value="Status"/>
+          <stateValue type="definedState" value="CPU_SYSCALL"/>
+        </stateChange>
+      </transitions>
+      <condition xsi:type="statemachine:AttributeCondition">
+        <stateValue type="null" value=""/>
+        <stateAttribute type="constant" value="Threads"/>
+        <stateAttribute type="eventField" value="next_tid"/>
+        <stateAttribute type="constant" value="System_call"/>
+      </condition>
+    </states>
+  </statemachine:Statemachine>
+</xmi:XMI>

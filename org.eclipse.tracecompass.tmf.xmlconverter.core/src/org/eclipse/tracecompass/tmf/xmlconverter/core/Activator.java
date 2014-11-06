@@ -1,30 +1,69 @@
 package org.eclipse.tracecompass.tmf.xmlconverter.core;
 
-import org.osgi.framework.BundleActivator;
+import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
-public class Activator implements BundleActivator {
+public class Activator extends Plugin {
+	
+	/** The plug-in ID */
+    public static final String PLUGIN_ID = "org.eclipse.tracecompass.tmf.xmlconverter.core"; //$NON-NLS-1$
 
-	private static BundleContext context;
+    // The shared instance
+    private static Activator fPlugin;
 
-	static BundleContext getContext() {
-		return context;
-	}
+    /**
+     * The constructor
+     */
+    public Activator() {
+        setDefault(this);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
-	}
+    @Override
+    public void start(BundleContext context) throws Exception {
+        super.start(context);
+        setDefault(this);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
-	}
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        setDefault(null);
+        super.stop(context);
+    }
+
+    /**
+     * Returns the shared instance
+     *
+     * @return the shared instance
+     */
+    public static Activator getDefault() {
+        return fPlugin;
+    }
+
+    // Sets plug-in instance
+    private static void setDefault(Activator plugin) {
+        fPlugin = plugin;
+    }
+    
+//	private static BundleContext context;
+//
+//	static BundleContext getContext() {
+//		return context;
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+//	 */
+//	public void start(BundleContext bundleContext) throws Exception {
+//		Activator.context = bundleContext;
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+//	 */
+//	public void stop(BundleContext bundleContext) throws Exception {
+//		Activator.context = null;
+//	}
 
 }

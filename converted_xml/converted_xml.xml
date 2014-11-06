@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tmfxml>
+    <stateProvider id="kernel.statemachine.state.provider" version="0">
+        <head>
+            <traceType id="org.eclipse.tracecompass.tmf.core.development"/>
+            <label value="kernel statemachine state provider"/>
+        </head>
+        <definedValue name="CPU_USERMODE" value="0"/>
+        <definedValue name="CPU_SYSCALL" value="1"/>
+        <definedValue name="CPU_IDLE" value="2"/>
+        <definedValue name="CPU_IRQ" value="3"/>
+        <definedValue name="SOFT_IRQ" value="4"/>
+        <definedValue name="CPU_SOFTIRQ" value="5"/>
+        <definedValue name="ALL_STATE" value="6"/>
+    </stateProvider>
+</tmfxml>

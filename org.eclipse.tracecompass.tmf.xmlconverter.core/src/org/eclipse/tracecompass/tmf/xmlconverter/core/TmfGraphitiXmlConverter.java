@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -16,10 +17,17 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.Condition;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionMultiple;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionSingle;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.DefinedValue;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.EventHandler;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ObjectFactory;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateAttribute;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateChange;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateProvider;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateValue;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.Tmfxml;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider.Label;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider.TraceType;
@@ -38,16 +46,24 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 //	private String fFinalStateTag = "statemachine:FinalState";
 //	private String fTransitionsTag = "statemachine:Transition";
 	private String fStatemachineTag = "statemachine:Statemachine";
+	private String fStateAttributeTag = "stateAttribute";
+	private String fStateValueTag = "stateValue";
+	private String fConditonalStateTag = "condition";
+	private String fTransitionTag = "transitions";
 	
 //	private Map<Integer, Node> fStatesList = new HashMap<Integer, Node>();
 //	private Map<Integer, Node> fTransitionsList = new HashMap<Integer, Node>();
 	
 	private Map<Integer, Node> fStatemachineList = new HashMap<>();
 	private Map<Integer, Node> fStateList = new HashMap<>();
-	private Map<Integer, Node> fConditionalStateList = new HashMap<>();
+	
+	private Map<String, EventHandler> fEventHandlerList = new HashMap<>();
 	
 	private String fStateType = "statemachine:State";
 	private String fConditionalStateType = "statemachine:ConditionalState";
+	
+	private String fAttributeConditionType = "statemachine:AttributeCondition";
+	private String fEventFieldConditionType = "statemachine:FieldCondition";
 	
 	private String traceType = "org.eclipse.tracecompass.tmf.core.development";
 	private String xmlID;
@@ -55,6 +71,8 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 	private int statemachinePositionInXml = 1;
 	private int statePositionInStatemachine = 0;
 	//private int positionInXML = 1;
+	
+	private ObjectFactory factory = new ObjectFactory();
 
 	@Override
 	public boolean convertXml(File xml) {
@@ -107,33 +125,183 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 				continue;
 			}
 			
-			if(stateNode.getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fStateType)) {
+			fStateList.put(statePositionInStatemachine, stateNode);
+			++statePositionInStatemachine;
+			/*if(stateNode.getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fStateType)) {
 				fStateList.put(statePositionInStatemachine, stateNode);
 				++statePositionInStatemachine;
 				extractTransitionInformation(stateNode);
 			} else if(stateNode.getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fConditionalStateType)) {
 				fConditionalStateList.put(statePositionInStatemachine, stateNode);
 				++statePositionInStatemachine;
-			}		
+			}*/
 		}
 	}
 	
-	private void extractTransitionInformation(Node parentState) {
+	private Vector<Node> extractTransitionsNode(Node parentState) {
 		NodeList transitionNodeList = parentState.getChildNodes();
+		Vector<Node> transitionList = new Vector<>();
 		for (int i = 0; i < transitionNodeList.getLength(); i++) {
 			Node transitionNode = transitionNodeList.item(i);
 			if(transitionNode.getNodeType() == Node.TEXT_NODE) {
 				continue;
 			}
+			transitionList.add(transitionNode);
+		}
+		return transitionList;
+	}
+	
+	private void extractTransitionInformation(Node transition, EventHandler eventHandler) {
+		NodeList stateChangeNodeList = transition.getChildNodes();
+		for (int i = 0; i < stateChangeNodeList.getLength(); i++) {
+			Node stateChangeNode = stateChangeNodeList.item(i);
+			if(stateChangeNode.getNodeType() == Node.TEXT_NODE) {
+				continue;
+			}
 			
-			String targetState = transitionNode.getAttributes().getNamedItem("state").getNodeValue().substring(1); // Remove "/" at the begining
-			String regex = "[/.][/@]*";
-			String[] splitedTargetState = targetState.split(regex);
+			NodeList stateChangeInformationList = stateChangeNode.getChildNodes();
+			Vector<StateAttribute> stateAttributeList = new Vector<>();
+			StateValue stateValue = factory.createStateValue();
+			extractAttribute(stateChangeInformationList, stateAttributeList, stateValue);
+//			for(int j = 0; j < stateChangeInformationList.getLength(); j++) {
+//				Node node = stateChangeInformationList.item(j);
+//				if(node.getNodeName().equals(fStateAttributeTag)) {
+//					StateAttribute stateAttribute = factory.createStateAttribute();
+//					String stateAttributeType = node.getAttributes().getNamedItem("type").getNodeValue();
+//					if(stateAttributeType.equals("query")) {
+//						stateAttribute = stateAttributeQuery(node);
+//					} else {
+//						stateAttribute.setType(stateAttributeType);
+//						stateAttribute.setValue(node.getAttributes().getNamedItem("value").getNodeValue());
+//					}
+//					stateChange.getStateAttribute().add(stateAttribute);
+//				} else if(node.getNodeName().equals(fStateValueTag)) {
+//					StateValue stateValue = factory.createStateValue();
+//					String stateValueType = node.getAttributes().getNamedItem("type").getNodeValue();
+//					if(stateValueType.equals("definedState")) {
+//						stateValueType = "int";
+//					}
+//					stateValue.setType(stateValueType);
+//					stateValue.setValue(node.getAttributes().getNamedItem("value").getNodeValue());
+//					stateChange.setStateValue(stateValue);
+//				}
+//			}
+			StateChange stateChange = factory.createStateChange();
+			stateChange.getStateAttribute().addAll(stateAttributeList);
+			stateChange.setStateValue(stateValue);
+			eventHandler.getStateChange().add(stateChange);
 		}
 	}
 	
+	private void extractAttribute(NodeList parent, Vector<StateAttribute> stateAttributeList, StateValue stateValue) {
+		for(int j = 0; j < parent.getLength(); j++) {
+			Node node = parent.item(j);
+			if(node.getNodeName().equals(fStateAttributeTag)) {
+				StateAttribute stateAttribute = factory.createStateAttribute();
+				String stateAttributeType = node.getAttributes().getNamedItem("type").getNodeValue();
+				if(stateAttributeType.equals("query")) {
+					stateAttribute = stateAttributeQuery(node);
+				} else {
+					stateAttribute.setType(stateAttributeType);
+					stateAttribute.setValue(node.getAttributes().getNamedItem("value").getNodeValue());
+				}
+				stateAttributeList.add(stateAttribute);
+			} else if(node.getNodeName().equals(fStateValueTag)) {
+				String stateValueType = node.getAttributes().getNamedItem("type").getNodeValue();
+				if(stateValueType.equals("definedState")) {
+					stateValueType = "int";
+				}
+				stateValue.setType(stateValueType);
+				stateValue.setValue(node.getAttributes().getNamedItem("value").getNodeValue());
+			}
+		}
+	}
+	
+	private StateAttribute stateAttributeQuery(Node stateAttributeNode) {
+		StateAttribute stateAttribute = factory.createStateAttribute();
+		stateAttribute.setType(stateAttributeNode.getAttributes().getNamedItem("type").getNodeValue());
+		stateAttribute.setValue(stateAttributeNode.getAttributes().getNamedItem("value").getNodeValue());
+		
+		NodeList queryStateAttributeList = stateAttributeNode.getChildNodes();
+		for (int i = 0; i < queryStateAttributeList.getLength(); i++) {
+			Node queryStateAttributeNode = queryStateAttributeList.item(i);
+			if(queryStateAttributeNode.getNodeType() == Node.TEXT_NODE) {
+				continue;
+			}
+			
+			StateAttribute queryStateAttribute = factory.createStateAttribute();
+			queryStateAttribute.setType(queryStateAttributeNode.getAttributes().getNamedItem("type").getNodeValue());
+			queryStateAttribute.setValue(queryStateAttributeNode.getAttributes().getNamedItem("value").getNodeValue());
+			stateAttribute.getStateAttribute().add(queryStateAttribute);
+		}
+		return stateAttribute;
+	}
+	
+	private void extractCondition(Node targetState, EventHandler eventHandler) {
+		NodeList conditionInformationList = targetState.getChildNodes();
+		StateChange stateChange = factory.createStateChange();
+		String andExpression = targetState.getAttributes().getNamedItem("andExpression").getNodeValue();
+		Vector<Condition> allCondition = new Vector<>();
+		for(int i = 0; i < conditionInformationList.getLength(); i++) {
+			Node node = conditionInformationList.item(i);
+			Condition condition = factory.createCondition();
+			if(node.getNodeName().equals(fConditonalStateTag)) {
+				String notCondition = node.getAttributes().getNamedItem("isNotCondition").getNodeValue();
+				if(notCondition.equals("true")) {
+					
+				} else {
+					
+				}
+//				if(node.getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fAttributeConditionType)) {
+//					NodeList attributeList = node.getChildNodes();
+//					for(int j = 0; j < attributeList.getLength(); j++) {
+//						Node attributeOrValuenode = attributeList.item(j);
+//						if(attributeOrValuenode.getNodeName().equals(fStateAttributeTag)) {
+//							StateAttribute stateAttribute = factory.createStateAttribute();
+//							String stateAttributeType = attributeOrValuenode.getAttributes().getNamedItem("type").getNodeValue();
+//							if(stateAttributeType.equals("query")) {
+//								stateAttribute = stateAttributeQuery(attributeOrValuenode);
+//							} else {
+//								stateAttribute.setType(stateAttributeType);
+//								stateAttribute.setValue(attributeOrValuenode.getAttributes().getNamedItem("value").getNodeValue());
+//							}
+//							condition.getStateAttribute().add(stateAttribute);
+//							// TODO Ajouter au statechange
+//						} else if(attributeOrValuenode.getNodeName().equals(fStateValueTag)) {
+//							StateValue stateValue = factory.createStateValue();
+//							String stateValueType = attributeOrValuenode.getAttributes().getNamedItem("type").getNodeValue();
+//							if(stateValueType.equals("definedState")) {
+//								stateValueType = "int";
+//							}
+//							stateValue.setType(stateValueType);
+//							stateValue.setValue(attributeOrValuenode.getAttributes().getNamedItem("value").getNodeValue());
+//							condition.setStateValue(stateValue);
+//							// TODO Ajouter au statechange
+//						}
+//					}
+//				} else {
+//					// TODO faire event field condition
+//				}
+			} else { // If node is transition (then and else)
+			}
+		}
+		eventHandler.getStateChange().add(stateChange);
+	}
+
+	private Node getTargetState(Node transition) {
+		String targetState = transition.getAttributes().getNamedItem("state").getNodeValue().substring(1); // Remove "/" at the begining
+		String regex = "[/.][/@]*";
+		String[] splitedTargetState = targetState.split(regex);
+		// Statemachine - state - state index
+		int statemachineIndex = Integer.parseInt(splitedTargetState[0]);
+		String elementInStatemachine = splitedTargetState[1];
+		int stateIndex = Integer.parseInt(splitedTargetState[2]);
+		
+		// TODO Fonctionne pour l'instant
+		return fStateList.get(stateIndex);
+	}
+	
 	private boolean buildXmlFile() {
-		ObjectFactory factory = new ObjectFactory();
 		// State provider
 		StateProvider stateProvider = factory.createStateProvider();
 		stateProvider.setVersion(new BigInteger("0"));
@@ -151,16 +319,41 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		headprovider.getTraceType().add(headTraceType);
 		stateProvider.setHead(headprovider);
 		
-		// Defined value
-		for(Entry<Integer, Node> stateEntry : fStateList.entrySet()) {//for(Node node : fStateList) {
-			DefinedValue definedValue = factory.createDefinedValue();
-			definedValue.setName(stateEntry.getValue().getAttributes().getNamedItem("name").getNodeValue());
-			definedValue.setValue(stateEntry.getKey().toString());
-			stateProvider.getDefinedValue().add(definedValue);
+		for(Entry<Integer, Node> stateEntry : fStateList.entrySet()) {
+			if (stateEntry.getValue().getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fStateType)) {
+				// Defined value
+				DefinedValue definedValue = factory.createDefinedValue();
+				definedValue.setName(stateEntry.getValue().getAttributes().getNamedItem("name").getNodeValue());
+				definedValue.setValue(stateEntry.getKey().toString());
+				stateProvider.getDefinedValue().add(definedValue);
+				
+				// Event handler
+				for(Node transitionNode : extractTransitionsNode(stateEntry.getValue())) {
+					EventHandler eventHandler = factory.createEventHandler();
+					String transitionName = transitionNode.getAttributes().getNamedItem("name").getNodeValue();
+					if(!fEventHandlerList.containsKey(transitionName)) {
+						eventHandler.setEventName(transitionName);
+					} else {
+						eventHandler = fEventHandlerList.get(transitionName);
+					}
+					
+					if(getTargetState(transitionNode).getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fStateType)) {
+						extractTransitionInformation(transitionNode, eventHandler);
+						fEventHandlerList.put(transitionName, eventHandler);
+					} else {
+						extractTransitionInformation(transitionNode, eventHandler);
+						extractCondition(getTargetState(transitionNode), eventHandler);
+						fEventHandlerList.put(transitionName, eventHandler);
+						
+						// TODO State conditionnel donc traiter le conditional state
+					}
+				}
+			}
 		}
 		
-		// Event handler
-		
+		for(Entry<String, EventHandler> eventHandler : fEventHandlerList.entrySet()) {
+			stateProvider.getEventHandler().add(eventHandler.getValue());
+		}
 		
 //		// State provider
 //		StateProvider stateProvider = factory.createStateProvider();
@@ -237,7 +430,7 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		}
 		return true;
 	}
-	
+
 	public static void main(String[] args) {
 		String xmlPath = "/home/simon/runtime-Tracecompass/Trace/src/diagrams/kernel_statemachine.diagram";
 		//String xmlPath = "C:\\Users\\Simon\\Documents\\Git\\statemachine_trace_analysis\\lttng\\org.eclipse.tracecompass.tmf.xmlconverter.core\\Diagram\\statemachine_exemple.diagram";

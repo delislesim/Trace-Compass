@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -18,9 +17,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.Condition;
-import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionMultiple;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionSingle;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.DefinedValue;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.EventField;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.EventHandler;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ObjectFactory;
@@ -70,7 +69,6 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 	
 	private int statemachinePositionInXml = 1;
 	private int statePositionInStatemachine = 0;
-	//private int positionInXML = 1;
 	
 	private ObjectFactory factory = new ObjectFactory();
 
@@ -193,9 +191,9 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		}
 	}
 	
-	private void extractAttribute(NodeList parent, Vector<StateAttribute> stateAttributeList, StateValue stateValue) {
-		for(int j = 0; j < parent.getLength(); j++) {
-			Node node = parent.item(j);
+	private void extractAttribute(NodeList attributeNodeList, Vector<StateAttribute> stateAttributeList, StateValue stateValue) {
+		for(int i = 0; i < attributeNodeList.getLength(); i++) {
+			Node node = attributeNodeList.item(i);
 			if(node.getNodeName().equals(fStateAttributeTag)) {
 				StateAttribute stateAttribute = factory.createStateAttribute();
 				String stateAttributeType = node.getAttributes().getNamedItem("type").getNodeValue();
@@ -240,51 +238,69 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 	private void extractCondition(Node targetState, EventHandler eventHandler) {
 		NodeList conditionInformationList = targetState.getChildNodes();
 		StateChange stateChange = factory.createStateChange();
+		StateChange thenStateChange = factory.createStateChange();
+		StateChange elseStateChange = factory.createStateChange();
 		String andExpression = targetState.getAttributes().getNamedItem("andExpression").getNodeValue();
-		Vector<Condition> allCondition = new Vector<>();
+		Vector<ConditionSingle> allCondition = new Vector<>();
 		for(int i = 0; i < conditionInformationList.getLength(); i++) {
 			Node node = conditionInformationList.item(i);
-			Condition condition = factory.createCondition();
 			if(node.getNodeName().equals(fConditonalStateTag)) {
+				ConditionSingle conditionSingle = factory.createConditionSingle();
+				Condition condition = factory.createCondition();
 				String notCondition = node.getAttributes().getNamedItem("isNotCondition").getNodeValue();
 				if(notCondition.equals("true")) {
-					
+					conditionSingle.setNot(conditionSingle);
 				} else {
-					
 				}
-//				if(node.getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fAttributeConditionType)) {
-//					NodeList attributeList = node.getChildNodes();
-//					for(int j = 0; j < attributeList.getLength(); j++) {
-//						Node attributeOrValuenode = attributeList.item(j);
-//						if(attributeOrValuenode.getNodeName().equals(fStateAttributeTag)) {
-//							StateAttribute stateAttribute = factory.createStateAttribute();
-//							String stateAttributeType = attributeOrValuenode.getAttributes().getNamedItem("type").getNodeValue();
-//							if(stateAttributeType.equals("query")) {
-//								stateAttribute = stateAttributeQuery(attributeOrValuenode);
-//							} else {
-//								stateAttribute.setType(stateAttributeType);
-//								stateAttribute.setValue(attributeOrValuenode.getAttributes().getNamedItem("value").getNodeValue());
-//							}
-//							condition.getStateAttribute().add(stateAttribute);
-//							// TODO Ajouter au statechange
-//						} else if(attributeOrValuenode.getNodeName().equals(fStateValueTag)) {
-//							StateValue stateValue = factory.createStateValue();
-//							String stateValueType = attributeOrValuenode.getAttributes().getNamedItem("type").getNodeValue();
-//							if(stateValueType.equals("definedState")) {
-//								stateValueType = "int";
-//							}
-//							stateValue.setType(stateValueType);
-//							stateValue.setValue(attributeOrValuenode.getAttributes().getNamedItem("value").getNodeValue());
-//							condition.setStateValue(stateValue);
-//							// TODO Ajouter au statechange
-//						}
-//					}
-//				} else {
-//					// TODO faire event field condition
-//				}
+				
+				if(node.getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fAttributeConditionType)) {
+					Vector<StateAttribute> attributeList = new Vector<>();
+					StateValue stateValue = factory.createStateValue();
+					extractAttribute(node.getChildNodes(), attributeList, stateValue);
+					condition.getStateAttribute().addAll(attributeList);
+					condition.setStateValue(stateValue);
+
+				} else {
+					String fieldName = node.getAttributes().getNamedItem("fieldName").getNodeValue();
+					Node stateValueNode = node.getChildNodes().item(0);
+					String type = stateValueNode.getAttributes().getNamedItem("type").getNodeValue();
+					String value = stateValueNode.getAttributes().getNamedItem("value").getNodeValue();
+					
+					EventField eventField = factory.createEventField();
+					eventField.setName(fieldName);
+					
+					StateValue stateValue = factory.createStateValue();
+					stateValue.setType(type);
+					stateValue.setValue(value);
+					
+					condition.setField(eventField);
+					condition.setStateValue(stateValue);
+				}
+				conditionSingle.setCondition(condition);
+				if(notCondition.equals("true")) {
+					conditionSingle.setNot(conditionSingle);
+				}
+				allCondition.add(conditionSingle);
 			} else { // If node is transition (then and else)
+				Vector<StateAttribute> transitionAttributeList = new Vector<>();
+				StateValue transitionSateValue = factory.createStateValue();
+				extractAttribute(node.getChildNodes().item(0).getChildNodes(), transitionAttributeList, transitionSateValue); // get attribute in stateChange in transition
+				if(node.getAttributes().getNamedItem("name").getNodeValue().equals("") || node.getAttributes().getNamedItem("name").getNodeValue().equals("then")) {
+					thenStateChange.setStateValue(transitionSateValue);
+					thenStateChange.getStateAttribute().addAll(transitionAttributeList);
+				} else {
+					elseStateChange.setStateValue(transitionSateValue);
+					elseStateChange.getStateAttribute().addAll(transitionAttributeList);
+				}
 			}
 		}
+		if(allCondition.size() == 1) {
+			stateChange.setIf(allCondition.firstElement());
+		} else {
+			// TODO Condition multiple
+		}
+		stateChange.setThen(thenStateChange);
+		stateChange.setElse(elseStateChange);
 		eventHandler.getStateChange().add(stateChange);
 	}
 
@@ -344,8 +360,6 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 						extractTransitionInformation(transitionNode, eventHandler);
 						extractCondition(getTargetState(transitionNode), eventHandler);
 						fEventHandlerList.put(transitionName, eventHandler);
-						
-						// TODO State conditionnel donc traiter le conditional state
 					}
 				}
 			}

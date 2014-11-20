@@ -248,6 +248,24 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EAttribute getStatemachine_AssociatedTree() {
+		return (EAttribute)statemachineEClass.getEStructuralFeatures().get(1);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getStatemachine_AssociatedAttribute() {
+		return (EAttribute)statemachineEClass.getEStructuralFeatures().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public EClass getNamed() {
 		return namedEClass;
 	}
@@ -579,6 +597,8 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		// Create classes and their features
 		statemachineEClass = createEClass(STATEMACHINE);
 		createEReference(statemachineEClass, STATEMACHINE__STATES);
+		createEAttribute(statemachineEClass, STATEMACHINE__ASSOCIATED_TREE);
+		createEAttribute(statemachineEClass, STATEMACHINE__ASSOCIATED_ATTRIBUTE);
 
 		namedEClass = createEClass(NAMED);
 		createEAttribute(namedEClass, NAMED__NAME);
@@ -675,6 +695,8 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		// Initialize classes, features, and operations; add parameters
 		initEClass(statemachineEClass, Statemachine.class, "Statemachine", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getStatemachine_States(), this.getAbstractState(), null, "states", null, 0, -1, Statemachine.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getStatemachine_AssociatedTree(), ecorePackage.getEString(), "associatedTree", null, 0, 1, Statemachine.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getStatemachine_AssociatedAttribute(), ecorePackage.getEString(), "associatedAttribute", null, 0, 1, Statemachine.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(namedEClass, Named.class, "Named", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getNamed_Name(), ecorePackage.getEString(), "name", null, 0, 1, Named.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

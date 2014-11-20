@@ -123,13 +123,31 @@ public interface StatemachinePackage extends EPackage {
 	int STATEMACHINE__STATES = NAMED_FEATURE_COUNT + 0;
 
 	/**
+	 * The feature id for the '<em><b>Associated Tree</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int STATEMACHINE__ASSOCIATED_TREE = NAMED_FEATURE_COUNT + 1;
+
+	/**
+	 * The feature id for the '<em><b>Associated Attribute</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int STATEMACHINE__ASSOCIATED_ATTRIBUTE = NAMED_FEATURE_COUNT + 2;
+
+	/**
 	 * The number of structural features of the '<em>Statemachine</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int STATEMACHINE_FEATURE_COUNT = NAMED_FEATURE_COUNT + 1;
+	int STATEMACHINE_FEATURE_COUNT = NAMED_FEATURE_COUNT + 3;
 
 	/**
 	 * The number of operations of the '<em>Statemachine</em>' class.
@@ -899,6 +917,28 @@ public interface StatemachinePackage extends EPackage {
 	EReference getStatemachine_States();
 
 	/**
+	 * Returns the meta object for the attribute '{@link statemachine.Statemachine#getAssociatedTree <em>Associated Tree</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Associated Tree</em>'.
+	 * @see statemachine.Statemachine#getAssociatedTree()
+	 * @see #getStatemachine()
+	 * @generated
+	 */
+	EAttribute getStatemachine_AssociatedTree();
+
+	/**
+	 * Returns the meta object for the attribute '{@link statemachine.Statemachine#getAssociatedAttribute <em>Associated Attribute</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Associated Attribute</em>'.
+	 * @see statemachine.Statemachine#getAssociatedAttribute()
+	 * @see #getStatemachine()
+	 * @generated
+	 */
+	EAttribute getStatemachine_AssociatedAttribute();
+
+	/**
 	 * Returns the meta object for class '{@link statemachine.Named <em>Named</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1295,6 +1335,22 @@ public interface StatemachinePackage extends EPackage {
 		 * @generated
 		 */
 		EReference STATEMACHINE__STATES = eINSTANCE.getStatemachine_States();
+
+		/**
+		 * The meta object literal for the '<em><b>Associated Tree</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute STATEMACHINE__ASSOCIATED_TREE = eINSTANCE.getStatemachine_AssociatedTree();
+
+		/**
+		 * The meta object literal for the '<em><b>Associated Attribute</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute STATEMACHINE__ASSOCIATED_ATTRIBUTE = eINSTANCE.getStatemachine_AssociatedAttribute();
 
 		/**
 		 * The meta object literal for the '{@link statemachine.impl.NamedImpl <em>Named</em>}' class.

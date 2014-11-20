@@ -3,6 +3,14 @@
   <children xmi:type="notation:Shape" xmi:id="_f_GI4EAEEeSFr4nb-cDIYw" type="2001" fontName="Segoe UI">
     <children xmi:type="notation:DecorationNode" xmi:id="_f_JMMEAEEeSFr4nb-cDIYw" type="5001"/>
     <children xmi:type="notation:BasicCompartment" xmi:id="_f_MPgEAEEeSFr4nb-cDIYw" type="7001">
+      <children xmi:type="notation:Node" xmi:id="_NaDPcHDPEeS5vNzyUicdYw" type="3001">
+        <element xmi:type="ecore:EAttribute" href="state_machine.ecore#//Statemachine/associatedTree"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_NaDPcXDPEeS5vNzyUicdYw"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_SP49AHDPEeS5vNzyUicdYw" type="3001">
+        <element xmi:type="ecore:EAttribute" href="state_machine.ecore#//Statemachine/associatedAttribute"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_SP49AXDPEeS5vNzyUicdYw"/>
+      </children>
       <styles xmi:type="notation:SortingStyle" xmi:id="_f_MPgUAEEeSFr4nb-cDIYw"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_f_M2kEAEEeSFr4nb-cDIYw"/>
     </children>

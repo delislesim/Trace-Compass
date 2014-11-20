@@ -15,6 +15,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
+import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetWidgetFactory;
@@ -24,6 +26,7 @@ import statemachine.Statemachine;
 public class StatemachineSection extends GFPropertySection implements ITabbedPropertyConstants {
 	
 	private Text statemachineNameText;
+	private Text associatedTreeText;
 
 	@Override
 	public void createControls(Composite parent, TabbedPropertySheetPage tabbedPropertySheetPage) {
@@ -42,6 +45,17 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 		gridData.horizontalAlignment = SWT.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		statemachineNameText.setLayoutData(gridData);
+		
+		Label associatedTree = factory.createLabel(composite, "Associated tree");
+		
+		associatedTreeText = factory.createText(composite, "");
+		gridData = new GridData();
+		gridData.horizontalAlignment = SWT.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		associatedTreeText.setLayoutData(gridData);
+		
+        final AttributeTreeComposite attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
+        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
 		
 		statemachineNameText.addModifyListener(new ModifyListener() {
 

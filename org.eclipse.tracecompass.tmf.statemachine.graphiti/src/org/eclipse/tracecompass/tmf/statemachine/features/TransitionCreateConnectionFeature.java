@@ -8,6 +8,7 @@ import org.eclipse.graphiti.mm.pictograms.Connection;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 
 import statemachine.AbstractState;
+import statemachine.ConditionalState;
 import statemachine.StatemachineFactory;
 import statemachine.Transition;
 
@@ -40,7 +41,14 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 		Connection newConnection = null;
 		
 		final Transition transition = StatemachineFactory.eINSTANCE.createTransition();
-		transition.setName("Transition");
+		if(sourceState instanceof ConditionalState && sourceState.getTransitions().isEmpty()) {
+			transition.setName("then");
+		} else if (sourceState instanceof ConditionalState && !sourceState.getTransitions().isEmpty()){
+			transition.setName("else");
+		} else {
+			transition.setName("Transition");
+		}
+		
 		if (targetState != null) {
 			transition.setState(targetState);
 		}
@@ -58,7 +66,18 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 
 	@Override
 	public boolean canStartConnection(ICreateConnectionContext context) {
-		return getBusinessObjectForPictogramElement(context.getSourcePictogramElement()) instanceof AbstractState;
+		boolean canStart = false;
+		
+		canStart = getBusinessObjectForPictogramElement(context.getSourcePictogramElement()) instanceof AbstractState;
+		AbstractState startState = null;
+		if(canStart) {
+			startState = (AbstractState) getBusinessObjectForPictogramElement(context.getSourcePictogramElement());
+		}
+		
+		if(startState instanceof ConditionalState && startState.getTransitions().size() >= 2) {
+			canStart = false;
+		}
+		return canStart;
 	}
 
 }

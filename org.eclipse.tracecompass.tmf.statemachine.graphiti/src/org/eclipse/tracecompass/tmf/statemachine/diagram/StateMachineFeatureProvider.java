@@ -27,6 +27,7 @@ import org.eclipse.tracecompass.tmf.statemachine.features.StateAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StateCreateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatemachineAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatemachineCreateFeature;
+import org.eclipse.tracecompass.tmf.statemachine.features.StatemachineLayoutFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatemachineUpdateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatesDirectEditFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StatesLayoutFeature;
@@ -91,6 +92,8 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 				return new StatesLayoutFeature(this);
 			} else if (getBusinessObjectForPictogramElement(context.getPictogramElement()) instanceof ConditionalState) {
 				return new ConditionalStateLayoutFeature(this);
+			} else if (getBusinessObjectForPictogramElement(context.getPictogramElement()) instanceof Statemachine) {
+				return new StatemachineLayoutFeature(this);
 			}
 		}
 	

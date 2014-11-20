@@ -240,7 +240,7 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		StateChange stateChange = factory.createStateChange();
 		StateChange thenStateChange = factory.createStateChange();
 		StateChange elseStateChange = factory.createStateChange();
-		String andExpression = targetState.getAttributes().getNamedItem("andExpression").getNodeValue();
+		//String andExpression = targetState.getAttributes().getNamedItem("andExpression").getNodeValue();
 		Vector<ConditionSingle> allCondition = new Vector<>();
 		for(int i = 0; i < conditionInformationList.getLength(); i++) {
 			Node node = conditionInformationList.item(i);
@@ -284,7 +284,8 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 			} else { // If node is transition (then and else)
 				Vector<StateAttribute> transitionAttributeList = new Vector<>();
 				StateValue transitionSateValue = factory.createStateValue();
-				extractAttribute(node.getChildNodes().item(0).getChildNodes(), transitionAttributeList, transitionSateValue); // get attribute in stateChange in transition
+				// TODO node de text
+				extractAttribute(node.getChildNodes().item(1).getChildNodes(), transitionAttributeList, transitionSateValue); // get attribute in stateChange in transition
 				if(node.getAttributes().getNamedItem("name").getNodeValue().equals("") || node.getAttributes().getNamedItem("name").getNodeValue().equals("then")) {
 					thenStateChange.setStateValue(transitionSateValue);
 					thenStateChange.getStateAttribute().addAll(transitionAttributeList);

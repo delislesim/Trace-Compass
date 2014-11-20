@@ -81,7 +81,7 @@ public class StatemachineAddFeature extends AbstractAddFeature {
 		directEditingInfo.setPictogramElement(shape);
 		directEditingInfo.setGraphicsAlgorithm(text);
 		
-		//layoutPictogramElement(containerShape);
+		layoutPictogramElement(containerShape);
 		
 		return containerShape;
 	}

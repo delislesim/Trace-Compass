@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
 import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
+import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTree;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;

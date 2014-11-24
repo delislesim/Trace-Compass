@@ -49,7 +49,7 @@ public class AttributeTreePath {
 		return stateAttributeList;
 	}
 	
-	public String getXpathFromAttributeTreePath() {
+	public String getPathFromAttributeTreePath() {
 		String xPath = "";
 		for(int i = path.size()-1; i >= 0; i--) {
 			xPath += "/" + path.get(i).getName().replace(" ", "");

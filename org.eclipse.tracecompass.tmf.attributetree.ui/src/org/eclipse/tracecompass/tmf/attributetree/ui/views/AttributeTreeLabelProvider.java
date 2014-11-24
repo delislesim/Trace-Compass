@@ -54,7 +54,7 @@ public class AttributeTreeLabelProvider implements ILabelProvider {
 	public String getText(Object element) {
 		if (element instanceof VariableAttributeNode) {
 			if(((VariableAttributeNode) element).getIsQuery()) {
-				return "$ " + ((VariableAttributeNode) element).getName() + " (" + ((VariableAttributeNode) element).getQueryPath().getXpathFromAttributeTreePath() + ")";
+				return "$ " + ((VariableAttributeNode) element).getName() + " (" + ((VariableAttributeNode) element).getQueryPath().getPathFromAttributeTreePath() + ")";
 			}
 			return "$ " + ((VariableAttributeNode) element).getName();
 		} else if (element instanceof AbstractAttributeNode) {

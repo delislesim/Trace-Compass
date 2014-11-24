@@ -5,12 +5,9 @@ package statemachine.impl;
 import java.util.Collection;
 
 import org.eclipse.emf.common.notify.NotificationChain;
-
 import org.eclipse.emf.common.util.EList;
-
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
-
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.InternalEList;
 
@@ -145,6 +142,22 @@ public class AttributeConditionImpl extends AbstractConditionImpl implements Att
 				return stateAttribute != null && !stateAttribute.isEmpty();
 		}
 		return super.eIsSet(featureID);
+	}
+	
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated NOT
+	 */
+	@Override
+	public String toString() {
+		String toString = "";
+		for(StateAttribute attribute : stateAttribute) {
+			toString += "/" + attribute.getValue();
+		}
+		toString += " = " + ((!stateValue.getValue().equals("")) ? stateValue.getValue() : "null");
+		
+		return toString;
 	}
 
 } //AttributeConditionImpl

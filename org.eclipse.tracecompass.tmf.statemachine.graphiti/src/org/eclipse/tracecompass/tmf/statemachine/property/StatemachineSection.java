@@ -18,7 +18,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
 import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
@@ -34,6 +33,7 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 	
 	private Text statemachineNameText;
 	private Text associatedTreeText;
+	private Text attributePathText;
 	
 	private AttributeTreePath selectedPath;
 
@@ -62,6 +62,16 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 		gridData.horizontalAlignment = SWT.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		associatedTreeText.setLayoutData(gridData);
+		
+		// TODO Temporaire
+		Label attributeTreePath = factory.createLabel(composite, "Attribute path");
+		
+		attributePathText = factory.createText(composite, "");
+		gridData = new GridData();
+		gridData.horizontalAlignment = SWT.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		attributePathText.setLayoutData(gridData);
+		attributePathText.setEnabled(false);
 		
         final AttributeTreeComposite attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
         attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
@@ -185,7 +195,7 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 						if (bo == null)
 							return;
 	        			if(bo instanceof Statemachine) {
-	        				((Statemachine) bo).setAssociatedAttribute(selectedPath.getXpathFromAttributeTreePath());
+	        				((Statemachine) bo).setAssociatedAttribute(selectedPath.getPathFromAttributeTreePath());
 	        			}        					
 					}
 				}
@@ -214,6 +224,9 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
         		
         		String associatedTree = ((Statemachine)bo).getAssociatedTree();
         		associatedTreeText.setText((associatedTree != null) ? associatedTree : "");
+        		
+        		String attributePath = ((Statemachine)bo).getAssociatedAttribute();
+        		attributePathText.setText((attributePath != null) ? attributePath : "");
         	}
         }
 	}

@@ -199,7 +199,7 @@ public class ConditionalStateSection extends GFPropertySection implements ITabbe
         		if(hasCondtion) {
         			for(int i = 0; i < ((ConditionalState)bo).getCondition().size(); i++) {
     	        		TableItem conditionItem = new TableItem(conditionTable, SWT.NONE);
-    	        		String conditionType = (((ConditionalState)bo).getCondition().get(i) instanceof FieldCondition ? "Field condition" : "Attribute condition");
+    	        		String conditionType = ((ConditionalState)bo).getCondition().get(i).toString(); //(((ConditionalState)bo).getCondition().get(i) instanceof FieldCondition ? "Field condition" : "Attribute condition");
     	        		conditionItem.setText(conditionType);
         			}
         		}
@@ -455,7 +455,7 @@ public class ConditionalStateSection extends GFPropertySection implements ITabbe
 	
 	private void saveCondition(final AbstractCondition condition) {
 		TableItem conditionItem = new TableItem(conditionTable, SWT.NONE);
-		String conditionType = (condition instanceof FieldCondition ? "Field condition" : "Attribute condition");
+		String conditionType = condition.toString(); //(condition instanceof FieldCondition ? "Field condition" : "Attribute condition");
 		conditionItem.setText(conditionType);
 		IFeature feature = new AbstractFeature(getDiagramTypeProvider().getFeatureProvider()) {
 

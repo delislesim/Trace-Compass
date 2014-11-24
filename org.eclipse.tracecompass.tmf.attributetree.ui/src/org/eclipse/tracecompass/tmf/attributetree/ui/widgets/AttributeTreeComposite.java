@@ -1,9 +1,11 @@
 package org.eclipse.tracecompass.tmf.attributetree.ui.widgets;
 
 import java.io.File;
+
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -22,7 +24,7 @@ public class AttributeTreeComposite extends Composite {
 		super(parent, style);
 		setLayout(new FillLayout());
 		
-		treeViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+		treeViewer = new TreeViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
 		
 		treeViewer.getTree().setLayout(new GridLayout(1, false));
 		GridData gridData = new GridData();
@@ -34,7 +36,6 @@ public class AttributeTreeComposite extends Composite {
         treeViewer.getTree().setLayoutData(gridData);
         
         treeViewer.setAutoExpandLevel(3);
-		//treeViewer.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
 		treeViewer.setContentProvider(new AttributeTreeContentProvider());
 		treeViewer.setLabelProvider(new AttributeTreeLabelProvider());
 		
@@ -63,13 +64,18 @@ public class AttributeTreeComposite extends Composite {
 //		} else {
 //			invisibleRoot = new ConstantAttributeNode(null, "root");
 //		}
-		
+		// TODO Utiliser le fichier
 		AbstractAttributeNode treeInput = AttributeTree.getInstance().getRoot();
 		treeViewer.setInput(treeInput);
 	}
 	
 	public IStructuredSelection getSelection() {
 		return (IStructuredSelection) treeViewer.getSelection();
+	}
+	
+	public void setSelection(AbstractAttributeNode node) {
+		StructuredSelection selection = new StructuredSelection(node);
+		treeViewer.setSelection(selection);
 	}
 	
 	public void refresh() {

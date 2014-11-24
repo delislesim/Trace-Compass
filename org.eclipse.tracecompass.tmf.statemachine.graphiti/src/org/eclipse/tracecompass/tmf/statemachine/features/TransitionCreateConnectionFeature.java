@@ -6,9 +6,15 @@ import org.eclipse.graphiti.features.context.impl.AddConnectionContext;
 import org.eclipse.graphiti.features.impl.AbstractCreateConnectionFeature;
 import org.eclipse.graphiti.mm.pictograms.Connection;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
+import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTree;
 
 import statemachine.AbstractState;
 import statemachine.ConditionalState;
+import statemachine.StateChange;
+import statemachine.StateValue;
+import statemachine.StateValueType;
+import statemachine.Statemachine;
 import statemachine.StatemachineFactory;
 import statemachine.Transition;
 
@@ -51,6 +57,8 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 		
 		if (targetState != null) {
 			transition.setState(targetState);
+			StateChange stateChange = getAppropriateStateChange();
+			transition.getStateChange().add(stateChange);
 		}
 		
 		if(sourceState != null) {
@@ -62,6 +70,26 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 		newConnection = (Connection) getFeatureProvider().addIfPossible(addContext);
 
 		return newConnection;
+	}
+
+	private StateChange getAppropriateStateChange() {
+		String attributePath = null;
+		if(targetState.eContainer() instanceof Statemachine) {
+			Statemachine stateMachine = (Statemachine)targetState.eContainer();
+			attributePath = stateMachine.getAssociatedAttribute();
+		}
+		
+		StateChange stateChange = StatemachineFactory.eINSTANCE.createStateChange();
+		
+		AttributeTreePath attributeTreePath = new AttributeTreePath(AttributeTree.getInstance().getNodeFromPath(attributePath));
+		stateChange.getStateAttribute().addAll(attributeTreePath.getAllStateAttribute());
+		
+		StateValue stateValue = StatemachineFactory.eINSTANCE.createStateValue();
+		stateValue.setValue(targetState.getName());
+		stateValue.setType(StateValueType.DEFINED_STATE);		
+		stateChange.setStateValue(stateValue);
+		
+		return stateChange;
 	}
 
 	@Override

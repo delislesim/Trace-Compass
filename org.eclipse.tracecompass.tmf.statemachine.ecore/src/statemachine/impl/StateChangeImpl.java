@@ -217,5 +217,19 @@ public class StateChangeImpl extends MinimalEObjectImpl.Container implements Sta
 		}
 		return super.eIsSet(featureID);
 	}
+	
+	/**
+	 * @generated NOT
+	 */
+	@Override
+	public String toString() {
+		String toString = "";
+		for(StateAttribute attribute : stateAttribute) {
+			toString += "/" + attribute.getValue();
+		}
+		toString += " = " + ((!stateValue.getValue().equals("")) ? stateValue.getValue() : "null");
+		
+		return toString;
+	}
 
 } //StateChangeImpl

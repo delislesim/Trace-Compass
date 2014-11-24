@@ -146,17 +146,21 @@ public class FieldConditionImpl extends AbstractConditionImpl implements FieldCo
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
+	 * @generated NOT
 	 */
 	@Override
 	public String toString() {
-		if (eIsProxy()) return super.toString();
-
-		StringBuffer result = new StringBuffer(super.toString());
-		result.append(" (fieldName: ");
-		result.append(fieldName);
-		result.append(')');
-		return result.toString();
+		String toString = "";
+		toString = fieldName;
+		toString += " = " + ((!stateValue.getValue().equals("")) ? stateValue.getValue() : "null");
+		return toString;
+//		if (eIsProxy()) return super.toString();
+//
+//		StringBuffer result = new StringBuffer(super.toString());
+//		result.append(" (fieldName: ");
+//		result.append(fieldName);
+//		result.append(')');
+//		return result.toString();
 	}
 
 } //FieldConditionImpl

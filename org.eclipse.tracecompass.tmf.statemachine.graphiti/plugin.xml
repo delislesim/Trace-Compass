@@ -19,7 +19,17 @@
          <diagramType
                id="org.eclipse.tracecompass.tmf.statemachine.graphiti.StateMachineDiagramType">
          </diagramType>
+         <imageProvider
+			   id="org.eclipse.tracecompass.tmf.statemachine.diagram.StateMachineImageProvider">
+         </imageProvider>
       </diagramTypeProvider>
+   </extension>
+   <extension
+	      point="org.eclipse.graphiti.ui.imageProviders">
+	   <imageProvider
+	         class="org.eclipse.tracecompass.tmf.statemachine.diagram.StateMachineImageProvider"
+	         id="org.eclipse.tracecompass.tmf.statemachine.diagram.StateMachineImageProvider">
+	   </imageProvider>
    </extension>
    
    <!-- Begin properties-->
@@ -76,6 +86,7 @@
         </propertySection>
     </propertySections>
 </extension>
+
 <!-- End properties-->
 
 <!-- Wizard extension

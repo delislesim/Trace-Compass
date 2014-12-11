@@ -328,7 +328,7 @@ public class ConditionalStateSection extends GFPropertySection implements ITabbe
         stateValueGroup.setLayoutData(gridData);
         
         final AttributeTreeComposite attributeTree = new AttributeTreeComposite(stateAttributeGroup, SWT.NONE);
-        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
+        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
         attributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override

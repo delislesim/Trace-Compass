@@ -1,5 +1,7 @@
 package org.eclipse.tracecompass.tmf.attributetree.ui;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -9,7 +11,7 @@ import org.osgi.framework.BundleContext;
 public class Activator extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.eclipse.linuxtools.tmf.statemachine.ui"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "org.eclipse.tracecompass.tmf.attributetree.ui"; //$NON-NLS-1$
 
 	// The shared instance
 	private static Activator plugin;
@@ -19,6 +21,30 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public Activator() {
 	}
+	
+    /**
+     * Gets an image object using given path within plug-in.
+     *
+     * @param path
+     *            path to image file
+     *
+     * @return image object
+     */
+    public Image getImageFromPath(String path) {
+        return getImageDescripterFromPath(path).createImage();
+    }
+
+    /**
+     * Gets an image descriptor using given path within plug-in.
+     *
+     * @param path
+     *            path to image file
+     *
+     * @return image descriptor object
+     */
+    public ImageDescriptor getImageDescripterFromPath(String path) {
+        return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, path);
+    }
 
 	/*
 	 * (non-Javadoc)

@@ -40,7 +40,8 @@ public class AttributeTree {
 		}
 		
 		if(invisibleRoot == null) {
-			loadXmlTree(AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
+			loadXmlTree(AttributeTreeXmlUtils.getAttributeTreeXmlFile(AttributeTreeXmlUtils.FILE_NAME));
+			//loadXmlTree(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
 		}
 		
 		return INSTANCE;
@@ -66,6 +67,11 @@ public class AttributeTree {
 			xmlTree = dBuilder.parse(xmlFile);
 			xmlTree.getDocumentElement().normalize();
 		} catch (ParserConfigurationException | SAXException | IOException e) {
+		}
+		
+		if(xmlTree == null) {
+			invisibleRoot = new ConstantAttributeNode(null, "root");
+			return;
 		}
 		
 		NodeList nodeList = xmlTree.getElementsByTagName("root");

@@ -19,8 +19,6 @@ import org.eclipse.graphiti.ui.features.DefaultFeatureProvider;
 import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalStateAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalStateCreateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.ConditionalStateLayoutFeature;
-import org.eclipse.tracecompass.tmf.statemachine.features.FinalStateAddFeature;
-import org.eclipse.tracecompass.tmf.statemachine.features.FinalStateCreateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.InitialStateAddFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.InitialStateCreateFeature;
 import org.eclipse.tracecompass.tmf.statemachine.features.StateAddFeature;
@@ -54,7 +52,7 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 
 	@Override
 	public ICreateFeature[] getCreateFeatures() {
-		return new ICreateFeature[] {new StateCreateFeature(this), new InitialStateCreateFeature(this), new FinalStateCreateFeature(this), new ConditionalStateCreateFeature(this), new StatemachineCreateFeature(this)};
+		return new ICreateFeature[] {new StateCreateFeature(this), new InitialStateCreateFeature(this), /*new FinalStateCreateFeature(this),*/ new ConditionalStateCreateFeature(this), new StatemachineCreateFeature(this)};
 	}
 	
 	@Override
@@ -73,8 +71,8 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 				return new StateAddFeature(this);
 			} else if (context.getNewObject() instanceof InitialState) {
 				return new InitialStateAddFeature(this);
-			} else if (context.getNewObject() instanceof FinalState) {
-				return new FinalStateAddFeature(this);
+			/*} else if (context.getNewObject() instanceof FinalState) {
+				return new FinalStateAddFeature(this);*/
 			} else if (context.getNewObject() instanceof ConditionalState) {
 				return new ConditionalStateAddFeature(this);
 			} else if (context.getNewObject() instanceof Statemachine) {

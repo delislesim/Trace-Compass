@@ -16,7 +16,7 @@ public class AttributeTreeXmlUtils {
 
     }
     
-    public static IPath getTreeXmlFilesPath() {
+    public static IPath getAttributeTreeXmlFilesPath() {
     	IPath path = Activator.getDefault().getStateLocation();
         path = path.addTrailingSeparator().append(ATTRIBUTETREE_XML_DIRECTORY);
 
@@ -29,8 +29,29 @@ public class AttributeTreeXmlUtils {
         return path;
     }
     
+    public static File getAttributeTreeXmlFile(String fileName) {
+    	IPath path = Activator.getDefault().getStateLocation();
+        path = path.addTrailingSeparator().append(ATTRIBUTETREE_XML_DIRECTORY);
+
+        /* Check if directory exists, otherwise create it */
+        File dir = path.toFile();
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+        
+        File xmlFile = path.append(fileName).toFile();
+        if(!xmlFile.exists()) {
+        	try {
+				xmlFile.createNewFile();
+			} catch (IOException e) {
+				//TODO
+			}
+        }
+    	return xmlFile;
+    }
+    
     public static void addAttributeTreeXmlFile(File file) {
-    	File xmlFile = getTreeXmlFilesPath().addTrailingSeparator().append(file.getName()).toFile();
+    	File xmlFile = getAttributeTreeXmlFilesPath().addTrailingSeparator().append(file.getName()).toFile();
     	
 		try {
 			if (!xmlFile.exists()) {

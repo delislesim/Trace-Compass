@@ -13,13 +13,12 @@ import javax.xml.transform.stream.StreamResult;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -34,6 +33,7 @@ import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeValueNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
+import org.eclipse.tracecompass.tmf.attributetree.ui.Activator;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.ui.IActionBars;
 import org.w3c.dom.Document;
@@ -45,7 +45,7 @@ public class AttributeTreeView extends TmfView {
 	private AttributeTreeComposite attributeTree;
 	private IPath xmlPath;
 	
-	private int GRID_NUM_COLUMNS = 5;
+	private int GRID_NUM_COLUMNS = 3;
 	
 	private enum NodeType {
 		CONSTANT, VARIABLE, VALUE
@@ -62,15 +62,66 @@ public class AttributeTreeView extends TmfView {
 		
 		GridData gridData;
 		
+		// TODO : remplacer ce système d'image ?
+		Image addConstantImage = Activator.getDefault().getImageFromPath("/icons/addconstantAttribute.png");
+		Image addVariableImage = Activator.getDefault().getImageFromPath("/icons/addvariableAttribute.png");
+		Image addValueImage = Activator.getDefault().getImageFromPath("/icons/addvalue.png");
+		Image removeImage = Activator.getDefault().getImageFromPath("/icons/removeAttribute.png");
+		Image editAttributeImage = Activator.getDefault().getImageFromPath("/icons/rename.gif");;
+		
 		Button addConstantAttributeButton = new Button(composite, SWT.PUSH);
-		addConstantAttributeButton.setText("Constant");
+		//addConstantAttributeButton.setText("Constant");
+		addConstantAttributeButton.setImage(addConstantImage);
 		gridData = new GridData();
 		addConstantAttributeButton.setLayoutData(gridData);
 		
 		Button addVariableAttributeButton = new Button(composite, SWT.PUSH);
-		addVariableAttributeButton.setText("Variable");
+		//addVariableAttributeButton.setText("Variable");
+		addVariableAttributeButton.setImage(addVariableImage);
 		gridData = new GridData();
 		addConstantAttributeButton.setLayoutData(gridData);
+		
+		Button addAttributeValueButton = new Button(composite, SWT.PUSH);
+		//addAttributeValueButton.setText("Value");
+		addAttributeValueButton.setImage(addValueImage);
+		gridData = new GridData();
+		addConstantAttributeButton.setLayoutData(gridData);
+		
+		Button removeAttributeButton = new Button(composite, SWT.PUSH);
+		//removeAttributeButton.setText("Remove");
+		removeAttributeButton.setImage(removeImage);
+		gridData = new GridData();
+		removeAttributeButton.setLayoutData(gridData);
+		
+		removeAttributeButton.addSelectionListener(new SelectionAdapter() {
+    		@Override
+    		public void widgetSelected(SelectionEvent e) {
+    			IStructuredSelection selection = (IStructuredSelection) attributeTree.getSelection();
+    			if(!selection.isEmpty()) {
+    				if(selection.getFirstElement() instanceof AbstractAttributeNode) {
+    					removeAttribute((AbstractAttributeNode)selection.getFirstElement());
+    				}
+    			}
+    		}
+		});
+		
+		Button editAttributeButton = new Button(composite, SWT.PUSH);
+		//editAttributeButton.setText("Edit");
+		editAttributeButton.setImage(editAttributeImage);
+		gridData = new GridData();
+		editAttributeButton.setLayoutData(gridData);
+		
+		editAttributeButton.addSelectionListener(new SelectionAdapter() {
+    		@Override
+    		public void widgetSelected(SelectionEvent e) {
+    			IStructuredSelection selection = (IStructuredSelection) attributeTree.getSelection();
+    			if(!selection.isEmpty()) {
+    				if(selection.getFirstElement() instanceof AbstractAttributeNode) {
+    					editAttributeDialog(composite.getDisplay(), (AbstractAttributeNode)selection.getFirstElement());
+    				}
+    			}
+    		}
+		});
 		
 		// TODO : à retirer lorsqu'il y aura des right click
 		Button changeQueryVariableAttributeButton = new Button(composite, SWT.PUSH);
@@ -92,45 +143,6 @@ public class AttributeTreeView extends TmfView {
 	    					queryDialog(composite.getDisplay(), queryNode);
     					}
     					attributeTree.refresh();
-    				}
-    			}
-    		}
-		});
-		
-		Button addAttributeValueButton = new Button(composite, SWT.PUSH);
-		addAttributeValueButton.setText("Value");
-		gridData = new GridData();
-		addConstantAttributeButton.setLayoutData(gridData);
-		
-		Button removeAttributeButton = new Button(composite, SWT.PUSH);
-		removeAttributeButton.setText("Remove");
-		gridData = new GridData();
-		removeAttributeButton.setLayoutData(gridData);
-		
-		removeAttributeButton.addSelectionListener(new SelectionAdapter() {
-    		@Override
-    		public void widgetSelected(SelectionEvent e) {
-    			IStructuredSelection selection = (IStructuredSelection) attributeTree.getSelection();
-    			if(!selection.isEmpty()) {
-    				if(selection.getFirstElement() instanceof AbstractAttributeNode) {
-    					removeAttribute((AbstractAttributeNode)selection.getFirstElement());
-    				}
-    			}
-    		}
-		});
-		
-		Button editAttributeButton = new Button(composite, SWT.PUSH);
-		editAttributeButton.setText("Edit");
-		gridData = new GridData();
-		editAttributeButton.setLayoutData(gridData);
-		
-		editAttributeButton.addSelectionListener(new SelectionAdapter() {
-    		@Override
-    		public void widgetSelected(SelectionEvent e) {
-    			IStructuredSelection selection = (IStructuredSelection) attributeTree.getSelection();
-    			if(!selection.isEmpty()) {
-    				if(selection.getFirstElement() instanceof AbstractAttributeNode) {
-    					editAttributeDialog(composite.getDisplay(), (AbstractAttributeNode)selection.getFirstElement());
     				}
     			}
     		}
@@ -158,7 +170,7 @@ public class AttributeTreeView extends TmfView {
 		});
 		
 		attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
-		xmlPath = AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME);
+		xmlPath = AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME);
 		if(xmlPath.toFile().exists()) {
 			attributeTree.setTreeViewerInput(xmlPath.toFile());
 		} else {
@@ -198,7 +210,8 @@ public class AttributeTreeView extends TmfView {
     			}
 			}
 		};
-		saveAction.setText("Save");
+		saveAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath("/icons/save_button.gif"));
+		//saveAction.setText("Save");
 		return saveAction;
 	}
 
@@ -280,7 +293,6 @@ public class AttributeTreeView extends TmfView {
 		}
 	}
 	
-	// TODO A corriger (mettre en mémoire l'arbre)
 	private void queryDialog(Display display, final VariableAttributeNode queryNode) {
 		final Shell dialog = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
         dialog.setLayout (new GridLayout(1, false));
@@ -289,18 +301,30 @@ public class AttributeTreeView extends TmfView {
         final AttributeTreeComposite queryAttributeTree = new AttributeTreeComposite(dialog, SWT.NONE);
         queryAttributeTree.setTreeViewerInput(xmlPath.toFile());
         
-        queryAttributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
+        Button selectButton = new Button(dialog, SWT.PUSH);
+        selectButton.setText("Select");
+        selectButton.addSelectionListener(new SelectionAdapter() {
+        	@Override
+			public void widgetSelected (SelectionEvent e) {
 				IStructuredSelection selection = queryAttributeTree.getSelection();
 				AbstractAttributeNode selectedNode = (AbstractAttributeNode)selection.getFirstElement();
 				queryNode.setIsQuery(true);
 				queryNode.setQueryPath(new AttributeTreePath(selectedNode));
 				dialog.close();
-			}
-        	
+        	}
         });
+//        queryAttributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+//
+//			@Override
+//			public void selectionChanged(SelectionChangedEvent event) {
+//				IStructuredSelection selection = queryAttributeTree.getSelection();
+//				AbstractAttributeNode selectedNode = (AbstractAttributeNode)selection.getFirstElement();
+//				queryNode.setIsQuery(true);
+//				queryNode.setQueryPath(new AttributeTreePath(selectedNode));
+//				dialog.close();
+//			}
+//        	
+//        });
         
         dialog.pack();
         dialog.open();

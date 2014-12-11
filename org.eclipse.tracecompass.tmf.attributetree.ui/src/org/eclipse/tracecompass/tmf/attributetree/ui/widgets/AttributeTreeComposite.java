@@ -28,7 +28,7 @@ public class AttributeTreeComposite extends Composite {
 		
 		treeViewer.getTree().setLayout(new GridLayout(1, false));
 		GridData gridData = new GridData();
-		gridData.horizontalSpan = 5;
+		gridData.horizontalSpan = 6;
         gridData.horizontalAlignment = SWT.FILL;
         gridData.grabExcessHorizontalSpace = true;
         gridData.verticalAlignment = SWT.FILL;

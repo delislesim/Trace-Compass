@@ -74,7 +74,7 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 		attributePathText.setEnabled(false);
 		
         final AttributeTreeComposite attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
-        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
+        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
         attributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override

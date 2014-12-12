@@ -17,6 +17,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.Condition;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionMultiple;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionSingle;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.DefinedValue;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.EventField;

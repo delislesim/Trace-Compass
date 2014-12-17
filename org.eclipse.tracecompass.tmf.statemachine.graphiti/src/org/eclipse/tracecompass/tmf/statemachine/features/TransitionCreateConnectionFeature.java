@@ -57,8 +57,10 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 		
 		if (targetState != null) {
 			transition.setState(targetState);
-			StateChange stateChange = getAppropriateStateChange();
-			transition.getStateChange().add(stateChange);
+			if (!(targetState instanceof ConditionalState)) {
+				StateChange stateChange = getAppropriateStateChange();
+				transition.getStateChange().add(stateChange);
+			}
 		}
 		
 		if(sourceState != null) {

@@ -38,6 +38,116 @@
                 <stateValue type="int" value="CPU_USERMODE"/>
             </stateChange>
         </eventHandler>
+        <eventHandler eventName="irq_handler_exit">
+            <stateChange>
+                <stateAttribute type="constant" value="Ressources"/>
+                <stateAttribute type="constant" value="IRQs"/>
+                <stateAttribute type="eventField" value="irq"/>
+                <stateValue type="null" value=""/>
+            </stateChange>
+            <stateChange>
+                <if>
+                    <or>
+                        <condition>
+                            <stateAttribute type="constant" value="CPUs"/>
+                            <stateAttribute type="eventField" value="cpu"/>
+                            <stateAttribute type="constant" value="Current_thread"/>
+                            <stateValue type="null" value=""/>
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="CPUs"/>
+                            <stateAttribute type="eventField" value="cpu"/>
+                            <stateAttribute type="constant" value="Current_thread"/>
+                            <stateValue type="long" value="0"/>
+                        </condition>
+                    </or>
+                </if>
+                <then>
+                    <stateAttribute type="constant" value="CPUs"/>
+                    <stateAttribute type="eventField" value="cpu"/>
+                    <stateAttribute type="constant" value="Status"/>
+                    <stateValue type="int" value="CPU_IDLE"/>
+                </then>
+            </stateChange>
+        </eventHandler>
+        <eventHandler eventName="softirq_exit">
+            <stateChange>
+                <stateAttribute type="constant" value="Ressources"/>
+                <stateAttribute type="constant" value="Soft_IRQs"/>
+                <stateAttribute type="eventField" value="vec"/>
+                <stateValue type="null" value=""/>
+            </stateChange>
+            <stateChange>
+                <if>
+                    <or>
+                        <condition>
+                            <stateAttribute type="constant" value="CPUs"/>
+                            <stateAttribute type="eventField" value="cpu"/>
+                            <stateAttribute type="constant" value="Current_thread"/>
+                            <stateValue type="null" value=""/>
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="CPUs"/>
+                            <stateAttribute type="eventField" value="cpu"/>
+                            <stateAttribute type="constant" value="Current_thread"/>
+                            <stateValue type="long" value="0"/>
+                        </condition>
+                    </or>
+                </if>
+                <then>
+                    <stateAttribute type="constant" value="CPUs"/>
+                    <stateAttribute type="eventField" value="cpu"/>
+                    <stateAttribute type="constant" value="Status"/>
+                    <stateValue type="int" value="CPU_IDLE"/>
+                </then>
+            </stateChange>
+        </eventHandler>
+        <eventHandler eventName="sched_switch">
+            <stateChange>
+                <stateAttribute type="constant" value="CPUs"/>
+                <stateAttribute type="eventField" value="cpu"/>
+                <stateAttribute type="constant" value="Current_thread"/>
+                <stateValue type="eventField" value="next_tid"/>
+            </stateChange>
+            <stateChange>
+                <stateAttribute type="constant" value="CPUs"/>
+                <stateAttribute type="eventField" value="cpu"/>
+                <stateAttribute type="constant" value="Current_thread"/>
+                <stateValue type="eventField" value="next_tid"/>
+            </stateChange>
+            <stateChange>
+                <if>
+                    <not>
+                        <condition>
+                            <field name="next_tid"/>
+                            <stateValue type="long" value="0"/>
+                        </condition>
+                    </not>
+                </if>
+                <then>
+                    <if>
+                        <condition>
+                            <stateAttribute type="constant" value="Threads"/>
+                            <stateAttribute type="eventField" value="next_tid"/>
+                            <stateAttribute type="constant" value="System_call"/>
+                            <stateValue type="null" value=""/>
+                        </condition>
+                    </if>
+                    <then>
+                        <stateAttribute type="constant" value="CPUs"/>
+                        <stateAttribute type="eventField" value="cpu"/>
+                        <stateAttribute type="constant" value="Status"/>
+                        <stateValue type="int" value="CPU_USERMODE"/>
+                    </then>
+                    <else>
+                        <stateAttribute type="constant" value="CPUs"/>
+                        <stateAttribute type="eventField" value="cpu"/>
+                        <stateAttribute type="constant" value="Status"/>
+                        <stateValue type="int" value="CPU_SYSCALL"/>
+                    </else>
+                </then>
+            </stateChange>
+        </eventHandler>
         <eventHandler eventName="softirq_entry">
             <stateChange>
                 <stateAttribute type="constant" value="Ressources"/>

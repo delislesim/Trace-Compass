@@ -4,6 +4,6 @@ import java.io.File;
 
 public interface ITmfXmlConverter {
 	
-	boolean convertXml(File xml);
+	File convertDiagram(File xml);
 
 }

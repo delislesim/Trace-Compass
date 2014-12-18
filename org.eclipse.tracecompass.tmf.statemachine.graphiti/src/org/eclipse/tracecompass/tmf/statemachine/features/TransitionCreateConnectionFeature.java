@@ -11,6 +11,7 @@ import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTree;
 
 import statemachine.AbstractState;
 import statemachine.ConditionalState;
+import statemachine.FinalState;
 import statemachine.StateChange;
 import statemachine.StateValue;
 import statemachine.StateValueType;
@@ -87,8 +88,13 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 		stateChange.getStateAttribute().addAll(attributeTreePath.getAllStateAttribute());
 		
 		StateValue stateValue = StatemachineFactory.eINSTANCE.createStateValue();
-		stateValue.setValue(targetState.getName());
-		stateValue.setType(StateValueType.DEFINED_STATE);		
+		if (targetState instanceof FinalState) {
+			stateValue.setValue("");
+			stateValue.setType(StateValueType.NULL);
+		} else {
+			stateValue.setValue(targetState.getName());
+			stateValue.setType(StateValueType.DEFINED_STATE);
+		}
 		stateChange.setStateValue(stateValue);
 		
 		return stateChange;

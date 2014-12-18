@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root name="root" type="ConstantAttributeNode">
+  <CPUs name="CPUs" type="ConstantAttributeNode">
+    <cpu name="cpu" type="VariableAttributeNode">
+      <Status name="Status" type="ConstantAttributeNode">
+        <CPU_STATUS_IDLE name="CPU_STATUS_IDLE" type="AttributeValueNode"/>
+        <CPU_STATUS_RUN_USERMODE name="CPU_STATUS_RUN_USERMODE" type="AttributeValueNode"/>
+        <CPU_STATUS_RUN_SYSCALL name="CPU_STATUS_RUN_SYSCALL" type="AttributeValueNode"/>
+        <CPU_STATUS_IRQ name="CPU_STATUS_IRQ" type="AttributeValueNode"/>
+        <CPU_STATUS_SOFTIRQ name="CPU_STATUS_SOFTIRQ" type="AttributeValueNode"/>
+      </Status>
+      <Current_thread name="Current_thread" type="ConstantAttributeNode"/>
+    </cpu>
+  </CPUs>
+  <Threads name="Threads" type="ConstantAttributeNode">
+    <thread name="thread" query="/root/CPUs/cpu/Current_thread" type="VariableAttributeNode">
+      <Status name="Status" type="ConstantAttributeNode">
+        <PROCESS_STATUS_UNKNOWN name="PROCESS_STATUS_UNKNOWN" type="AttributeValueNode"/>
+        <PROCESS_STATUS_WAIT_BLOCKED name="PROCESS_STATUS_WAIT_BLOCKED" type="AttributeValueNode"/>
+        <PROCESS_STATUS_RUN_USERMODE name="PROCESS_STATUS_RUN_USERMODE" type="AttributeValueNode"/>
+        <PROCESS_STATUS_RUN_SYSCALL name="PROCESS_STATUS_RUN_SYSCALL" type="AttributeValueNode"/>
+        <PROCESS_STATUS_INTERRUPTED name="PROCESS_STATUS_INTERRUPTED" type="AttributeValueNode"/>
+        <PROCESS_STATUS_WAIT_FOR_CPU name="PROCESS_STATUS_WAIT_FOR_CPU" type="AttributeValueNode"/>
+      </Status>
+      <System_call name="System_call" type="ConstantAttributeNode"/>
+    </thread>
+    <next_tid name="next_tid" type="VariableAttributeNode">
+      <System_call name="System_call" type="ConstantAttributeNode"/>
+    </next_tid>
+  </Threads>
+  <Ressources name="Ressources" type="ConstantAttributeNode">
+    <IRQs name="IRQs" type="ConstantAttributeNode">
+      <irq name="irq" type="VariableAttributeNode"/>
+    </IRQs>
+    <Soft_IRQs name="Soft_IRQs" type="ConstantAttributeNode">
+      <vec name="vec" type="VariableAttributeNode"/>
+    </Soft_IRQs>
+  </Ressources>
+</root>

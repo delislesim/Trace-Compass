@@ -49,10 +49,10 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 	private String fTransitionTag = "transitions";
 	
 	private String fStateType = "statemachine:State";
+	private String fInitialStateType = "statemachine:InitialState";
 	private String fConditionalStateType = "statemachine:ConditionalState";
 	
 	private String fAttributeConditionType = "statemachine:AttributeCondition";
-//	private String fEventFieldConditionType = "statemachine:FieldCondition";
 	
 	private Map<Integer, Node> fStatemachineList = new HashMap<>();
 	private Map<Integer, Map<Integer, Node>> fStatemachineStatesList = new HashMap<>();
@@ -68,17 +68,17 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 	private ObjectFactory factory = new ObjectFactory();
 
 	@Override
-	public boolean convertXml(File xml) {
+	public File convertDiagram(File diagramFile) {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			fGraphitiXml = dBuilder.parse(xml);
+			fGraphitiXml = dBuilder.parse(diagramFile);
 			fGraphitiXml.getDocumentElement().normalize();
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			return false;
+			return null;
 		}
 		
-		xmlID = xml.getName().replaceFirst("[.][^.]+$", "").replaceAll("[^a-z0-9A-Z]", ".");
+		xmlID = diagramFile.getName().replaceFirst("[.][^.]+$", "").replaceAll("[^a-z0-9A-Z]", ".");
 		
 		NodeList statemachineNodeList = fGraphitiXml.getElementsByTagName(fStatemachineTag);
 		for (int i = 0; i < statemachineNodeList.getLength(); i++) {	
@@ -95,8 +95,7 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 			fStatemachineStatesList.put(statemachineNode.getKey(), states);
 			statePositionInStatemachine = 0;
 		}
-		
-		return buildXmlFile();
+		return buildXmlFile(diagramFile.getPath().replace(".diagram", ".xml"));
 	}
 	
 	private Map<Integer, Node> extractStateInformation(Node parentStatemachine) {		
@@ -319,7 +318,7 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		return fStatemachineStatesList.get(statemachineIndex).get(stateIndex);
 	}
 	
-	private boolean buildXmlFile() {
+	private File buildXmlFile(String xmlFilePath) {
 		// State provider
 		StateProvider stateProvider = factory.createStateProvider();
 		stateProvider.setVersion(new BigInteger("0"));
@@ -346,7 +345,9 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 					definedValue.setName(state.getValue().getAttributes().getNamedItem("name").getNodeValue());
 					definedValue.setValue(state.getKey().toString());
 					stateProvider.getDefinedValue().add(definedValue);
-					
+				}
+				
+				if (state.getValue().getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fStateType) || state.getValue().getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fInitialStateType)) {
 					// Event handler
 					Vector<Node> transitions = extractTransitionsNode(state.getValue());
 					for(Node transitionNode : transitions) {						
@@ -382,25 +383,27 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		
 		Tmfxml tmfXml = factory.createTmfxml();
 		tmfXml.getTimeGraphViewOrStateProvider().add(stateProvider);
+		File xmlFile = new File(xmlFilePath);
 		try {
 			JAXBContext context = JAXBContext.newInstance("org.eclipse.tracecompass.tmf.xmlconverter.core.model");
-			JAXBElement<Tmfxml> element = factory.createTmfxml(tmfXml);
+			JAXBElement<Tmfxml> tmfXmlElement = factory.createTmfxml(tmfXml);
 			Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
-			marshaller.marshal(element, new File("/home/simon/git/tracecompass_statemachine/converted_xml/converted_xml.xml"));
+			marshaller.marshal(tmfXmlElement, xmlFile);
+			//marshaller.marshal(tmfXmlElement, new File("/home/simon/git/tracecompass_statemachine/converted_xml/converted_xml.xml"));
 			//marshaller.marshal(element, new File("C:\\Users\\Simon\\Downloads\\converted_xml.xml"));
 		} catch (JAXBException e) {
-			return false;
+			return null;
 		}
-		return true;
+		return xmlFile;
 	}
 
-	public static void main(String[] args) {
-		String xmlPath = "/home/simon/runtime-Tracecompass/Trace/src/diagrams/kernel_statemachine.diagram";
-		//String xmlPath = "C:\\Users\\Simon\\Downloads\\kernel_statemachine.diagram";
-		File xmlFile = new File(xmlPath);
-		TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
-		converter.convertXml(xmlFile);
-	}
+//	public static void main(String[] args) {
+//		String xmlPath = "/home/simon/runtime-Tracecompass/Trace/src/diagrams/kernel_statemachine.diagram";
+//		//String xmlPath = "C:\\Users\\Simon\\Downloads\\kernel_statemachine.diagram";
+//		File xmlFile = new File(xmlPath);
+//		TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
+//		converter.convertDiagram(xmlFile);
+//	}
 
 }

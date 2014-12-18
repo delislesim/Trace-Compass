@@ -29,6 +29,7 @@ import org.eclipse.tracecompass.tmf.analysis.xml.ui.module.Messages;
 import org.eclipse.tracecompass.tmf.analysis.xml.ui.module.XmlAnalysisModuleSource;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfProjectModelElement;
 import org.eclipse.tracecompass.tmf.ui.project.model.TraceUtils;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.TmfGraphitiXmlConverter;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -45,12 +46,16 @@ public class ImportXmlHandler extends AbstractHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         FileDialog dlg = new FileDialog(new Shell(), SWT.OPEN);
-        dlg.setFilterNames(new String[] { Messages.ImportXmlHandler_ImportXmlFile + " (*.xml)" }); //$NON-NLS-1$
-        dlg.setFilterExtensions(new String[] { "*.xml" }); //$NON-NLS-1$
+        dlg.setFilterNames(new String[] { "Statemachine Diagram" + " (*.diagram)", Messages.ImportXmlHandler_ImportXmlFile + " (*.xml)" }); //$NON-NLS-1$
+        dlg.setFilterExtensions(new String[] { "*.diagram", "*.xml" }); //$NON-NLS-1$
 
         String fn = dlg.open();
         if (fn != null) {
             File file = new File(fn);
+            if (file.getAbsolutePath().contains(".diagram")) { // TODO: Maybe not the good way to do that
+                TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
+                file = converter.convertDiagram(file);
+            }
             IStatus status = XmlUtils.xmlValidate(file);
             if (status.isOK()) {
                 status = XmlUtils.addXmlFile(file);

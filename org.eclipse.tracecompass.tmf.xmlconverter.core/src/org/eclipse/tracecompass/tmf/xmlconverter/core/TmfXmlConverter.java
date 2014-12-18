@@ -53,7 +53,7 @@ public class TmfXmlConverter implements ITmfXmlConverter {
 	}
 
 	@Override
-	public boolean convertXml(File xml) {
+	public File convertDiagram(File xml) {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
 					.newInstance();
@@ -61,7 +61,7 @@ public class TmfXmlConverter implements ITmfXmlConverter {
 			fDoc = dBuilder.parse(xml);
 			fDoc.getDocumentElement().normalize();
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			return false;
+			return null;
 		}
 		
 		xmlID = xml.getName().replaceFirst("[.][^.]+$", "").replaceAll("[^a-z0-9A-Z]", ".");
@@ -90,7 +90,7 @@ public class TmfXmlConverter implements ITmfXmlConverter {
 		return buildXmlFileWithXsd();
 	}
 	
-	private boolean buildXmlFileWithXsd() {
+	private File buildXmlFileWithXsd() {
 		ObjectFactory factory = new ObjectFactory();
 		
 		// State provider
@@ -138,17 +138,17 @@ public class TmfXmlConverter implements ITmfXmlConverter {
 		
 		Tmfxml tmfXml = factory.createTmfxml();
 		tmfXml.getTimeGraphViewOrStateProvider().add(stateProvider);
-		
+		File file = new File("/home/simon/git/xml_converter/lttng/org.eclipse.tracecompass.tmf.xmlconverter.core.tests/Diagrams/converted_xml.xml");
 		try {
 			JAXBContext context = JAXBContext.newInstance("org.eclipse.tracecompass.tmf.xmlconverter.core.model");
 			JAXBElement<Tmfxml> element = factory.createTmfxml(tmfXml);
 			Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
-			marshaller.marshal(element, new File("/home/simon/git/xml_converter/lttng/org.eclipse.tracecompass.tmf.xmlconverter.core.tests/Diagrams/converted_xml.xml"));
+			marshaller.marshal(element, file);
 		} catch (JAXBException e) {
-			return false;
+			return null;
 		}
-		return true;
+		return file;
 	}
 
 	private boolean buildXmlFile() {
@@ -228,7 +228,7 @@ public class TmfXmlConverter implements ITmfXmlConverter {
 		String xmlPath = "/home/simon/git/xml_converter/lttng/org.eclipse.tracecompass.tmf.xmlconverter.core.tests/Diagrams/exemple_xml.statemachine";
 		File xmlFile = new File(xmlPath);
 		TmfXmlConverter converter = new TmfXmlConverter();
-		converter.convertXml(xmlFile);
+		converter.convertDiagram(xmlFile);
 	}
 
 }

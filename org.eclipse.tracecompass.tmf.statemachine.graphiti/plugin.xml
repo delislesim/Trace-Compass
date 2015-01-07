@@ -89,8 +89,8 @@
 
 <!-- End properties-->
 
-<!-- Wizard extension
-<extension
+<!-- Wizard extension -->
+<!--<extension
       point="org.eclipse.ui.newWizards">
       <wizard
             class="org.eclipse.tracecompass.tmf.statemachine.wizard.StatemachineDiagramWizard"

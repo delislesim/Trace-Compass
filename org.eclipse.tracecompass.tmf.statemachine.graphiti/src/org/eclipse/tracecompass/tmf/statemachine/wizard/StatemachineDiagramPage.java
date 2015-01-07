@@ -2,6 +2,8 @@ package org.eclipse.tracecompass.tmf.statemachine.wizard;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -31,8 +33,18 @@ public class StatemachineDiagramPage extends WizardPage {
 		
 		diagramNameText = new Text(composite, SWT.SINGLE);
 		diagramNameText.setText("");
+		diagramNameText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				setPageComplete(validatePage());
+			}			
+		});
 		
 		setPageComplete(validatePage());
+
+		setErrorMessage(null);
+		setMessage(null);
+		setControl(composite);
 	}
 	
 	private boolean validatePage() {

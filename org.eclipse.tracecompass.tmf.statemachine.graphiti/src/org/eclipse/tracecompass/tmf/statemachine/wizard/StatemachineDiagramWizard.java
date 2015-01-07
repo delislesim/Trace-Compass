@@ -3,26 +3,11 @@ package org.eclipse.tracecompass.tmf.statemachine.wizard;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.graphiti.mm.pictograms.Diagram;
 import org.eclipse.graphiti.services.Graphiti;
-import org.eclipse.graphiti.ui.editor.DiagramEditor;
-import org.eclipse.graphiti.ui.editor.DiagramEditorInput;
-import org.eclipse.graphiti.ui.services.GraphitiUi;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
 public class StatemachineDiagramWizard extends BasicNewResourceWizard {
@@ -56,6 +41,30 @@ public class StatemachineDiagramWizard extends BasicNewResourceWizard {
 	@Override
 	public boolean performFinish() {
 		String diagramName = diagramNamePage.getDiagramName();
+		
+		IProject project = null;
+		IFolder diagramFolder = null;
+		
+		Object element = getSelection().getFirstElement();
+		if (element instanceof IProject) {
+			project = (IProject) element;
+		} else if (element instanceof IFolder) {
+			diagramFolder = (IFolder) element;
+			project = diagramFolder.getProject();
+		}
+		
+		if (project == null || !project.isAccessible()) {
+			return false;
+		}
+		
+		Diagram diagram = Graphiti.getPeCreateService().createDiagram(diagramTypeId, diagramName, true);
+		if (diagramFolder == null) {
+			diagramFolder = project.getFolder("Diagrams/");
+		}
+		
+		String statemachineDiagramExtension = "diagram";
+		IFile diagramFile = diagramFolder.getFile(diagramName + "." + statemachineDiagramExtension);
+		
 		return true;
 //		StatemachineDiagramPage namePage = (StatemachineDiagramPage) getPage(PAGE_NAME_DIAGRAM_NAME);
 //		final String diagramName = namePage.getDiagramName();

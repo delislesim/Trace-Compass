@@ -28,23 +28,36 @@ public class AttributeTree {
 	
 	private static AbstractAttributeNode invisibleRoot = null;
 	private static Stack<Pair<AbstractAttributeNode, String>> queryNodeStack = new Stack<>();
+	private static File currentFile = new File(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toString());
 	
 	private AttributeTree() {
 		
 	}
  
 	public static AttributeTree getInstance()
-	{			
+	{
 		if (INSTANCE == null) {
 			INSTANCE = new AttributeTree();
 		}
 		
 		if(invisibleRoot == null) {
-			loadXmlTree(AttributeTreeXmlUtils.getAttributeTreeXmlFile(AttributeTreeXmlUtils.FILE_NAME));
+			loadXmlTree(currentFile);
+			//loadXmlTree(AttributeTreeXmlUtils.getAttributeTreeXmlFile(AttributeTreeXmlUtils.FILE_NAME));
 			//loadXmlTree(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
 		}
 		
 		return INSTANCE;
+	}
+	
+	public void setFile(File newFile) {
+		if(!currentFile.equals(newFile) && newFile != null) {
+			loadXmlTree(newFile);
+			currentFile = newFile;
+		}
+	}
+	
+	public File getFile() {
+		return currentFile;
 	}
 	
 	public AbstractAttributeNode getNodeFromPath(String path) {
@@ -76,7 +89,12 @@ public class AttributeTree {
 		
 		NodeList nodeList = xmlTree.getElementsByTagName("root");
 		Node xmlRootNode = nodeList.item(0); // Only one root
-		invisibleRoot = new ConstantAttributeNode(null, ((Element)xmlRootNode).getAttribute("name"));
+		if(invisibleRoot != null) {
+			invisibleRoot.removeAllChildren();
+			invisibleRoot.setName(((Element)xmlRootNode).getAttribute("name"));
+		} else {
+			invisibleRoot = new ConstantAttributeNode(null, ((Element)xmlRootNode).getAttribute("name"));
+		}
 		getTreeFromXml(xmlRootNode, invisibleRoot);
 		addQueryToTree();
 	}

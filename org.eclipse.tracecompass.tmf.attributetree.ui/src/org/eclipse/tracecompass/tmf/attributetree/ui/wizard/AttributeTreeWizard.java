@@ -1,6 +1,7 @@
 package org.eclipse.tracecompass.tmf.attributetree.ui.wizard;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -17,7 +18,7 @@ public class AttributeTreeWizard extends Wizard implements INewWizard {
 	
 	private String PAGE_NAME_TREE_NAME = "Attribute Tree Name";
 	private String WIZARD_WINDOW_TITLE = "New Attribute Tree";
-	private String ATTRIBUTE_TREE_EXTENSION = "xml";
+	private String ATTRIBUTE_TREE_EXTENSION = "attributetree";
 	
 	private ISelection selection;	
 	AttributeTreeWizardPage treeNamePage;
@@ -58,25 +59,40 @@ public class AttributeTreeWizard extends Wizard implements INewWizard {
 			return false;
 		}
 		
-		if(attributeTreeFolder == null) {
-			attributeTreeFolder = attributeTreeProject.getFolder("Statemachine/Tree/");
-//			if(!attributeTreeFolder.exists()) {
-//				try {
-//					attributeTreeFolder.create(IResource.NONE, true, null);
-//				} catch (CoreException e) {
-//					return false;
-//				}
-//			}
+		if (attributeTreeFolder == null) {
+			IFolder statemachineFolder = null;
+			IFolder treeFolder = null;
+			
+			statemachineFolder = attributeTreeProject.getFolder("Statemachine");
+			if (!statemachineFolder.exists()) {
+				try {
+					statemachineFolder.create(IResource.NONE, true, null);
+				} catch (CoreException e) {
+					return false;
+				}
+			}
+
+			treeFolder = statemachineFolder.getFolder("Tree");
+			if (!treeFolder.exists()) {
+				try {
+					treeFolder.create(IResource.NONE, true, null);
+				} catch (CoreException e) {
+					return false;
+				}
+			}
+			attributeTreeFolder = attributeTreeProject.getFolder("Statemachine/Tree");
 		}
 		
 		attributeTreeFile = attributeTreeFolder.getFile(attributeTreeName + "." + ATTRIBUTE_TREE_EXTENSION);
-//		if(!attributeTreeFile.exists()) {
-//			try {
-//				attributeTreeFile.create(new ByteArrayInputStream("test".getBytes()), IResource.NONE, null);
-//			} catch (CoreException e) {
-//				return false;
-//			}
-//		}
+		if(!attributeTreeFile.exists()) {
+			try {
+				InputStream inputStream = new ByteArrayInputStream("Ecrire quelque chose d'intelligent".getBytes());
+				attributeTreeFile.create(inputStream, IResource.NONE, null);
+			} catch (CoreException e) {
+				return false;
+			}
+		}
+		
 		return true;
 	}
 

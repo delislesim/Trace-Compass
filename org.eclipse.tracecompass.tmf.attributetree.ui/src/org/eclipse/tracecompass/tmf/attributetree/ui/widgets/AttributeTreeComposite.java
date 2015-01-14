@@ -65,6 +65,7 @@ public class AttributeTreeComposite extends Composite {
 //			invisibleRoot = new ConstantAttributeNode(null, "root");
 //		}
 		// TODO Utiliser le fichier
+		AttributeTree.getInstance().setFile(xmlTree);
 		AbstractAttributeNode treeInput = AttributeTree.getInstance().getRoot();
 		treeViewer.setInput(treeInput);
 	}

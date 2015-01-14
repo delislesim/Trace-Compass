@@ -54,6 +54,10 @@ public abstract class AbstractAttributeNode {
 		return false;
 	}
 	
+	public void removeAllChildren() {
+		childNodes.clear();
+	}
+	
 	public Element createElement(AbstractAttributeNode rootNode, Document xml) {
 		Element node = xml.createElement(rootNode.getName().replace(" ", ""));
 		node.setAttribute("type", rootNode.getClass().getSimpleName());

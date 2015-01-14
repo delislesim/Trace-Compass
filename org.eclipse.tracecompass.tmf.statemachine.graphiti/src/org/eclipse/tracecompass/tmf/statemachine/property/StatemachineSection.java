@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
-import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTree;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
@@ -74,7 +73,7 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 		attributePathText.setEnabled(false);
 		
         final AttributeTreeComposite attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
-        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
+        attributeTree.setTreeViewerInput(AttributeTree.getInstance().getFile());
         attributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override

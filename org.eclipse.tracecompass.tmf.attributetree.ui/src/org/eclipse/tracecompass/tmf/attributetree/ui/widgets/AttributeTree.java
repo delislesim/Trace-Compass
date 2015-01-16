@@ -1,6 +1,9 @@
 package org.eclipse.tracecompass.tmf.attributetree.ui.widgets;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Stack;
 import java.util.Vector;
@@ -28,10 +31,23 @@ public class AttributeTree {
 	
 	private static AbstractAttributeNode invisibleRoot = null;
 	private static Stack<Pair<AbstractAttributeNode, String>> queryNodeStack = new Stack<>();
-	private static File currentFile = new File(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toString());
+	private static File currentFile;
 	
 	private AttributeTree() {
+		String lastOpenedFilePath = "";
+		BufferedReader reader = null;		
+		try {
+			reader = new BufferedReader(new FileReader(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toString()));
+		} catch (FileNotFoundException e) {
+			// TODO
+		}
 		
+		try {
+			lastOpenedFilePath = reader.readLine();
+			currentFile = new File(lastOpenedFilePath);
+		} catch (IOException e) {
+			// TODO
+		}
 	}
  
 	public static AttributeTree getInstance()

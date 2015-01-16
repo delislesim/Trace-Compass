@@ -1,6 +1,13 @@
 package org.eclipse.tracecompass.tmf.attributetree.ui.views;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -207,19 +214,10 @@ public class AttributeTreeView extends TmfView {
     				Transformer transformer = transformerFactory.newTransformer();
     				DOMSource source = new DOMSource(xmlFile);
     				
-    				StreamResult metadataResult = new StreamResult(xmlPath.toFile());
     				StreamResult savedFileResult = new StreamResult(AttributeTree.getInstance().getFile());
     				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-    				/* TODO : This system doesn't work because : 
-    				1-Open your file
-    				2-Save your file
-    				3-Quit tracecompass
-    				4-reopen tracecompass
-    				5-edit your tree
-    				6-No changes apply to the original file*/
     				transformer.transform(source, savedFileResult);
-    				transformer.transform(source, metadataResult);
     			} catch (TransformerException exception) {
     			}
 			}
@@ -240,6 +238,17 @@ public class AttributeTreeView extends TmfView {
 		        String filePath = openDialog.open();
 		        File treeFile = new File(filePath);
 		        attributeTree.setTreeViewerInput(treeFile);
+		        File lastOpenedFile = new File(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toString());
+				try {
+					if (!lastOpenedFile.exists()) {
+						lastOpenedFile.createNewFile();
+					}
+					BufferedWriter writer = new BufferedWriter(new FileWriter(lastOpenedFile));
+					writer.write(AttributeTree.getInstance().getFile().getPath());
+					writer.close();
+				} catch (IOException e) {
+					// TODO
+				}
 			}
 		};
 		openAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath("/icons/open.gif"));

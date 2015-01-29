@@ -6,8 +6,8 @@ import org.eclipse.graphiti.features.context.impl.AddConnectionContext;
 import org.eclipse.graphiti.features.impl.AbstractCreateConnectionFeature;
 import org.eclipse.graphiti.mm.pictograms.Connection;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTree;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
-import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTree;
 
 import statemachine.AbstractState;
 import statemachine.ConditionalState;

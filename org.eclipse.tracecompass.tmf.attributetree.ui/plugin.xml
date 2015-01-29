@@ -12,13 +12,13 @@
    </extension>
    
    <!-- Wizard extension -->
-	<extension
+	<!--<extension
 		point="org.eclipse.ui.newWizards">
 		<wizard
 			class="org.eclipse.tracecompass.tmf.attributetree.ui.wizard.AttributeTreeWizard"
 			id="org.eclipse.tracecompass.tmf.statemachine.attributetree.ui.wizard.newAttributeTree"
 			name="New Attribute Tree">
 		</wizard>
-	</extension>
+	</extension>-->
 
 </plugin>

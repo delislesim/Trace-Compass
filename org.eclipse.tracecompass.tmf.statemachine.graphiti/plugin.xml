@@ -90,13 +90,13 @@
 <!-- End properties-->
 
 <!-- Wizard extension -->
-<!--<extension
+<extension
       point="org.eclipse.ui.newWizards">
       <wizard
             class="org.eclipse.tracecompass.tmf.statemachine.wizard.StatemachineDiagramWizard"
             id="org.eclipse.tracecompass.tmf.statemachine.wizards.newDiagram"
             name="Statemachine diagram">
       </wizard>
-</extension>-->
+</extension>
 
 </plugin>

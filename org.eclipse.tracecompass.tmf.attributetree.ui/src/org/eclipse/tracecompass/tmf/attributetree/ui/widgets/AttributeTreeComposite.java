@@ -13,6 +13,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTree;
 import org.eclipse.tracecompass.tmf.attributetree.ui.views.AttributeTreeContentProvider;
 import org.eclipse.tracecompass.tmf.attributetree.ui.views.AttributeTreeLabelProvider;
 

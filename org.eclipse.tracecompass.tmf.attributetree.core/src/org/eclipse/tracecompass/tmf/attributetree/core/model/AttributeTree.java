@@ -1,4 +1,4 @@
-package org.eclipse.tracecompass.tmf.attributetree.ui.widgets;
+package org.eclipse.tracecompass.tmf.attributetree.core.model;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,11 +12,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
-import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
-import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeValueNode;
-import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
-import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Document;

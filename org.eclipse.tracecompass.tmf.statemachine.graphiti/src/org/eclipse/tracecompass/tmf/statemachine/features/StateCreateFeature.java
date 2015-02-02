@@ -3,6 +3,8 @@ package org.eclipse.tracecompass.tmf.statemachine.features;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.ICreateContext;
 import org.eclipse.graphiti.features.impl.AbstractCreateFeature;
+import org.eclipse.graphiti.mm.pictograms.PictogramLink;
+
 import statemachine.State;
 import statemachine.Statemachine;
 import statemachine.StatemachineFactory;
@@ -15,7 +17,13 @@ public class StateCreateFeature extends AbstractCreateFeature {
 
 	@Override
 	public boolean canCreate(ICreateContext context) {
-		Object bo = getBusinessObjectForPictogramElement(context.getTargetContainer().getLink().getPictogramElement());
+		PictogramLink pictogramLink = context.getTargetContainer().getLink();
+		// If the target container is not a pictogram (ex: the diagram)
+		if(pictogramLink == null) {
+			return false;
+		}
+		
+		Object bo = getBusinessObjectForPictogramElement(pictogramLink.getPictogramElement());
 		return bo instanceof Statemachine;
 	}
 

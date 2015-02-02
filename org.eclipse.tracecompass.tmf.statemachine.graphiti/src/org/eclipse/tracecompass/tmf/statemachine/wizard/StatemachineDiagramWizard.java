@@ -14,7 +14,6 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.emf.common.command.CommandStack;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -26,6 +25,7 @@ import org.eclipse.graphiti.ui.editor.DiagramEditor;
 import org.eclipse.graphiti.ui.editor.DiagramEditorInput;
 import org.eclipse.graphiti.ui.services.GraphitiUi;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTree;
 import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeUtils;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PartInitException;
@@ -35,7 +35,6 @@ import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.Transaction;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.impl.TransactionalEditingDomainImpl;
-import org.osgi.service.prefs.Preferences;
 
 public class StatemachineDiagramWizard extends BasicNewResourceWizard {
 	
@@ -181,11 +180,9 @@ public class StatemachineDiagramWizard extends BasicNewResourceWizard {
 			attributeTreeFolder = attributeTreeProject.getFolder("Statemachine/Tree");
 		}
 		
-		File attributeTreeFile = attributeTreeFolder.getFile(newDiagramPage.getNewTreeName() + ".attributetree").getFullPath().toFile();
-		if(!attributeTreeFile.exists()) {
-			try {
-				attributeTreeFile.createNewFile();
-			} catch (IOException e) {
+		File attributeTreeFile = attributeTreeFolder.getFile(newDiagramPage.getNewTreeName() + ".attributetree").getLocation().toFile();
+		if (!attributeTreeFile.exists()) {
+			if(!AttributeTree.getInstance().createNewAttributeTree(attributeTreeFile)) {
 				return false;
 			}
 		}

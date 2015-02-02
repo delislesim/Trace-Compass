@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.tracecompass.tmf.attributetree.core.Activator;
+import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 public class AttributeTreeUtils {
@@ -38,6 +39,11 @@ public class AttributeTreeUtils {
     	}
     	
     	preferences.put(diagramName, filePath);
+    	try {
+			preferences.flush();
+		} catch (BackingStoreException e) {
+			// TODO Make something
+		}
     }
 
 }

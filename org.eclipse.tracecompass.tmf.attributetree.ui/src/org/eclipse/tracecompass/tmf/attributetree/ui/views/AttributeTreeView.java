@@ -1,23 +1,10 @@
 package org.eclipse.tracecompass.tmf.attributetree.ui.views;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.swt.SWT;
@@ -39,18 +26,17 @@ import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeValueNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;
-import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
 import org.eclipse.tracecompass.tmf.attributetree.ui.Activator;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.ui.IActionBars;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class AttributeTreeView extends TmfView {
 	
 	private Composite composite;
 	private AttributeTreeComposite attributeTree;
-	private IPath xmlPath = AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME);
+	
+	private File openedFile;
+	private String LAST_OPENED_KEY = "lastOpenedFile";
 	
 	private int GRID_NUM_COLUMNS = 3;
 	
@@ -69,7 +55,7 @@ public class AttributeTreeView extends TmfView {
 		
 		GridData gridData;
 		
-		// TODO : remplacer ce système d'image ?
+		// TODO : replace this images loading system ?
 		Image addConstantImage = Activator.getDefault().getImageFromPath("/icons/addconstantAttribute.png");
 		Image addVariableImage = Activator.getDefault().getImageFromPath("/icons/addvariableAttribute.png");
 		Image addValueImage = Activator.getDefault().getImageFromPath("/icons/addvalue.png");
@@ -130,7 +116,7 @@ public class AttributeTreeView extends TmfView {
     		}
 		});
 		
-		// TODO : à retirer lorsqu'il y aura des right click
+		// TODO : remove when right click will be implemented
 		Button changeQueryVariableAttributeButton = new Button(composite, SWT.PUSH);
 		changeQueryVariableAttributeButton.setText("Query");
 		gridData = new GridData();
@@ -177,14 +163,16 @@ public class AttributeTreeView extends TmfView {
 		});
 		
 		attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
-		if(AttributeTree.getInstance().getFile().exists()) {
-			attributeTree.setTreeViewerInput(AttributeTree.getInstance().getFile());
-		} else {
-			attributeTree.setTreeViewerInput(null);
+		String lastOpenedFilePath = Activator.getDefault().getDialogSettings().get(LAST_OPENED_KEY);
+		if(lastOpenedFilePath != null) {
+			openedFile = new File(lastOpenedFilePath);
+			if(openedFile.exists()) {
+				attributeTree.setTreeViewerInput(openedFile);
+			}
 		}
         
         IActionBars bars = getViewSite().getActionBars();
-        bars.getToolBarManager().add(getNewAction());
+        //bars.getToolBarManager().add(getNewAction());
         bars.getToolBarManager().add(getOpenAction());
         bars.getToolBarManager().add(getSaveAction());
 	}
@@ -193,29 +181,31 @@ public class AttributeTreeView extends TmfView {
 		Action saveAction = new Action("Save", IAction.AS_PUSH_BUTTON) {
 			@Override
             public void run() {
-				Document xmlFile = null;
-    			try {
-    				DocumentBuilderFactory dbFactory = DocumentBuilderFactory
-    						.newInstance();
-    				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-    				xmlFile = dBuilder.newDocument();
-    			} catch (ParserConfigurationException exception) {
-    			}
-    			
-    			Element rootElement = attributeTree.getRoot().createElement(attributeTree.getRoot(), xmlFile);
-    			xmlFile.appendChild(rootElement);
-    			try {
-    				TransformerFactory transformerFactory = TransformerFactory
-    						.newInstance();
-    				Transformer transformer = transformerFactory.newTransformer();
-    				DOMSource source = new DOMSource(xmlFile);
-    				
-    				StreamResult savedFileResult = new StreamResult(AttributeTree.getInstance().getFile());
-    				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-    				transformer.transform(source, savedFileResult);
-    			} catch (TransformerException exception) {
-    			}
+				AttributeTree.getInstance().saveAttributeTree(openedFile);
+//				// TODO If openedFile doesn't exist it crash
+//				Document xmlFile = null;
+//    			try {
+//    				DocumentBuilderFactory dbFactory = DocumentBuilderFactory
+//    						.newInstance();
+//    				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+//    				xmlFile = dBuilder.newDocument();
+//    			} catch (ParserConfigurationException exception) {
+//    			}
+//    			
+//    			Element rootElement = attributeTree.getRoot().createElement(attributeTree.getRoot(), xmlFile);
+//    			xmlFile.appendChild(rootElement);
+//    			try {
+//    				TransformerFactory transformerFactory = TransformerFactory
+//    						.newInstance();
+//    				Transformer transformer = transformerFactory.newTransformer();
+//    				DOMSource source = new DOMSource(xmlFile);
+//    				
+//    				StreamResult savedFileResult = new StreamResult(openedFile);
+//    				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//    				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+//    				transformer.transform(source, savedFileResult);
+//    			} catch (TransformerException exception) {
+//    			}
 			}
 		};
 		saveAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath("/icons/save_button.gif"));
@@ -232,19 +222,10 @@ public class AttributeTreeView extends TmfView {
 				openDialog.setFilterExtensions(new String[] { "*.attributetree"}); //$NON-NLS-1$
 
 		        String filePath = openDialog.open();
-		        File treeFile = new File(filePath);
-		        attributeTree.setTreeViewerInput(treeFile);
-		        File lastOpenedFile = new File(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toString());
-				try {
-					if (!lastOpenedFile.exists()) {
-						lastOpenedFile.createNewFile();
-					}
-					BufferedWriter writer = new BufferedWriter(new FileWriter(lastOpenedFile));
-					writer.write(AttributeTree.getInstance().getFile().getPath());
-					writer.close();
-				} catch (IOException e) {
-					// TODO
-				}
+		        openedFile = new File(filePath);
+		        attributeTree.setTreeViewerInput(openedFile);
+		        IDialogSettings settings = Activator.getDefault().getDialogSettings();
+		        settings.put(LAST_OPENED_KEY, filePath);
 			}
 		};
 		openAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath("/icons/open.gif"));
@@ -352,7 +333,7 @@ public class AttributeTreeView extends TmfView {
         dialog.setText("Query path");
         
         final AttributeTreeComposite queryAttributeTree = new AttributeTreeComposite(dialog, SWT.NONE);
-        queryAttributeTree.setTreeViewerInput(AttributeTree.getInstance().getFile());
+        queryAttributeTree.setTreeViewerInput(openedFile);
         
         Button selectButton = new Button(dialog, SWT.PUSH);
         selectButton.setText("Select");

@@ -28,8 +28,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
-import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTree;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeUtils;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.tracecompass.tmf.statemachine.util.ConvertStatemachineType;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
@@ -328,7 +328,7 @@ public class ConditionalStateSection extends GFPropertySection implements ITabbe
         stateValueGroup.setLayoutData(gridData);
         
         final AttributeTreeComposite attributeTree = new AttributeTreeComposite(stateAttributeGroup, SWT.NONE);
-        attributeTree.setTreeViewerInput(AttributeTree.getInstance().getFile());
+        attributeTree.setTreeViewerInput(AttributeTreeUtils.getAttributeTreeFile(getDiagram().getName()));
         attributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override

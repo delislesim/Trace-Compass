@@ -1,7 +1,11 @@
 package org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.dialogs;
 
+import java.io.File;
+
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -12,6 +16,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.module.XmlUtils;
+import org.eclipse.tracecompass.tmf.analysis.xml.ui.module.XmlAnalysisModuleSource;
 
 public class ManageXmlAnalysisDialog extends Dialog {
 
@@ -88,6 +94,16 @@ public class ManageXmlAnalysisDialog extends Dialog {
         deleteButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
         deleteButton.setText("Delete");
         deleteButton.setEnabled(false);
+        deleteButton.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                String[] selection = xmlAnalysisList.getSelection();
+                deleteAnalysis(selection);
+            }
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+            }
+        });
 
         fillAnalysisList();
 
@@ -101,6 +117,25 @@ public class ManageXmlAnalysisDialog extends Dialog {
     }
 
     private void fillAnalysisList() {
+        xmlAnalysisList.removeAll();
+        IPath xmlFilesPath = XmlUtils.getXmlFilesPath();
+        File xmlDirectory = xmlFilesPath.toFile();
+        File[] xmlFiles = xmlDirectory.listFiles();
+        for(File file : xmlFiles) {
+            xmlAnalysisList.add(file.getName());
+        }
+    }
 
+    private void deleteAnalysis(String[] analysis) {
+        boolean confirmationResult = false;
+        confirmationResult = MessageDialog.openConfirm(new Shell(), "Delete analysis", "Are you sure you want to delete " + analysis.length);
+        if(confirmationResult) {
+            for(String fileName : analysis) {
+                File deletedFile = XmlUtils.getXmlFilesPath().append(fileName).toFile();
+                deletedFile.delete();
+                XmlAnalysisModuleSource.notifyModuleChange();
+            }
+            fillAnalysisList();
+        }
     }
 }

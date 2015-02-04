@@ -1,0 +1,54 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	attributeFormDefault="unqualified" elementFormDefault="qualified">
+	
+	<xs:element name="attributeTreeRoot" type="AttributeTreeRoot" />
+	<xs:complexType name="AttributeTreeRoot">
+		<xs:annotation>
+			<xs:documentation>Attribute tree root.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="attributeNode" type="AttributeNode" >
+				<xs:annotation>
+					<xs:documentation>Attribute node (constant, variable, value).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="AttributeNode">
+		<xs:annotation>
+			<xs:documentation>Define the attribute node</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="attributeNode" type="AttributeNode" >
+				<xs:annotation>
+					<xs:documentation>Attribute node (constant, variable, value).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required" >
+			<xs:annotation>
+				<xs:documentation>Name of the node.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="type" use="required" >
+			<xs:annotation>
+				<xs:documentation>Type of the node (constant, variable, value).</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+	  			<xs:restriction base="xs:string">
+	    			<xs:enumeration value="ConstantAttributeNode"/>
+	    			<xs:enumeration value="VariableAttributeNode"/>
+	    			<xs:enumeration value="AttributeValueNode"/>
+	  			</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="query" type="xs:string" use="optional" >
+			<xs:annotation>
+				<xs:documentation>Query path.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:anyAttribute />
+	</xs:complexType>
+
+</xs:schema>

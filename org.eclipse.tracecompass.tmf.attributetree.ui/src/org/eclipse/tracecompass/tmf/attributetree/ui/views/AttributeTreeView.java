@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.tmf.attributetree.ui.views;
 
 import java.io.File;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -220,12 +221,18 @@ public class AttributeTreeView extends TmfView {
 				FileDialog openDialog = new FileDialog(new Shell(), SWT.OPEN);
 				openDialog.setFilterNames(new String[] { "Attribute Tree" + " (*.attributetree)"}); //$NON-NLS-1$
 				openDialog.setFilterExtensions(new String[] { "*.attributetree"}); //$NON-NLS-1$
-
+				
+				// Default path for attribute tree selection (the workspace)
+				String defaultAttributeTreePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+				openDialog.setFilterPath(defaultAttributeTreePath);
+				
 		        String filePath = openDialog.open();
-		        openedFile = new File(filePath);
-		        attributeTree.setTreeViewerInput(openedFile);
-		        IDialogSettings settings = Activator.getDefault().getDialogSettings();
-		        settings.put(LAST_OPENED_KEY, filePath);
+				if (filePath != null) {
+					openedFile = new File(filePath);
+					attributeTree.setTreeViewerInput(openedFile);
+					IDialogSettings settings = Activator.getDefault().getDialogSettings();
+					settings.put(LAST_OPENED_KEY, filePath);
+				}
 			}
 		};
 		openAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath("/icons/open.gif"));

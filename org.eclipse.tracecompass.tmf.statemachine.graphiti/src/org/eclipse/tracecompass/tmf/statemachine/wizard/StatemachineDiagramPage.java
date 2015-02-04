@@ -1,5 +1,7 @@
 package org.eclipse.tracecompass.tmf.statemachine.wizard;
 
+import java.io.File;
+
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -22,6 +24,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeUtils;
 
 public class StatemachineDiagramPage extends WizardPage {
 	
@@ -182,7 +185,10 @@ public class StatemachineDiagramPage extends WizardPage {
 			if(treePath.equals("")) {
 				return false;
 			}
-			// TODO File validation
+			// TODO activate the file validation
+//			if(!AttributeTreeUtils.attributeTreeXmlValidate(new File(treePath))) {
+//				return false;
+//			}
 		}
 
 		return true;

@@ -26,7 +26,21 @@
     </thread>
     <next_tid name="next_tid" type="VariableAttributeNode">
       <System_call name="System_call" type="ConstantAttributeNode"/>
+      <Status name="Status" type="ConstantAttributeNode"/>
+      <Exec_name name="Exec_name" type="ConstantAttributeNode"/>
     </next_tid>
+    <prev_tid name="prev_tid" type="VariableAttributeNode">
+      <Status name="Status" type="ConstantAttributeNode"/>
+    </prev_tid>
+    <child_tid name="child_tid" type="VariableAttributeNode">
+      <Status name="Status" type="ConstantAttributeNode"/>
+      <PPID name="PPID" type="ConstantAttributeNode"/>
+      <Exec_name name="Exec_name" type="ConstantAttributeNode"/>
+      <System_call name="System_call" type="ConstantAttributeNode"/>
+    </child_tid>
+    <tid name="tid" type="VariableAttributeNode">
+      <Status name="Status" type="ConstantAttributeNode"/>
+    </tid>
   </Threads>
   <Ressources name="Ressources" type="ConstantAttributeNode">
     <IRQs name="IRQs" type="ConstantAttributeNode">

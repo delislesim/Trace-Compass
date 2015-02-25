@@ -171,6 +171,8 @@ public class AttributeTreeView extends TmfView {
 				attributeTree.setTreeViewerInput(openedFile);
 			}
 		}
+		
+		setViewInformation(openedFile);
         
         IActionBars bars = getViewSite().getActionBars();
         //bars.getToolBarManager().add(getNewAction());
@@ -233,6 +235,7 @@ public class AttributeTreeView extends TmfView {
 					IDialogSettings settings = Activator.getDefault().getDialogSettings();
 					settings.put(LAST_OPENED_KEY, filePath);
 				}
+				setViewInformation(openedFile);
 			}
 		};
 		openAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath("/icons/open.gif"));
@@ -254,6 +257,12 @@ public class AttributeTreeView extends TmfView {
 		};
 		newAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath("/icons/new.gif"));
 		return newAction;
+	}
+	
+	private void setViewInformation(File file) {
+		String fileName = file.getName();
+		String viewTitle = fileName.substring(0, fileName.indexOf(".")) + " (" + file.getAbsolutePath() + ")";
+		setPartName(viewTitle);
 	}
 
 	@Override

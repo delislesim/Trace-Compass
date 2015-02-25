@@ -167,10 +167,15 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 				}
 				stateAttributeList.add(stateAttribute);
 			} else if(node.getNodeName().equals(fStateValueTag)) {
-				String stateValueType = node.getAttributes().getNamedItem("type").getNodeValue();
-				if(stateValueType.equals("definedState")) {
-					stateValueType = "int";
-				}
+				String stateValueType;
+				if(node.getAttributes().getNamedItem("type") == null) {
+					stateValueType = "int"; // Default value not written in the diagram file
+ 				} else {
+ 					stateValueType = node.getAttributes().getNamedItem("type").getNodeValue();
+					if(stateValueType.equals("definedState")) {
+						stateValueType = "int";
+					}
+ 				}
 				stateValue.setType(stateValueType);
 				stateValue.setValue(node.getAttributes().getNamedItem("value").getNodeValue());
 			}
@@ -254,7 +259,12 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 				eventField.setName(fieldName);				
 				
 				Node stateValueNode = conditionNode.getChildNodes().item(1);
-				String type = stateValueNode.getAttributes().getNamedItem("type").getNodeValue();
+				String type;
+				if(stateValueNode.getAttributes().getNamedItem("type") == null) {
+					type = "int"; // Default value not written in the diagram file
+				} else {
+					type = stateValueNode.getAttributes().getNamedItem("type").getNodeValue();
+				}
 				String value = stateValueNode.getAttributes().getNamedItem("value").getNodeValue();
 				StateValue stateValue = factory.createStateValue();
 				stateValue.setType(type);
@@ -343,7 +353,13 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 					// Defined Value
 					DefinedValue definedValue = factory.createDefinedValue();
 					definedValue.setName(state.getValue().getAttributes().getNamedItem("name").getNodeValue());
-					definedValue.setValue(state.getKey().toString());
+					Integer definedValueValue;
+					if((state.getKey() & ((2 << 20)-1)) == state.getKey()) {
+						definedValueValue = (statemachineStatesEntry.getKey() << 20) + state.getKey();
+					} else {
+						definedValueValue = 50000;
+					}
+					definedValue.setValue(definedValueValue.toString());
 					stateProvider.getDefinedValue().add(definedValue);
 				}
 				
@@ -399,11 +415,14 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 	}
 
 //	public static void main(String[] args) {
-//		String xmlPath = "/home/simon/runtime-Tracecompass/Trace/src/diagrams/kernel_statemachine.diagram";
+//		String xmlPath = "/home/simon/runtime-Tracecompass/Trace/Statemachine/Diagrams/kernel_statemachine.diagram";
 //		//String xmlPath = "C:\\Users\\Simon\\Downloads\\kernel_statemachine.diagram";
 //		File xmlFile = new File(xmlPath);
 //		TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
-//		converter.convertDiagram(xmlFile);
+//		File convertedFile = converter.convertDiagram(xmlFile);
+//		if(convertedFile.exists()) {
+//			Boolean exist = true;
+//		}
 //	}
 
 }

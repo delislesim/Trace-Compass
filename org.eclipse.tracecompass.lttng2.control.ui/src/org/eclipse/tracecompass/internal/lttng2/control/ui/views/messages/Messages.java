@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -36,12 +36,7 @@ public final class Messages extends NLS {
     // Failures
     public static String TraceControl_ConnectionFailure;
     public static String TraceControl_DisconnectionFailure;
-    public static String TraceControl_ExecutionCancelled;
-    public static String TraceControl_ExecutionFailure;
-    public static String TraceControl_ExecutionTimeout;
-    public static String TraceControl_ShellNotConnected;
 
-    public static String TraceControl_CommandShellError;
     public static String TraceControl_CommandError;
     public static String TraceControl_UnexpectedCommandOutputFormat;
     public static String TraceControl_UnexpectedNameError;
@@ -303,6 +298,8 @@ public final class Messages extends NLS {
     public static String TraceControl_SwitchTimerPropertyName;
     public static String TraceControl_ReadTimerPropertyName;
     public static String TraceControl_OutputTypePropertyName;
+    public static String TraceControl_TraceFileCountPropertyName;
+    public static String TraceControl_TraceFileSizePropertyName;
     public static String TraceControl_HostNamePropertyName;
     public static String TraceControl_HostAddressPropertyName;
     public static String TraceControl_SessionPathPropertyName;
@@ -323,7 +320,6 @@ public final class Messages extends NLS {
     public static String TraceControl_LoggingPreference;
     public static String TraceControl_LogfilePath;
     public static String TraceControl_AppendLogfilePreference;
-    public static String TraceControl_CommandTimeout;
 
     public static String TraceControl_VerboseLevelsPreference;
     public static String TraceControl_VerboseLevelNonePreference;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -31,7 +31,6 @@ import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 /**
  * Wizard implementation for creating a TMF tracing project.
  *
- * @version 1.0
  * @author Francois Chouinard
  */
 public class NewTmfProjectWizard extends Wizard implements INewWizard, IExecutableExtension {
@@ -42,8 +41,6 @@ public class NewTmfProjectWizard extends Wizard implements INewWizard, IExecutab
 
     /**
      * The wizard id
-     *
-     * @since 2.0
      */
     public static final String ID = "org.eclipse.linuxtools.tmf.ui.views.ui.wizards.newProject"; //$NON-NLS-1$
 

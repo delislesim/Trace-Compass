@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -15,9 +15,9 @@ import java.nio.ByteOrder;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 
 /**
  * A CTF float declaration.
@@ -98,9 +98,6 @@ public final class FloatDeclaration extends Declaration implements ISimpleDataty
         return fAlignement;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public int getMaximumSize() {
         return fMantissa + fExponent + 1;
@@ -110,12 +107,9 @@ public final class FloatDeclaration extends Declaration implements ISimpleDataty
     // Operations
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 3.0
-     */
     @Override
     public FloatDefinition createDefinition(@Nullable IDefinitionScope definitionScope,
-            String fieldName, BitBuffer input) throws CTFReaderException {
+            String fieldName, BitBuffer input) throws CTFException {
         ByteOrder byteOrder = input.getByteOrder();
         input.setByteOrder(fByteOrder);
         double value = read(input);
@@ -129,7 +123,7 @@ public final class FloatDeclaration extends Declaration implements ISimpleDataty
         return "[declaration] float[" + Integer.toHexString(hashCode()) + ']'; //$NON-NLS-1$
     }
 
-    private double read(BitBuffer input) throws CTFReaderException {
+    private double read(BitBuffer input) throws CTFException {
         /* Offset the buffer position wrt the current alignment */
         alignRead(input);
         final int exp = getExponent();
@@ -144,13 +138,13 @@ public final class FloatDeclaration extends Declaration implements ISimpleDataty
     }
 
     private static double readRawFloat32(BitBuffer input, final int manBits,
-            final int expBits) throws CTFReaderException {
+            final int expBits) throws CTFException {
         long temp = input.get(32, false);
         return createFloat(temp, manBits - 1, expBits);
     }
 
     private static double readRawFloat64(BitBuffer input, final int manBits,
-            final int expBits) throws CTFReaderException {
+            final int expBits) throws CTFException {
         long temp = input.get(64, false);
         return createFloat(temp, manBits - 1, expBits);
     }

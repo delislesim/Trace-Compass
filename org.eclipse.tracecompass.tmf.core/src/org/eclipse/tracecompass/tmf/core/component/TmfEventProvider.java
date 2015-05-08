@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2014 Ericsson
+ * Copyright (c) 2009, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -31,6 +31,7 @@ import org.eclipse.tracecompass.internal.tmf.core.component.TmfProviderManager;
 import org.eclipse.tracecompass.internal.tmf.core.request.TmfCoalescedEventRequest;
 import org.eclipse.tracecompass.internal.tmf.core.request.TmfRequestExecutor;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.filter.ITmfFilter;
 import org.eclipse.tracecompass.tmf.core.request.ITmfEventRequest;
 import org.eclipse.tracecompass.tmf.core.request.ITmfEventRequest.ExecutionType;
 import org.eclipse.tracecompass.tmf.core.signal.TmfEndSynchSignal;
@@ -47,16 +48,14 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
  * </p>
  *
  * @author Francois Chouinard
- * @since 3.0
  */
-public abstract class TmfEventProvider extends TmfComponent implements ITmfEventProvider {
+public abstract class TmfEventProvider extends TmfComponent implements ITmfEventProvider, ITmfFilter {
 
     // ------------------------------------------------------------------------
     // Constants
     // ------------------------------------------------------------------------
 
-    /** Default amount of events per request "chunk"
-     * @since 3.0 */
+    /** Default amount of events per request "chunk" */
     public static final int DEFAULT_BLOCK_SIZE = 50000;
 
     /** Delay for coalescing background requests (in milli-seconds) */
@@ -182,9 +181,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
     // ITmfRequestHandler
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 3.0
-     */
     @Override
     public void sendRequest(final ITmfEventRequest request) {
         synchronized (fLock) {
@@ -193,8 +189,8 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
                 TmfCoreTracer.traceRequest(request.getRequestId(), "SENT to provider " + getName()); //$NON-NLS-1$
             }
 
-            if (request.getEventProvider() == null) {
-                request.setEventProvider(this);
+            if (request.getProviderFilter() == null) {
+                request.setProviderFilter(this);
             }
 
             if (sendWithParent(request)) {
@@ -293,7 +289,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
      *
      * @param request
      *            The request to copy
-     * @since 3.0
      */
     protected void newCoalescedEventRequest(ITmfEventRequest request) {
         synchronized (fLock) {
@@ -304,7 +299,7 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
                     request.getNbRequested(),
                     request.getExecType());
             coalescedRequest.addRequest(request);
-            coalescedRequest.setEventProvider(this);
+            coalescedRequest.setProviderFilter(this);
             if (TmfCoreTracer.isRequestTraced()) {
                 TmfCoreTracer.traceRequest(request.getRequestId(), "COALESCED with " + coalescedRequest.getRequestId()); //$NON-NLS-1$
                 TmfCoreTracer.traceRequest(coalescedRequest.getRequestId(), "now contains " + coalescedRequest.getSubRequestIds()); //$NON-NLS-1$
@@ -319,7 +314,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
      *
      * @param request
      *            The request to add to the list
-     * @since 3.0
      */
     protected void coalesceEventRequest(ITmfEventRequest request) {
         synchronized (fLock) {
@@ -404,7 +398,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
      *
      * @param request
      *            The data request
-     * @since 3.0
      */
     protected void queueRequest(final ITmfEventRequest request) {
 
@@ -430,7 +423,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
      *            The request
      * @return An application specific context; null if request can't be
      *         serviced
-     * @since 3.0
      */
     public abstract ITmfContext armRequest(ITmfEventRequest request);
 
@@ -444,7 +436,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
      * @param nbRead
      *            The number of events read so far
      * @return true if completion criteria is met
-     * @since 3.0
      */
     public boolean isCompleted(ITmfEventRequest request, ITmfEvent event, int nbRead) {
         boolean requestCompleted = isCompleted2(request, nbRead);
@@ -465,7 +456,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
 
     /**
      * @return the shutdown state (i.e. if it is accepting new requests)
-     * @since 2.0
      */
     protected boolean executorIsShutdown() {
         return fExecutor.isShutdown();
@@ -473,7 +463,6 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
 
     /**
      * @return the termination state
-     * @since 2.0
      */
     protected boolean executorIsTerminated() {
         return fExecutor.isTerminated();
@@ -583,8 +572,17 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
         return fChildren.size();
     }
 
+    /**
+     * Returns true if an event was provided by this event provider or one of
+     * its children event providers else false.
+     *
+     * @param event
+     *            the event to check
+     * @return <code>true</code> if event was provided by this provider or one
+     *         of its children else <code>false</code>
+     */
     @Override
-    public boolean providesEvent(ITmfEvent event) {
+    public boolean matches(ITmfEvent event) {
         if ((event.getTrace() == this)) {
             return true;
         }
@@ -592,7 +590,7 @@ public abstract class TmfEventProvider extends TmfComponent implements ITmfEvent
             synchronized (fLock) {
                 List <TmfEventProvider> children = getChildren(TmfEventProvider.class);
                 for (TmfEventProvider child : children) {
-                    if (child.providesEvent(event)) {
+                    if (child.matches(event)) {
                         return true;
                     }
                 }

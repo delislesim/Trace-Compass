@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -69,8 +69,8 @@ public class XmlStateProvider extends AbstractTmfStateProvider implements IXmlSt
      * @param file
      *            Path to the XML file containing the state provider definition
      */
-    public XmlStateProvider(ITmfTrace trace, @NonNull String stateid, IPath file) {
-        super(trace, ITmfEvent.class, stateid);
+    public XmlStateProvider(@NonNull ITmfTrace trace, @NonNull String stateid, IPath file) {
+        super(trace, stateid);
         fStateId = stateid;
         fFilePath = file;
         Element doc = XmlUtils.getElementInFile(fFilePath.makeAbsolute().toOSString(), TmfXmlStrings.STATE_PROVIDER, fStateId);
@@ -144,9 +144,6 @@ public class XmlStateProvider extends AbstractTmfStateProvider implements IXmlSt
 
     @Override
     protected void eventHandle(ITmfEvent event) {
-        if (event == null) {
-            return;
-        }
         for (TmfXmlEventHandler eventHandler : fEventHandlers) {
             eventHandler.handleEvent(event);
         }
@@ -154,7 +151,7 @@ public class XmlStateProvider extends AbstractTmfStateProvider implements IXmlSt
 
     @Override
     public ITmfStateSystem getStateSystem() {
-        return ss;
+        return getStateSystemBuilder();
     }
 
     // ------------------------------------------------------------------------

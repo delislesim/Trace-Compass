@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -30,10 +30,10 @@ public class TracePropertyTester extends PropertyTester {
     // Constants
     // ------------------------------------------------------------------------
 
-    private final static String IS_IN_TRACE_FOLDER = "isInTraceFolder"; //$NON-NLS-1$
-    private final static String IS_EXPERIMENT_TRACE = "isExperimentTrace"; //$NON-NLS-1$
-    private final static String HAS_SUPPLEMENTARY_FILES = "hasSupplementaryFiles"; //$NON-NLS-1$
-    private final static String TRACE_TYPE = "traceType"; //$NON-NLS-1$
+    private static final String IS_IN_TRACE_FOLDER = "isInTraceFolder"; //$NON-NLS-1$
+    private static final String IS_EXPERIMENT_TRACE = "isExperimentTrace"; //$NON-NLS-1$
+    private static final String HAS_SUPPLEMENTARY_FILES = "hasSupplementaryFiles"; //$NON-NLS-1$
+    private static final String TRACE_TYPE = "traceType"; //$NON-NLS-1$
 
     // ------------------------------------------------------------------------
     // Constructor

@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
@@ -30,13 +31,12 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * Analysis module to compute the statistics of a trace.
  *
  * @author Alexandre Montplaisir
- * @since 3.0
  */
 public class TmfStatisticsModule extends TmfAbstractAnalysisModule
         implements ITmfAnalysisModuleWithStateSystems {
 
     /** ID of this analysis module */
-    public static final String ID = "org.eclipse.linuxtools.tmf.core.statistics.analysis"; //$NON-NLS-1$
+    public static final @NonNull String ID = "org.eclipse.linuxtools.tmf.core.statistics.analysis"; //$NON-NLS-1$
 
     /** The trace's statistics */
     private ITmfStatistics fStatistics = null;
@@ -88,16 +88,23 @@ public class TmfStatisticsModule extends TmfAbstractAnalysisModule
     }
 
     @Override
-    public void setTrace(ITmfTrace trace) throws TmfAnalysisException {
-        super.setTrace(trace);
+    public boolean setTrace(ITmfTrace trace) throws TmfAnalysisException {
+        if (!super.setTrace(trace)) {
+            return false;
+        }
 
         /*
          * Since these sub-analyzes are not built from an extension point, we
          * have to assign the trace ourselves. Very important to do so before
          * calling schedule()!
          */
-        totalsModule.setTrace(trace);
-        eventTypesModule.setTrace(trace);
+        if (!totalsModule.setTrace(trace)) {
+            return false;
+        }
+        if (!eventTypesModule.setTrace(trace)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

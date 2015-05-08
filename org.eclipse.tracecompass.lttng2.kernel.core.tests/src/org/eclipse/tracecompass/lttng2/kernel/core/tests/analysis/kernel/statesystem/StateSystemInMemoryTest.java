@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -16,11 +16,8 @@ package org.eclipse.tracecompass.lttng2.kernel.core.tests.analysis.kernel.states
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
-import org.eclipse.tracecompass.lttng2.kernel.core.analysis.kernel.LttngKernelStateProvider;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
-import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
-import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 import org.junit.AfterClass;
@@ -48,7 +45,7 @@ public class StateSystemInMemoryTest extends StateSystemTest {
 
         module = new TestLttngKernelAnalysisModule();
         try {
-            module.setTrace(testTrace.getTrace());
+            assertTrue(module.setTrace(testTrace.getTrace()));
         } catch (TmfAnalysisException e) {
             fail();
         }
@@ -73,7 +70,7 @@ public class StateSystemInMemoryTest extends StateSystemTest {
         fixture = null;
     }
 
-    private static class TestLttngKernelAnalysisModule extends TmfStateSystemAnalysisModule {
+    private static class TestLttngKernelAnalysisModule extends KernelAnalysisModule {
 
         /**
          * Constructor adding the views to the analysis
@@ -83,16 +80,11 @@ public class StateSystemInMemoryTest extends StateSystemTest {
         }
 
         @Override
-        public void setTrace(ITmfTrace trace) throws TmfAnalysisException {
+        public boolean setTrace(ITmfTrace trace) throws TmfAnalysisException {
             if (!(trace instanceof CtfTmfTrace)) {
-                throw new IllegalStateException("TestLttngKernelAnalysisModule: trace should be of type CtfTmfTrace"); //$NON-NLS-1$
+                return false;
             }
-            super.setTrace(trace);
-        }
-
-        @Override
-        protected ITmfStateProvider createStateProvider() {
-            return new LttngKernelStateProvider(getTrace(), LttngEventLayout.getInstance());
+            return super.setTrace(trace);
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -30,8 +30,6 @@ import org.eclipse.tracecompass.tmf.ui.viewers.ITmfViewer;
  * The indexing of the viewers is based on their name.
  *
  * @author Mathieu Denis
- * @version 2.0
- * @since 2.0
  */
 public class TmfViewerFolder extends Composite {
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Kalray
+ * Copyright (c) 2013, 2014 Kalray
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -19,8 +19,8 @@ import org.eclipse.tracecompass.tmf.core.filter.model.ITmfFilterTreeNode;
 
 /**
  * Handler for cut command in filter view
+ *
  * @author Xavier Raynaud <xavier.raynaud@kalray.eu>
- * @since 3.0
  */
 public class CutHandler extends CopyHandler {
 

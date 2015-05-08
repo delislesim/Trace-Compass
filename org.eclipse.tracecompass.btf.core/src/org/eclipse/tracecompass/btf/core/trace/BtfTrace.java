@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,7 @@
  *
  * Contributors:
  *   Matthew Khouzam - Initial API and implementation
+ *   Patrick Tasse - Fix parsing of instance numbers
  *******************************************************************************/
 
 package org.eclipse.tracecompass.btf.core.trace;
@@ -39,7 +40,6 @@ import org.eclipse.tracecompass.tmf.core.io.BufferedRandomAccessFile;
 import org.eclipse.tracecompass.tmf.core.parsers.custom.CustomTxtTraceContext;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfEventParser;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceProperties;
 import org.eclipse.tracecompass.tmf.core.trace.TmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
@@ -59,15 +59,8 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Matthew Khouzam
  */
-public class BtfTrace extends TmfTrace implements ITmfEventParser, ITmfPersistentlyIndexable, ITmfTraceProperties, AutoCloseable {
+public class BtfTrace extends TmfTrace implements ITmfPersistentlyIndexable, ITmfTraceProperties, AutoCloseable {
 
-    private static final int TIMESTAMP_NUM = 0;
-    private static final int SOURCE_NUM = 1;
-    private static final int SOURCE_INSTANCE_NUM = 2;
-    private static final int TYPE_NUM = 3;
-    private static final int TARGET_INSTANCE_NUM = 5;
-    private static final int TARGET_NUM = 4;
-    private static final int EVENT_NUM = 6;
     private static final int MAX_FIELDS = 7;
 
     private static final long MICROSECONDS_IN_A_SECOND = 1000000L;
@@ -91,8 +84,6 @@ public class BtfTrace extends TmfTrace implements ITmfEventParser, ITmfPersisten
 
     private static final TmfLongLocation NULL_LOCATION = new TmfLongLocation(-1L);
 
-    private static final SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX"); //$NON-NLS-1$
-
     private static final int CACHE_SIZE = 256;
     private static final int MAX_CONFIDENCE = 100;
     private static final int MAX_LINES = 100;
@@ -110,7 +101,7 @@ public class BtfTrace extends TmfTrace implements ITmfEventParser, ITmfPersisten
     private String fCreationDate;
     private String fInputFile;
     // default unit is ns
-    private BtfTimstampFormat fTsFormat = BtfTimstampFormat.NS;
+    private BtfTimestampFormat fTsFormat = BtfTimestampFormat.NS;
 
     private File fFile;
     private RandomAccessFile fFileInput;
@@ -149,6 +140,8 @@ public class BtfTrace extends TmfTrace implements ITmfEventParser, ITmfPersisten
                 fProperties.put(CREATIONDATE, fCreationDate);
 
                 try {
+                    // DateFormats are inherently unsafe for multithreaded use so we can't make this a field. Just in case.
+                    final SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX"); //$NON-NLS-1$
                     Date dateTime = ISO8601DATEFORMAT.parse(fCreationDate);
                     fTsOffset = dateTime.getTime() * MICROSECONDS_IN_A_SECOND;
                 } catch (ParseException e) {
@@ -160,7 +153,7 @@ public class BtfTrace extends TmfTrace implements ITmfEventParser, ITmfPersisten
                 fProperties.put(INPUTFILE, fInputFile);
                 break;
             case lTIMESCALE:
-                fTsFormat = BtfTimstampFormat.parse(tokens[1]);
+                fTsFormat = BtfTimestampFormat.parse(tokens[1]);
                 fProperties.put(TIMESCALE, fTsFormat.toString());
                 break;
             case lENTITYTYPE:
@@ -388,13 +381,27 @@ public class BtfTrace extends TmfTrace implements ITmfEventParser, ITmfPersisten
             return null;
         }
         String[] tokens = line.split(",", MAX_FIELDS); //$NON-NLS-1$
-        long timestamp = Long.parseLong(tokens[TIMESTAMP_NUM]);
-        String source = tokens[SOURCE_NUM];
-        long sourceInstance = Long.parseLong(tokens[SOURCE_INSTANCE_NUM]);
-        BtfEventType type = BtfEventTypeFactory.parse(tokens[TYPE_NUM]);
-        String target = tokens[TARGET_NUM];
-        long targetInstance = Long.parseLong(tokens[TARGET_INSTANCE_NUM]);
-        String event = tokens[EVENT_NUM];
+        if (tokens.length < MAX_FIELDS) {
+            return null;
+        }
+        int i = 0;
+        long timestamp = Long.parseLong(tokens[i++]);
+        String source = tokens[i++];
+        long sourceInstance = -1;
+        try {
+            sourceInstance = Long.parseLong(tokens[i++]);
+        } catch (NumberFormatException e) {
+            // this field can be empty
+        }
+        BtfEventType type = BtfEventTypeFactory.parse(tokens[i++]);
+        String target = tokens[i++];
+        long targetInstance = -1;
+        try {
+            targetInstance = Long.parseLong(tokens[i++]);
+        } catch (NumberFormatException e) {
+            // this field can be empty
+        }
+        String event = tokens[i++];
 
         ITmfEventField content = type.generateContent(event, sourceInstance, targetInstance);
 
@@ -409,7 +416,7 @@ public class BtfTrace extends TmfTrace implements ITmfEventParser, ITmfPersisten
 
     @Override
     public int getCheckpointSize() {
-        synchronized (getClass()) {
+        synchronized (BtfTrace.class) {
             if (fCheckpointSize == -1) {
                 TmfCheckpoint c = new TmfCheckpoint(TmfTimestamp.ZERO, new TmfLongLocation(0L), 0);
                 ByteBuffer b = ByteBuffer.allocate(ITmfCheckpoint.MAX_SERIALIZE_SIZE);

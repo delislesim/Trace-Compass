@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Ericsson
+ * Copyright (c) 2010, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,16 +17,21 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+
 /**
  * Filter node for the regex match
  *
  * @version 1.0
  * @author Patrick Tasse
  */
-@SuppressWarnings("javadoc")
-public abstract class TmfFilterMatchesNode extends TmfFilterTreeNode {
+public class TmfFilterMatchesNode extends TmfFilterAspectNode {
 
+    /** matches node name */
+    public static final String NODE_NAME = "MATCHES"; //$NON-NLS-1$
+    /** not attribute name */
     public static final String NOT_ATTR = "not"; //$NON-NLS-1$
+    /** regex attribute name */
     public static final String REGEX_ATTR = "regex"; //$NON-NLS-1$
 
     private boolean fNot = false;
@@ -79,8 +84,31 @@ public abstract class TmfFilterMatchesNode extends TmfFilterTreeNode {
         }
     }
 
+    /**
+     * @return the regex pattern
+     */
     protected Pattern getPattern() {
         return fPattern;
+    }
+
+    @Override
+    public String getNodeName() {
+        return NODE_NAME;
+    }
+
+    @Override
+    public boolean matches(ITmfEvent event) {
+        Pattern pattern = getPattern();
+        boolean isNot = isNot();
+
+        if (pattern == null || event == null || fEventAspect == null) {
+            return false ^ isNot;
+        }
+        Object value = fEventAspect.resolve(event);
+        if (value == null) {
+            return false ^ isNot;
+        }
+        return pattern.matcher(value.toString()).find() ^ isNot;
     }
 
     @Override
@@ -95,53 +123,8 @@ public abstract class TmfFilterMatchesNode extends TmfFilterTreeNode {
         return clone;
     }
 
-    /**
-     * @param pattern
-     *            the rough regex pattern
-     * @return the compliant regex
-     */
-    public static String regexFix(String pattern) {
-        String ret = pattern;
-        // if the pattern does not contain one of the expressions .* !^
-        // (at the beginning) $ (at the end), then a .* is added at the
-        // beginning and at the end of the pattern
-        if (!(ret.indexOf(".*") >= 0 || ret.charAt(0) == '^' || ret.charAt(ret.length() - 1) == '$')) { //$NON-NLS-1$
-            ret = ".*" + ret + ".*"; //$NON-NLS-1$ //$NON-NLS-2$
-        }
-        return ret;
-    }
-
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (fNot ? 1231 : 1237);
-        result = prime * result + ((fRegex == null) ? 0 : fRegex.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!super.equals(obj)) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        TmfFilterMatchesNode other = (TmfFilterMatchesNode) obj;
-        if (fNot != other.fNot) {
-            return false;
-        }
-        if (fRegex == null) {
-            if (other.fRegex != null) {
-                return false;
-            }
-        } else if (!fRegex.equals(other.fRegex)) {
-            return false;
-        }
-        return true;
+    public String toString(boolean explicit) {
+        return getAspectLabel(explicit) + (fNot ? " not matches \"" : " matches \"") + getRegex() + '\"'; //$NON-NLS-1$ //$NON-NLS-2$
     }
 }

@@ -12,37 +12,40 @@
 package org.eclipse.tracecompass.ctf.core.event.types;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
+import org.eclipse.tracecompass.ctf.core.event.scope.ILexicalScope;
 import org.eclipse.tracecompass.ctf.core.event.scope.LexicalScope;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 
 /**
  * Declaration base, it helps for basic functionality that is often called, so
  * performance is often a high priority in this class
  *
  * @author Matthew Khouzam
- * @since 3.0
  */
 public abstract class Declaration implements IDeclaration {
 
+    /**
+     * @since 1.0
+     */
     @Override
-    public LexicalScope getPath(IDefinitionScope definitionScope, @NonNull String fieldName) {
+    public ILexicalScope getPath(IDefinitionScope definitionScope, @NonNull String fieldName) {
         if (definitionScope != null) {
-            final LexicalScope parentPath = definitionScope.getScopePath();
+            final ILexicalScope parentPath = definitionScope.getScopePath();
             if (parentPath != null) {
-                LexicalScope myScope = parentPath.getChild(fieldName);
+                ILexicalScope myScope = parentPath.getChild(fieldName);
                 if (myScope == null) {
                     myScope = new LexicalScope(parentPath, fieldName);
                 }
                 return myScope;
             }
         }
-        LexicalScope child = LexicalScope.ROOT.getChild(fieldName);
+        ILexicalScope child = ILexicalScope.ROOT.getChild(fieldName);
         if (child != null) {
             return child;
         }
-        return new LexicalScope(LexicalScope.ROOT, fieldName);
+        return new LexicalScope(ILexicalScope.ROOT, fieldName);
     }
 
     /**
@@ -50,11 +53,10 @@ public abstract class Declaration implements IDeclaration {
      *
      * @param input
      *            The bitbuffer that is being read
-     * @throws CTFReaderException
+     * @throws CTFException
      *             Happens when there is an out of bounds exception
-     * @since 3.0
      */
-    protected final void alignRead(BitBuffer input) throws CTFReaderException {
+    protected final void alignRead(BitBuffer input) throws CTFException {
         long mask = getAlignment() - 1;
         /*
          * The alignment is a power of 2

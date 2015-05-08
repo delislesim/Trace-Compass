@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson, EfficiOS Inc.
  * Copyright (c) 2010, 2011 École Polytechnique de Montréal
  * Copyright (c) 2010, 2011 Alexandre Montplaisir <alexandre.montplaisir@gmail.com>
  *
@@ -8,15 +8,21 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * Contributors:
+ *     Alexandre Montplaisir - Initial API and implementation
  *******************************************************************************/
 
 package org.eclipse.tracecompass.internal.statesystem.core;
+
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+
+import org.eclipse.jdt.annotation.NonNull;
 
 import com.google.common.collect.ImmutableList;
 
@@ -27,13 +33,13 @@ import com.google.common.collect.ImmutableList;
  * It is abstract, as different implementations can provide different ways to
  * access sub-attributes
  *
- * @author alexmont
+ * @author Alexandre Montplaisir
  *
  */
 public final class Attribute {
 
     private final Attribute parent;
-    private final String name;
+    private final @NonNull String name;
     private final int quark;
 
     /** The sub-attributes (<basename, attribute>) of this attribute */
@@ -50,7 +56,7 @@ public final class Attribute {
      * @param quark
      *            The integer representation of this attribute
      */
-    public Attribute(Attribute parent, String name, int quark) {
+    public Attribute(Attribute parent, @NonNull String name, int quark) {
         this.parent = parent;
         this.quark = quark;
         this.name = name;
@@ -75,7 +81,7 @@ public final class Attribute {
      *
      * @return The name of this attribute
      */
-    public String getName() {
+    public @NonNull String getName() {
         return name;
     }
 
@@ -154,7 +160,7 @@ public final class Attribute {
      * @param newSubAttribute The new attribute to add
      */
     public void addSubAttribute(Attribute newSubAttribute) {
-        if (newSubAttribute == null || newSubAttribute.getName() == null) {
+        if (newSubAttribute == null) {
             throw new IllegalArgumentException();
         }
         subAttributes.put(newSubAttribute.getName(), newSubAttribute);
@@ -190,9 +196,9 @@ public final class Attribute {
      * Return a String array composed of the full (absolute) path representing
      * this attribute
      *
-     * @return
+     * @return The full attribute path elements
      */
-    private String[] getFullAttribute() {
+    public @NonNull String[] getFullAttribute() {
         LinkedList<String> list = new LinkedList<>();
         Attribute curNode = this;
 
@@ -202,7 +208,7 @@ public final class Attribute {
             curNode = curNode.parent;
         }
 
-        return list.toArray(new String[0]);
+        return checkNotNull(list.toArray(new String[0]));
     }
 
     /**
@@ -211,7 +217,7 @@ public final class Attribute {
      *
      * @return The full name of this attribute
      */
-    public String getFullAttributeName() {
+    public @NonNull String getFullAttributeName() {
         String[] array = this.getFullAttribute();
         StringBuffer buf = new StringBuffer();
 
@@ -220,7 +226,7 @@ public final class Attribute {
             buf.append('/');
         }
         buf.append(array[array.length - 1]);
-        return buf.toString();
+        return checkNotNull(buf.toString());
     }
 
     @Override

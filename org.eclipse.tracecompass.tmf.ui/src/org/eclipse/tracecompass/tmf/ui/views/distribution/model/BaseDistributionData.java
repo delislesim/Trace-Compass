@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Ericsson
+ * Copyright (c) 2011, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -31,7 +31,7 @@ public class BaseDistributionData {
     /**
      * Constant indication that bucket is not filled.
      */
-    public final static int OUT_OF_RANGE_BUCKET = -1;
+    public static final int OUT_OF_RANGE_BUCKET = -1;
 
     // ------------------------------------------------------------------------
     // Attributes

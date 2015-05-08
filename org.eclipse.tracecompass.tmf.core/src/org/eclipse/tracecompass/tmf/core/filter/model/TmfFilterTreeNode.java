@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Ericsson
+ * Copyright (c) 2010, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 
 /**
  * The base class for the Filter tree nodes
@@ -30,24 +29,18 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
  */
 public abstract class TmfFilterTreeNode implements ITmfFilterTreeNode, Cloneable {
 
-    private static final char SLASH = '/';
-    private static final char BACKSLASH = '\\';
-
     private static final String[] VALID_CHILDREN = {
-            TmfFilterEventTypeNode.NODE_NAME,
+            TmfFilterTraceTypeNode.NODE_NAME,
             TmfFilterAndNode.NODE_NAME,
             TmfFilterOrNode.NODE_NAME,
             TmfFilterContainsNode.NODE_NAME,
             TmfFilterEqualsNode.NODE_NAME,
-            TmfFilterMatchesFieldNode.NODE_NAME,
+            TmfFilterMatchesNode.NODE_NAME,
             TmfFilterCompareNode.NODE_NAME
     };
 
     private ITmfFilterTreeNode parent = null;
     private ArrayList<ITmfFilterTreeNode> children = new ArrayList<>();
-
-    private String fPathAsString = null;
-    private String[] fPathAsArray = null;
 
     /**
      * @param parent
@@ -125,86 +118,6 @@ public abstract class TmfFilterTreeNode implements ITmfFilterTreeNode, Cloneable
     @Override
     public abstract boolean matches(ITmfEvent event);
 
-    /**
-     * @param event
-     *            the event
-     * @param field
-     *            the field id
-     * @return the field value
-     */
-    protected Object getFieldValue(ITmfEvent event, String field) {
-        Object value = null;
-        if (ITmfEvent.EVENT_FIELD_CONTENT.equals(field)) {
-            value = event.getContent().toString();
-        }
-        else if (ITmfEvent.EVENT_FIELD_TYPE.equals(field)) {
-            value = event.getType().getName();
-        }
-        else if (ITmfEvent.EVENT_FIELD_TIMESTAMP.equals(field)) {
-            value = event.getTimestamp().toString();
-        } else {
-            if (field == null) {
-                return null;
-            }
-            ITmfEventField eventField;
-            if (field.isEmpty() || field.charAt(0) != SLASH) {
-                eventField = event.getContent().getField(field);
-            } else {
-                String[] array = getPathArray(field);
-                eventField = event.getContent().getSubField(array);
-            }
-
-            if (eventField != null) {
-                value = eventField.getValue();
-            }
-        }
-        return value;
-    }
-
-    private String[] getPathArray(String field) {
-
-        // Check if last request was not the same string.
-        if (field.equals(fPathAsString)) {
-            return fPathAsArray;
-        }
-
-        // Generate the new path array
-        StringBuilder sb = new StringBuilder();
-        List<String> list = new ArrayList<>();
-
-        // We start at 1 since the first character is a slash that we want to
-        // ignore.
-        for (int i = 1; i < field.length(); i++) {
-            char charAt = field.charAt(i);
-            if (charAt == SLASH) {
-                // char is slash. Cut here.
-                list.add(sb.toString());
-                sb = new StringBuilder();
-            } else if (charAt == BACKSLASH && i < field.length() - 1 && field.charAt(i + 1) == SLASH) {
-                // Uninterpreted slash. Add it.
-                sb.append(SLASH);
-                i++;
-            } else {
-                // Any other character. Add.
-                sb.append(charAt);
-            }
-        }
-
-        // Last block. Add it to list.
-        list.add(sb.toString());
-
-        // Transform to array
-        String[] array = new String[list.size()];
-        list.toArray(array);
-
-        // Save new values.
-        // Array first for solving concurrency issues
-        fPathAsArray = array;
-        fPathAsString = field;
-
-        return array;
-    }
-
     @Override
     public List<String> getValidChildren() {
         return Arrays.asList(VALID_CHILDREN);
@@ -226,32 +139,7 @@ public abstract class TmfFilterTreeNode implements ITmfFilterTreeNode, Cloneable
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((children == null) ? 0 : children.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        TmfFilterTreeNode other = (TmfFilterTreeNode) obj;
-        if (children == null) {
-            if (other.children != null) {
-                return false;
-            }
-        } else if (!children.equals(other.children)) {
-            return false;
-        }
-        return true;
+    public String toString() {
+        return toString(false);
     }
 }

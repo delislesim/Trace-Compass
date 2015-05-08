@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2014 Ericsson
+ * Copyright (c) 2009, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -28,7 +28,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
  * @author Francois Chouinard
  *
  * @see TmfEventProvider
- * @since 3.0
  */
 public interface ITmfEventProvider extends ITmfComponent {
 
@@ -130,15 +129,4 @@ public interface ITmfEventProvider extends ITmfComponent {
      * @return number of children
      */
     int getNbChildren();
-
-    /**
-     * Returns true if an event was provided by this event provider or one of
-     * its children event providers else false.
-     *
-     * @param event
-     *            the event to check
-     * @return <code>true</code> if event was provided by this provider or one
-     *         of its children else <code>false</code>
-     */
-    boolean providesEvent(ITmfEvent event);
 }

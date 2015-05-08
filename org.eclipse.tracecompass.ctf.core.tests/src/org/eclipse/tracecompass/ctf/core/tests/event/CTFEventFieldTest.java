@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.types.Definition;
 import org.eclipse.tracecompass.ctf.core.event.types.Encoding;
@@ -28,7 +29,6 @@ import org.eclipse.tracecompass.ctf.core.event.types.StringDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StringDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDefinition;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.eclipse.tracecompass.internal.ctf.core.event.types.SequenceDeclaration;
 import org.junit.Test;
 
@@ -50,10 +50,10 @@ public class CTFEventFieldTest {
     /**
      * Run the CTFEventField parseField(Definition,String) method test.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      */
     @Test
-    public void testParseField_complex() throws CTFReaderException {
+    public void testParseField_complex() throws CTFException {
         int len = 32;
         IntegerDeclaration id = IntegerDeclaration.createDeclaration(
                 len,
@@ -101,10 +101,10 @@ public class CTFEventFieldTest {
     /**
      * Run the CTFEventField parseField(Definition,String) method test.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      */
     @Test
-    public void testParseField_simple() throws CTFReaderException {
+    public void testParseField_simple() throws CTFException {
         final StringDeclaration elemType = StringDeclaration.getStringDeclaration(Encoding.UTF8);
         byte[] bytes = { 'T', 'e', 's', 't', '\0' };
         ByteBuffer bb = testMemory(ByteBuffer.wrap(bytes));

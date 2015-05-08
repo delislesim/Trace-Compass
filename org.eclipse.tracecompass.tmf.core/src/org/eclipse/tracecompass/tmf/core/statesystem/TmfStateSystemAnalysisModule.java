@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -23,7 +23,6 @@ import java.util.concurrent.CountDownLatch;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.core.statesystem.backends.partial.PartialHistoryBackend;
 import org.eclipse.tracecompass.internal.tmf.core.statesystem.backends.partial.PartialStateSystem;
@@ -31,10 +30,7 @@ import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.StateSystemFactory;
 import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.InMemoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.NullBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.historytree.HistoryTreeBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.historytree.ThreadedHistoryTreeBackend;
+import org.eclipse.tracecompass.statesystem.core.backend.StateHistoryBackendFactory;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
@@ -59,9 +55,7 @@ import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
  * (defaults to the analysis'ID)
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
-@NonNullByDefault
 public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisModule
         implements ITmfAnalysisModuleWithStateSystems {
 
@@ -106,42 +100,15 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * @param moduleId
      *            The ID of the state system analysis module
      * @return The state system, or null if there was no match
-     * @since 3.1
      */
     public static @Nullable ITmfStateSystem getStateSystem(ITmfTrace trace, String moduleId) {
         TmfStateSystemAnalysisModule module =
                 TmfTraceUtils.getAnalysisModuleOfClass(trace, TmfStateSystemAnalysisModule.class, moduleId);
         if (module != null) {
-            IStatus status = module.schedule();
-            if (status.isOK()) {
-                module.waitForInitialization();
-                return module.getStateSystem();
+            ITmfStateSystem ss = module.getStateSystem();
+            if (ss != null) {
+                return ss;
             }
-        }
-        return null;
-    }
-
-    /**
-     * Retrieve a state system belonging to trace, by passing the class of the
-     * relevant analysis module. If many modules of the same class exists, the
-     * state system of the first one will be returned.
-     *
-     * This will start the execution of the analysis module, and start the
-     * construction of the state system, if needed.
-     *
-     * @param trace
-     *            The trace for which you want the state system
-     * @param clazz
-     *            The class of the state system module to retrieve
-     * @return The state system, or null if there was no match
-     */
-    public static @Nullable ITmfStateSystem getStateSystemByModuleClass(ITmfTrace trace, Class<? extends TmfStateSystemAnalysisModule> clazz) {
-        TmfStateSystemAnalysisModule module = null;
-        for (TmfStateSystemAnalysisModule mod : TmfTraceUtils.getAnalysisModulesOfClass(trace, clazz)) {
-            module = mod;
-            break;
-        }
-        if (module != null) {
             IStatus status = module.schedule();
             if (status.isOK()) {
                 module.waitForInitialization();
@@ -286,9 +253,10 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
            /* Load an existing history */
             final int version = provider.getVersion();
             try {
-                IStateHistoryBackend backend = new HistoryTreeBackend(htFile, version);
+                IStateHistoryBackend backend = StateHistoryBackendFactory.createHistoryTreeBackendExistingFile(
+                        id, htFile, version);
                 fHtBackend = backend;
-                fStateSystem = StateSystemFactory.newStateSystem(id, backend, false);
+                fStateSystem = StateSystemFactory.newStateSystem(backend, false);
                 fInitialized.countDown();
                 return;
             } catch (IOException e) {
@@ -304,10 +272,10 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
         final int QUEUE_SIZE = 10000;
 
         try {
-            IStateHistoryBackend backend = new ThreadedHistoryTreeBackend(htFile,
-                    provider.getStartTime(), provider.getVersion(), QUEUE_SIZE);
+            IStateHistoryBackend backend = StateHistoryBackendFactory.createHistoryTreeBackendNewFile(
+                    id, htFile, provider.getVersion(), provider.getStartTime(), QUEUE_SIZE);
             fHtBackend = backend;
-            fStateSystem = StateSystemFactory.newStateSystem(id, backend);
+            fStateSystem = StateSystemFactory.newStateSystem(backend);
             provider.assignTargetStateSystem(fStateSystem);
             build(provider);
         } catch (IOException e) {
@@ -357,8 +325,8 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
         /* 2 */
         IStateHistoryBackend realBackend = null;
         try {
-            realBackend = new ThreadedHistoryTreeBackend(htPartialFile,
-                    provider.getStartTime(), provider.getVersion(), QUEUE_SIZE);
+            realBackend = StateHistoryBackendFactory.createHistoryTreeBackendNewFile(
+                    id, htPartialFile, provider.getVersion(), provider.getStartTime(), QUEUE_SIZE);
         } catch (IOException e) {
             throw new TmfTraceException(e.toString(), e);
         }
@@ -373,13 +341,14 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
         partialProvider.assignTargetStateSystem(pss);
 
         /* 3 */
+        String partialId = new String(id + ".partial"); //$NON-NLS-1$
         IStateHistoryBackend partialBackend =
-                new PartialHistoryBackend(partialProvider, pss, realBackend, granularity);
+                new PartialHistoryBackend(partialId, partialProvider, pss, realBackend, granularity);
 
         /* 4 */
         @SuppressWarnings("restriction")
         org.eclipse.tracecompass.internal.statesystem.core.StateSystem realSS =
-        (org.eclipse.tracecompass.internal.statesystem.core.StateSystem) StateSystemFactory.newStateSystem(id, partialBackend);
+        (org.eclipse.tracecompass.internal.statesystem.core.StateSystem) StateSystemFactory.newStateSystem(partialBackend);
 
         /* 5 */
         pss.assignUpstream(realSS);
@@ -400,9 +369,9 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * {@link ITmfStateSystem#queryOngoingState} will be available.
      */
     private void createNullHistory(String id, ITmfStateProvider provider) {
-        IStateHistoryBackend backend = new NullBackend();
+        IStateHistoryBackend backend = StateHistoryBackendFactory.createNullBackend(id);
         fHtBackend = backend;
-        fStateSystem = StateSystemFactory.newStateSystem(id, backend);
+        fStateSystem = StateSystemFactory.newStateSystem(backend);
         provider.assignTargetStateSystem(fStateSystem);
         build(provider);
     }
@@ -413,9 +382,9 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * to 2^31 intervals.
      */
     private void createInMemoryHistory(String id, ITmfStateProvider provider) {
-        IStateHistoryBackend backend = new InMemoryBackend(provider.getStartTime());
+        IStateHistoryBackend backend = StateHistoryBackendFactory.createInMemoryBackend(id, provider.getStartTime());
         fHtBackend = backend;
-        fStateSystem = StateSystemFactory.newStateSystem(id, backend);
+        fStateSystem = StateSystemFactory.newStateSystem(backend);
         provider.assignTargetStateSystem(fStateSystem);
         build(provider);
     }
@@ -442,11 +411,8 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
 
         fTimeRange = TmfTimeRange.ETERNITY;
         final ITmfTrace trace = provider.getTrace();
-        if (trace != null && !isCompleteTrace(trace)) {
-            TmfTimeRange traceTimeRange = trace.getTimeRange();
-            if (traceTimeRange != null) {
-                fTimeRange = traceTimeRange;
-            }
+        if (!isCompleteTrace(trace)) {
+            fTimeRange = trace.getTimeRange();
         }
 
         fStateProvider = provider;
@@ -478,7 +444,7 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
         private final ITmfTrace trace;
 
         public StateSystemEventRequest(ITmfStateProvider sp, TmfTimeRange timeRange, int index) {
-            super(sp.getExpectedEventType(),
+            super(ITmfEvent.class,
                     timeRange,
                     index,
                     ITmfEventRequest.ALL_DATA,

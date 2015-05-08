@@ -24,18 +24,19 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-    CTFTraceCallsitePerformanceTest.class,
     CTFTraceReaderTest.class,
     CTFTraceTest.class,
     CTFTraceGrowingTest.class,
     IOstructgenTest.class,
     MetadataTest.class,
+    MetadataPrevalidationTests.class,
     CTFStreamInputPacketIndexEntryTest.class,
     CTFStreamInputPacketIndexTest.class,
     CTFStreamInputReaderTest.class,
     CTFStreamInputReaderTimestampComparatorTest.class,
     CTFStreamInputTest.class,
     CTFStreamTest.class,
+    CTFTraceWriterTest.class,
     TraceReadAllTracesTest.class,
     UtilsTest.class
 })

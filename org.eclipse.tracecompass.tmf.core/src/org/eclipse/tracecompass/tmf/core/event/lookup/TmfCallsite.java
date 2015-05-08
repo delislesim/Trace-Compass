@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -12,11 +12,11 @@
 
 package org.eclipse.tracecompass.tmf.core.event.lookup;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
 
 /**
  * TMF call site information for source code lookup.
  *
- * @since 2.0
  * @author Bernd Hufmann
  */
 public class TmfCallsite implements ITmfCallsite {
@@ -26,13 +26,13 @@ public class TmfCallsite implements ITmfCallsite {
     // ------------------------------------------------------------------------
 
     /** The file name string. */
-    final private String fFileName;
+    private final String fFileName;
 
     /** The function name. */
-    final private String fFunctionName;
+    private final String fFunctionName;
 
     /** The line number. */
-    final private long fLineNumber;
+    private final long fLineNumber;
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -99,7 +99,8 @@ public class TmfCallsite implements ITmfCallsite {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + fFileName.hashCode(); // fFileName cannot be null
+        // fFileName cannot be null!
+        result = prime * result + fFileName.hashCode();
         result = prime * result + ((fFunctionName == null) ? 0 : fFunctionName.hashCode());
         result = prime * result + (int) (fLineNumber ^ (fLineNumber >>> 32));
         return result;
@@ -123,11 +124,7 @@ public class TmfCallsite implements ITmfCallsite {
             return false;
         }
 
-        if (fFunctionName == null) {
-            if (other.fFunctionName != null) {
-                return false;
-            }
-        } else if (!fFunctionName.equals(other.fFunctionName)) {
+        if (!equalsNullable(fFunctionName, other.fFunctionName)) {
             return false;
         }
         if (fLineNumber != other.fLineNumber) {

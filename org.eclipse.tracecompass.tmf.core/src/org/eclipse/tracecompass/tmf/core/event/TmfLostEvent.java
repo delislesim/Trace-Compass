@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,8 @@
 
 package org.eclipse.tracecompass.tmf.core.event;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
+
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
@@ -21,9 +23,7 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * A basic implementation of ITmfLostEvent.
  *
  * @author Francois Chouinard
- * @version 1.0
- * @since 1.2
-*/
+ */
 public class TmfLostEvent extends TmfEvent implements ITmfLostEvent {
 
     // ------------------------------------------------------------------------
@@ -52,7 +52,6 @@ public class TmfLostEvent extends TmfEvent implements ITmfLostEvent {
      *            the 'problematic' time range
      * @param nbLostEvents
      *            the number of lost events in the time range
-     * @since 2.0
      */
     public TmfLostEvent(final ITmfTrace trace,
             final long rank,
@@ -69,9 +68,6 @@ public class TmfLostEvent extends TmfEvent implements ITmfLostEvent {
     // ITmfLostEvent
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public TmfTimeRange getTimeRange() {
         return fTimeRange;
@@ -110,11 +106,7 @@ public class TmfLostEvent extends TmfEvent implements ITmfLostEvent {
         if (fNbLostEvents != other.fNbLostEvents) {
             return false;
         }
-        if (fTimeRange == null) {
-            if (other.fTimeRange != null) {
-                return false;
-            }
-        } else if (!fTimeRange.equals(other.fTimeRange)) {
+        if (!equalsNullable(fTimeRange, other.fTimeRange)) {
             return false;
         }
         return true;

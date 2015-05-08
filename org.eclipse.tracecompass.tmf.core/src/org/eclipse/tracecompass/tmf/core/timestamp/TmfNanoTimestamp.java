@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -15,8 +15,6 @@ package org.eclipse.tracecompass.tmf.core.timestamp;
 
 /**
  * A simplified timestamp where scale is nanoseconds and precision is set to 0.
- *
- * @since 2.1
  */
 public class TmfNanoTimestamp extends TmfTimestamp {
 

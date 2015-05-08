@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,7 @@ package org.eclipse.tracecompass.examples.ui.views.histogram;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.examples.ui.viewers.histogram.NewHistogramViewer;
+import org.eclipse.tracecompass.tmf.ui.viewers.xycharts.TmfXYChartViewer;
 import org.eclipse.tracecompass.tmf.ui.views.TmfChartView;
 
 /**
@@ -22,7 +23,7 @@ import org.eclipse.tracecompass.tmf.ui.views.TmfChartView;
  */
 public class NewHistogramView extends TmfChartView {
     /** The view ID. */
-    public static final String ID = "org.eclipse.linuxtools.tracing.examples.ui.views.NewHistogramView"; //$NON-NLS-1$
+    public static final String ID = "org.eclipse.tracecompass.examples.ui.views.NewHistogramView"; //$NON-NLS-1$
 
     /**
      * Default Constructor
@@ -32,12 +33,11 @@ public class NewHistogramView extends TmfChartView {
     }
 
     @Override
-    public void createPartControl(Composite parent) {
-        setChartViewer(new NewHistogramViewer(parent));
-        super.createPartControl(parent);
+    public void setFocus() {
     }
 
     @Override
-    public void setFocus() {
+    protected TmfXYChartViewer createChartViewer(Composite parent) {
+        return new NewHistogramViewer(parent);
     }
 }

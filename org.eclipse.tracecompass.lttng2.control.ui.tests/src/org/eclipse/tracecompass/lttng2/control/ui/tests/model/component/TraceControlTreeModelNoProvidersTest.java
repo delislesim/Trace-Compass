@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -25,9 +25,8 @@ import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.remote.core.IRemoteConnection;
-import org.eclipse.remote.core.IRemoteConnectionManager;
-import org.eclipse.remote.core.RemoteServices;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.TargetNodeState;
 import org.eclipse.tracecompass.internal.lttng2.control.stubs.service.TestRemoteSystemProxy;
@@ -38,6 +37,7 @@ import org.eclipse.tracecompass.internal.lttng2.control.ui.views.model.impl.Trac
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.model.impl.UstProviderComponent;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.service.ILttngControlService;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.service.LTTngControlService;
+import org.eclipse.tracecompass.tmf.remote.core.proxy.TmfRemoteConnectionFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +62,8 @@ public class TraceControlTreeModelNoProvidersTest {
     // Test data
     // ------------------------------------------------------------------------
 
-    private TestRemoteSystemProxy fProxy;
+    private IRemoteConnection fHost = TmfRemoteConnectionFactory.getLocalConnection();
+    private @NonNull TestRemoteSystemProxy fProxy = new TestRemoteSystemProxy(fHost);
     private String fTestFile;
 
     // ------------------------------------------------------------------------
@@ -77,7 +78,6 @@ public class TraceControlTreeModelNoProvidersTest {
      */
     @Before
     public void setUp() throws Exception {
-        fProxy = new TestRemoteSystemProxy();
         URL location = FileLocator.find(FrameworkUtil.getBundle(this.getClass()), new Path(TraceControlTestFacility.DIRECTORY + File.separator + TEST_STREAM), null);
         File testfile = new File(FileLocator.toFileURL(location).toURI());
         fTestFile = testfile.getAbsolutePath();
@@ -102,10 +102,7 @@ public class TraceControlTreeModelNoProvidersTest {
 
         ITraceControlComponent root = TraceControlTestFacility.getInstance().getControlView().getTraceControlRoot();
 
-        IRemoteConnectionManager cm = RemoteServices.getLocalServices().getConnectionManager();
-        IRemoteConnection host = cm.getConnection(IRemoteConnectionManager.LOCAL_CONNECTION_NAME);
-
-        TargetNodeComponent node = new TargetNodeComponent(TARGET_NODE_NAME, root, host, fProxy);
+        TargetNodeComponent node = new TargetNodeComponent(TARGET_NODE_NAME, root, fProxy);
 
         root.addChild(node);
         node.connect();
@@ -116,7 +113,6 @@ public class TraceControlTreeModelNoProvidersTest {
         // ------------------------------------------------------------------------
         // Verify Parameters of TargetNodeComponent
         // ------------------------------------------------------------------------
-        assertEquals("localhost", node.getRemoteConnection().getAddress()); // assigned in createLocalHost() above
         assertEquals("Local", node.getToolTip()); // assigned in createLocalHost() above
         Image connectedImage = node.getImage();
         assertNotNull(connectedImage);

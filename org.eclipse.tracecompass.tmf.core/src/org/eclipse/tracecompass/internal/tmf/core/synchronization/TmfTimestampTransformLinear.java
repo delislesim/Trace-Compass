@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -15,6 +15,7 @@ package org.eclipse.tracecompass.internal.tmf.core.synchronization;
 import java.math.BigDecimal;
 import java.math.MathContext;
 
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.tmf.core.synchronization.ITmfTimestampTransform;
 import org.eclipse.tracecompass.tmf.core.synchronization.TimestampTransformFactory;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
@@ -26,7 +27,6 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
  * f(t) = alpha*t + beta
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public class TmfTimestampTransformLinear implements ITmfTimestampTransformInvertible {
 
@@ -107,7 +107,9 @@ public class TmfTimestampTransformLinear implements ITmfTimestampTransformInvert
             TmfTimestampTransformLinear ttl = (TmfTimestampTransformLinear) composeWith;
             BigDecimal newAlpha = fAlpha.multiply(ttl.fAlpha, fMc);
             BigDecimal newBeta = fAlpha.multiply(ttl.fBeta, fMc).add(fBeta);
-            return TimestampTransformFactory.createLinear(newAlpha, newBeta);
+            /* Don't use the factory to make sure any further composition will
+             * be performed on the same object type */
+            return new TmfTimestampTransformLinear(newAlpha, newBeta);
         } else {
             /*
              * We do not know what to do with this kind of transform, just
@@ -144,7 +146,20 @@ public class TmfTimestampTransformLinear implements ITmfTimestampTransformInvert
 
     @Override
     public ITmfTimestampTransform inverse() {
-        return TimestampTransformFactory.createLinear(BigDecimal.ONE.divide(fAlpha, fMc), BigDecimal.valueOf(-1).multiply(fBeta).divide(fAlpha, fMc));
+        return TimestampTransformFactory.createLinear(NonNullUtils.checkNotNull(BigDecimal.ONE.divide(fAlpha, fMc)), NonNullUtils.checkNotNull(BigDecimal.valueOf(-1).multiply(fBeta).divide(fAlpha, fMc)));
     }
 
+    /**
+     * @return the slope alpha
+     */
+    public BigDecimal getAlpha() {
+        return fAlpha;
+    }
+
+    /**
+     * @return the offset beta
+     */
+    public BigDecimal getBeta() {
+        return fBeta;
+    }
 }

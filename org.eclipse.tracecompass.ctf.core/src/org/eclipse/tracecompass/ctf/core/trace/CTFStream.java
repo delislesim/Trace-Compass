@@ -17,11 +17,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.IDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.IEventHeaderDeclaration;
@@ -33,8 +33,6 @@ import org.eclipse.tracecompass.internal.ctf.core.event.metadata.exceptions.Pars
  * <b><u>Stream</u></b>
  * <p>
  * Represents a stream in a trace.
- *
- * @since 3.0
  */
 public class CTFStream {
 
@@ -45,7 +43,7 @@ public class CTFStream {
     /**
      * The numerical ID of the stream
      */
-    private Long fId = null;
+    private long fId = 0;
 
     /**
      * Declarations of the stream-specific structures
@@ -65,6 +63,7 @@ public class CTFStream {
     private final ArrayList<IEventDeclaration> fEvents = new ArrayList<>();
 
     private boolean fEventUnsetId = false;
+    private boolean fStreamIdSet = false;
 
     /**
      * The inputs associated to this stream
@@ -97,14 +96,16 @@ public class CTFStream {
      */
     public void setId(long id) {
         fId = id;
+        fStreamIdSet = true;
     }
 
     /**
      * Gets the id of a stream
      *
      * @return id the id of a stream
+     * @since 1.0
      */
-    public Long getId() {
+    public long getId() {
         return fId;
     }
 
@@ -114,7 +115,7 @@ public class CTFStream {
      * @return If the ID is set or not
      */
     public boolean isIdSet() {
-        return fId != null;
+        return fStreamIdSet;
     }
 
     /**
@@ -156,7 +157,6 @@ public class CTFStream {
      *
      * @param eventHeader
      *            the current event header for all events in this stream
-     * @since 3.1
      */
     public void setEventHeader(IEventHeaderDeclaration eventHeader) {
         fEventHeaderDecl = eventHeader;
@@ -181,20 +181,9 @@ public class CTFStream {
     }
 
     /**
-     *
-     * @return the event header declaration in structdeclaration form
-     * @deprecated use {@link CTFStream#getEventHeaderDeclaration()}
-     */
-    @Deprecated
-    public StructDeclaration getEventHeaderDecl() {
-        return (StructDeclaration) ((fEventHeaderDecl instanceof StructDeclaration) ? fEventHeaderDecl : null);
-    }
-
-    /**
      * Gets the event header declaration
      *
      * @return the event header declaration in declaration form
-     * @since 3.1
      */
     public IDeclaration getEventHeaderDeclaration() {
         return fEventHeaderDecl;
@@ -233,21 +222,9 @@ public class CTFStream {
     }
 
     /**
-     *
-     * @return all the event declarations for this stream, using the id as a key
-     *         for the hashmap.
-     * @deprecated use {@link CTFStream#getEventDeclarations()}
-     */
-    @Deprecated
-    public Map<Long, IEventDeclaration> getEvents() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * Get all the event declarations in this stream.
      *
      * @return The event declarations for this stream
-     * @since 3.2
      */
     public @NonNull Collection<IEventDeclaration> getEventDeclarations() {
         List<IEventDeclaration> retVal = new ArrayList<>(fEvents);
@@ -265,7 +242,6 @@ public class CTFStream {
      *         'null' if there are no declaration with this ID
      * @throws IllegalArgumentException
      *             If the passed ID is invalid
-     * @since 3.2
      */
     public @Nullable IEventDeclaration getEventDeclaration(int eventId) {
         int eventIndex = (eventId == EventDeclaration.UNSET_EVENT_ID) ? 0 : eventId;
@@ -333,13 +309,12 @@ public class CTFStream {
      *
      * @param events
      *            list of the events to add
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if the list already contains data
-     * @since 3.2
      */
-    public void addEvents(Collection<IEventDeclaration> events) throws CTFReaderException {
+    public void addEvents(Collection<IEventDeclaration> events) throws CTFException {
         if (fEventUnsetId) {
-            throw new CTFReaderException("Cannot add to a stream with an unidentified event"); //$NON-NLS-1$
+            throw new CTFException("Cannot add to a stream with an unidentified event"); //$NON-NLS-1$
         }
         if (fEvents.isEmpty()) {
             fEvents.addAll(events);
@@ -350,7 +325,7 @@ public class CTFStream {
                 int index = event.getId().intValue();
                 ensureSize(fEvents, index);
                 if (fEvents.get(index) != null) {
-                    throw new CTFReaderException("Both lists have an event defined at position " + index); //$NON-NLS-1$
+                    throw new CTFException("Both lists have an event defined at position " + index); //$NON-NLS-1$
                 }
                 fEvents.set(index, event);
             }

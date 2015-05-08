@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2012 Ericsson
+ * Copyright (c) 2010, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,7 @@
  *
  * Contributors:
  *   Yuriy Vashchuk (yvashchuk@gmail.com) - Initial API and implementation
+ *   Patrick Tasse - Update filter nodes
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.core.filter.xml;
@@ -24,16 +25,17 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.eclipse.tracecompass.tmf.core.event.aspect.TmfEventFieldAspect;
 import org.eclipse.tracecompass.tmf.core.filter.model.ITmfFilterTreeNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterAndNode;
+import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterAspectNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterCompareNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterContainsNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterEqualsNode;
-import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterEventTypeNode;
-import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterMatchesFieldNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterMatchesNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterOrNode;
+import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterTraceTypeNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -83,11 +85,11 @@ public class TmfFilterXMLWriter {
             TmfFilterNode node = (TmfFilterNode) treenode;
             element.setAttribute(TmfFilterNode.NAME_ATTR, node.getFilterName());
 
-        } else if (treenode instanceof TmfFilterEventTypeNode) {
+        } else if (treenode instanceof TmfFilterTraceTypeNode) {
 
-            TmfFilterEventTypeNode node = (TmfFilterEventTypeNode) treenode;
-            element.setAttribute(TmfFilterEventTypeNode.TYPE_ATTR, node.getEventType());
-            element.setAttribute(TmfFilterEventTypeNode.NAME_ATTR, node.getName());
+            TmfFilterTraceTypeNode node = (TmfFilterTraceTypeNode) treenode;
+            element.setAttribute(TmfFilterTraceTypeNode.TYPE_ATTR, node.getTraceTypeId());
+            element.setAttribute(TmfFilterTraceTypeNode.NAME_ATTR, node.getName());
 
         } else if (treenode instanceof TmfFilterAndNode) {
 
@@ -103,7 +105,7 @@ public class TmfFilterXMLWriter {
 
             TmfFilterContainsNode node = (TmfFilterContainsNode) treenode;
             element.setAttribute(TmfFilterContainsNode.NOT_ATTR, Boolean.toString(node.isNot()));
-            element.setAttribute(TmfFilterContainsNode.FIELD_ATTR, node.getField());
+            setAspectAttributes(element, node);
             element.setAttribute(TmfFilterContainsNode.VALUE_ATTR, node.getValue());
             element.setAttribute(TmfFilterContainsNode.IGNORECASE_ATTR, Boolean.toString(node.isIgnoreCase()));
 
@@ -111,22 +113,22 @@ public class TmfFilterXMLWriter {
 
             TmfFilterEqualsNode node = (TmfFilterEqualsNode) treenode;
             element.setAttribute(TmfFilterEqualsNode.NOT_ATTR, Boolean.toString(node.isNot()));
-            element.setAttribute(TmfFilterEqualsNode.FIELD_ATTR, node.getField());
+            setAspectAttributes(element, node);
             element.setAttribute(TmfFilterEqualsNode.VALUE_ATTR, node.getValue());
             element.setAttribute(TmfFilterEqualsNode.IGNORECASE_ATTR, Boolean.toString(node.isIgnoreCase()));
 
-        } else if (treenode instanceof TmfFilterMatchesFieldNode) {
+        } else if (treenode instanceof TmfFilterMatchesNode) {
 
-            TmfFilterMatchesFieldNode node = (TmfFilterMatchesFieldNode) treenode;
+            TmfFilterMatchesNode node = (TmfFilterMatchesNode) treenode;
             element.setAttribute(TmfFilterMatchesNode.NOT_ATTR, Boolean.toString(node.isNot()));
-            element.setAttribute(TmfFilterMatchesFieldNode.FIELD_ATTR, node.getField());
+            setAspectAttributes(element, node);
             element.setAttribute(TmfFilterMatchesNode.REGEX_ATTR, node.getRegex());
 
         } else if (treenode instanceof TmfFilterCompareNode) {
 
             TmfFilterCompareNode node = (TmfFilterCompareNode) treenode;
             element.setAttribute(TmfFilterCompareNode.NOT_ATTR, Boolean.toString(node.isNot()));
-            element.setAttribute(TmfFilterCompareNode.FIELD_ATTR, node.getField());
+            setAspectAttributes(element, node);
             element.setAttribute(TmfFilterCompareNode.RESULT_ATTR, Integer.toString(node.getResult()));
             element.setAttribute(TmfFilterCompareNode.TYPE_ATTR, node.getType().toString());
             element.setAttribute(TmfFilterCompareNode.VALUE_ATTR, node.getValue());
@@ -137,6 +139,19 @@ public class TmfFilterXMLWriter {
 
         for (int i = 0; i < treenode.getChildrenCount(); i++) {
             buildXMLTree(document, treenode.getChild(i), element);
+        }
+    }
+
+    private static void setAspectAttributes(Element element, TmfFilterAspectNode node) {
+        if (node.getEventAspect() != null) {
+            element.setAttribute(TmfFilterAspectNode.EVENT_ASPECT_ATTR, node.getEventAspect().getName());
+            element.setAttribute(TmfFilterAspectNode.TRACE_TYPE_ID_ATTR, node.getTraceTypeId());
+            if (node.getEventAspect() instanceof TmfEventFieldAspect) {
+                TmfEventFieldAspect aspect = (TmfEventFieldAspect) node.getEventAspect();
+                if (aspect.getFieldPath() != null) {
+                    element.setAttribute(TmfFilterAspectNode.FIELD_ATTR, aspect.getFieldPath());
+                }
+            }
         }
     }
 

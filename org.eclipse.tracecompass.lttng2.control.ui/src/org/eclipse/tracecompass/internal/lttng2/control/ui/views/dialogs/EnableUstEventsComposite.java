@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -329,7 +329,7 @@ public class EnableUstEventsComposite extends Composite implements IEnableUstEve
             String tempWildcard = fWildcardText.getText();
             if (tempWildcard.isEmpty() ||
                 tempWildcard.matches("\\s*") || //$NON-NLS-1$
-                (!tempWildcard.matches("^[\\s]{0,}$") && !tempWildcard.matches("^[a-zA-Z0-9\\-\\_\\*]{1,}$"))) { //$NON-NLS-1$ //$NON-NLS-2$
+                (!tempWildcard.matches("^[\\s]{0,}$") && !tempWildcard.matches("^[a-zA-Z0-9\\-\\_\\*\\\\\\']{1,}$"))) { //$NON-NLS-1$ //$NON-NLS-2$
                 MessageDialog.openError(getShell(),
                         Messages.TraceControl_EnableEventsDialogTitle,
                         Messages.TraceControl_InvalidWildcardError + " (" + tempWildcard + ") \n");  //$NON-NLS-1$ //$NON-NLS-2$

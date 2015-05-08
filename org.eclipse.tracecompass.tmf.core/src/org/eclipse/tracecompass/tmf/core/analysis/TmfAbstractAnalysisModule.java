@@ -49,7 +49,6 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
  * behavior to some methods of the analysis module
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 @NonNullByDefault
 public abstract class TmfAbstractAnalysisModule extends TmfComponent implements IAnalysisModule {
@@ -94,7 +93,14 @@ public abstract class TmfAbstractAnalysisModule extends TmfComponent implements 
     public String getId() {
         String id = fId;
         if (id == null) {
-            id = new String(this.getClass().getCanonicalName());
+            id = this.getClass().getCanonicalName();
+            if (id == null) {
+                /*
+                 * Some types, like anonymous classes, don't have a canonical
+                 * name. Just use the default name instead.
+                 */
+                id = checkNotNull(this.getClass().getName());
+            }
             fId = id;
         }
         return id;
@@ -105,8 +111,11 @@ public abstract class TmfAbstractAnalysisModule extends TmfComponent implements 
         fAutomatic = auto;
     }
 
+    /**
+     * @since 1.0
+     */
     @Override
-    public void setTrace(ITmfTrace trace) throws TmfAnalysisException {
+    public boolean setTrace(ITmfTrace trace) throws TmfAnalysisException {
         if (fTrace != null) {
             throw new TmfAnalysisException(NLS.bind(Messages.TmfAbstractAnalysisModule_TraceSetMoreThanOnce, getName()));
         }
@@ -115,7 +124,7 @@ public abstract class TmfAbstractAnalysisModule extends TmfComponent implements 
 
         /* Check that analysis can be executed */
         if (!canExecute(trace)) {
-            throw new TmfAnalysisException(NLS.bind(Messages.TmfAbstractAnalysisModule_AnalysisCannotExecute, getName()));
+            return false;
         }
 
         fTrace = trace;
@@ -127,6 +136,7 @@ public abstract class TmfAbstractAnalysisModule extends TmfComponent implements 
         }
         resetAnalysis();
         fStarted = false;
+        return true;
     }
 
     /**
@@ -250,11 +260,9 @@ public abstract class TmfAbstractAnalysisModule extends TmfComponent implements 
     public final void cancel() {
         synchronized (syncObj) {
             TmfCoreTracer.traceAnalysis(getId(), getTrace(), "cancelled by application"); //$NON-NLS-1$
-            if (fJob != null) {
-                if (fJob.cancel()) {
-                    fAnalysisCancelled = true;
-                    setAnalysisCompleted();
-                }
+            if (fJob != null && fJob.cancel()) {
+                fAnalysisCancelled = true;
+                setAnalysisCompleted();
             }
             fStarted = false;
         }
@@ -426,7 +434,6 @@ public abstract class TmfAbstractAnalysisModule extends TmfComponent implements 
      *
      * @param signal
      *            Trace selected signal
-     * @since 3.1
      */
     @TmfSignalHandler
     public void traceSelected(TmfTraceSelectedSignal signal) {

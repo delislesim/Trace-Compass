@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011-2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
+import org.eclipse.tracecompass.ctf.core.event.scope.ILexicalScope;
 import org.eclipse.tracecompass.ctf.core.event.scope.LexicalScope;
 import org.eclipse.tracecompass.ctf.core.event.types.Definition;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
@@ -38,8 +39,6 @@ public final class EventDefinition implements IDefinitionScope {
 
     /**
      * A null event, can be used for testing or poison pilling
-     *
-     * @since 3.0
      */
     @NonNull
     public static final EventDefinition NULL_EVENT = new EventDefinition(new EventDeclaration(), null, -1L, null, null, null, null);
@@ -94,7 +93,6 @@ public final class EventDefinition implements IDefinitionScope {
      *            the stream context
      * @param fields
      *            The event fields
-     * @since 3.0
      */
     public EventDefinition(IEventDeclaration declaration,
             CTFStreamInputReader streamInputReader,
@@ -117,17 +115,17 @@ public final class EventDefinition implements IDefinitionScope {
     // ------------------------------------------------------------------------
 
     /**
-     * @since 3.0
+     * @since 1.0
      */
     @Override
-    public LexicalScope getScopePath() {
+    public ILexicalScope getScopePath() {
         String eventName = fDeclaration.getName();
         if (eventName == null) {
             return null;
         }
-        LexicalScope myScope = LexicalScope.EVENT.getChild(eventName);
+        ILexicalScope myScope = ILexicalScope.EVENT.getChild(eventName);
         if (myScope == null) {
-            myScope = new LexicalScope(LexicalScope.EVENT, eventName);
+            myScope = new LexicalScope(ILexicalScope.EVENT, eventName);
         }
         return myScope;
     }
@@ -136,7 +134,6 @@ public final class EventDefinition implements IDefinitionScope {
      * Gets the declaration (the form) of the data
      *
      * @return the event declaration
-     * @since 2.0
      */
     public IEventDeclaration getDeclaration() {
         return fDeclaration;
@@ -155,7 +152,6 @@ public final class EventDefinition implements IDefinitionScope {
      * Gets the context of this event without the context of the stream
      *
      * @return the context in struct form
-     * @since 1.2
      */
     public StructDefinition getEventContext() {
         return fEventContext;
@@ -220,7 +216,6 @@ public final class EventDefinition implements IDefinitionScope {
      * Gets the stream input reader that this event was made by
      *
      * @return the parent
-     * @since 3.0
      */
     public CTFStreamInputReader getStreamInputReader() {
         return fStreamInputReader;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ecole Polytechnique de Montreal
+ * Copyright (c) 2014, 2015 Ecole Polytechnique de Montreal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -263,15 +263,10 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
         /* Exception for "CPU", returns the source of this event */
         /* FIXME : Nameclash if a eventfield have "cpu" for name. */
         if (fieldName.equals(TmfXmlStrings.CPU)) {
-            /* See if the event advertises a CPU aspect */
-            Iterable<TmfCpuAspect> cpuAspects = TmfTraceUtils.getEventAspectsOfClass(
-                    event.getTrace(), TmfCpuAspect.class);
-            for (TmfCpuAspect aspect : cpuAspects) {
-                /* We will just pick the first valid one we find */
-                Integer cpu = aspect.resolve(event);
-                if (!cpu.equals(TmfCpuAspect.CPU_UNAVAILABLE)) {
-                    return TmfStateValue.newValueInt(cpu.intValue());
-                }
+            Object cpuObj = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), TmfCpuAspect.class, event);
+            if (cpuObj != null) {
+                Integer cpu = (Integer) cpuObj;
+                return TmfStateValue.newValueInt(cpu.intValue());
             }
         }
         /* Exception also for "TIMESTAMP", returns the timestamp of this event */

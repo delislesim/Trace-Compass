@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,8 +12,12 @@
 
 package org.eclipse.tracecompass.tmf.core.callstack;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
@@ -61,7 +65,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * The type of value used must be constant for a particular CallStack.
  *
  * @author Patrick Tasse
- * @since 2.0
  */
 public abstract class CallStackStateProvider extends AbstractTmfStateProvider {
 
@@ -73,7 +76,7 @@ public abstract class CallStackStateProvider extends AbstractTmfStateProvider {
     public static final String UNDEFINED = "UNDEFINED"; //$NON-NLS-1$
 
     /** CallStack state system ID */
-    private static final String ID = "org.eclipse.linuxtools.tmf.callstack"; //$NON-NLS-1$
+    private static final @NonNull String ID = "org.eclipse.linuxtools.tmf.callstack"; //$NON-NLS-1$
     /** Dummy function name for when no function is expected */
     private static final String NO_FUNCTION = "no function"; //$NON-NLS-1$
 
@@ -83,8 +86,8 @@ public abstract class CallStackStateProvider extends AbstractTmfStateProvider {
      * @param trace
      *            The trace for which we build this state system
      */
-    public CallStackStateProvider(ITmfTrace trace) {
-        super(trace, ITmfEvent.class, ID);
+    public CallStackStateProvider(@NonNull ITmfTrace trace) {
+        super(trace, ID);
     }
 
     @Override
@@ -92,6 +95,9 @@ public abstract class CallStackStateProvider extends AbstractTmfStateProvider {
         if (!considerEvent(event)) {
             return;
         }
+
+        ITmfStateSystemBuilder ss = checkNotNull(getStateSystemBuilder());
+
         try {
             /* Check if the event is a function entry */
             String functionEntryName = functionEntry(event);
@@ -150,7 +156,6 @@ public abstract class CallStackStateProvider extends AbstractTmfStateProvider {
      *            The event to check
      * @return If false, the event will be ignored by the state provider. If
      *         true processing will continue.
-     * @since 3.0
      */
     protected abstract boolean considerEvent(ITmfEvent event);
 
@@ -180,7 +185,6 @@ public abstract class CallStackStateProvider extends AbstractTmfStateProvider {
      * @param event
      *            The event
      * @return The thread name (as will be shown in the view)
-     * @since 3.0
      */
     protected abstract String getThreadName(ITmfEvent event);
 
@@ -190,7 +194,6 @@ public abstract class CallStackStateProvider extends AbstractTmfStateProvider {
      * @param event
      *            The event
      * @return The thread id, or null if undefined
-     * @since 3.1
      */
     protected Long getThreadId(ITmfEvent event) {
         return null;

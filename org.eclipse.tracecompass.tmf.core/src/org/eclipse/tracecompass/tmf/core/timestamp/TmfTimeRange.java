@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -14,16 +14,17 @@
 package org.eclipse.tracecompass.tmf.core.timestamp;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * A utility class to define and manage time ranges.
  *
  * @author Francois Chouinard
- * @version 1.0
- * @since 2.0
  *
  * @see ITmfTimestamp
  */
+@NonNullByDefault
 public class TmfTimeRange {
 
     // ------------------------------------------------------------------------
@@ -33,12 +34,12 @@ public class TmfTimeRange {
     /**
      * The full possible time range
      */
-    public static final @NonNull TmfTimeRange ETERNITY = new EternityTimeRange();
+    public static final TmfTimeRange ETERNITY = new EternityTimeRange();
 
     /**
      * The null time range
      */
-    public static final @NonNull TmfTimeRange NULL_RANGE = new TmfTimeRange();
+    public static final TmfTimeRange NULL_RANGE = new TmfTimeRange(TmfTimestamp.BIG_BANG, TmfTimestamp.BIG_BANG);
 
     // ------------------------------------------------------------------------
     // Attributes
@@ -52,38 +53,14 @@ public class TmfTimeRange {
     // ------------------------------------------------------------------------
 
     /**
-     * Default constructor
-     */
-    private TmfTimeRange() {
-        fStartTime = TmfTimestamp.BIG_BANG;
-        fEndTime = TmfTimestamp.BIG_BANG;
-    }
-
-    /**
      * Full constructor
      *
      * @param startTime start of the time range
      * @param endTime end of the time range
      */
     public TmfTimeRange(final ITmfTimestamp startTime, final ITmfTimestamp endTime) {
-        if (startTime == null || endTime == null) {
-            throw new IllegalArgumentException();
-        }
         fStartTime = startTime;
         fEndTime = endTime;
-    }
-
-    /**
-     * Copy constructor
-     *
-     * @param range the other time range
-     */
-    public TmfTimeRange(final TmfTimeRange range) {
-        if (range == null) {
-            throw new IllegalArgumentException();
-        }
-        fStartTime = range.getStartTime();
-        fEndTime = range.getEndTime();
     }
 
     // ------------------------------------------------------------------------
@@ -142,7 +119,7 @@ public class TmfTimeRange {
      * @param range the other time range
      * @return the intersection time range, or null if no intersection exists
      */
-    public TmfTimeRange getIntersection(final TmfTimeRange range) {
+    public @Nullable TmfTimeRange getIntersection(final TmfTimeRange range) {
         if (fStartTime.compareTo(range.fEndTime) > 0 || fEndTime.compareTo(range.fStartTime) < 0) {
             return null; // no intersection
         }
@@ -168,7 +145,7 @@ public class TmfTimeRange {
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(final @Nullable Object obj) {
         if (this == obj) {
             return true;
         }
@@ -219,7 +196,7 @@ public class TmfTimeRange {
         }
 
         @Override
-        public TmfTimeRange getIntersection(TmfTimeRange range) {
+        public @NonNull TmfTimeRange getIntersection(TmfTimeRange range) {
             return range;
         }
     }

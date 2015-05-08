@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -18,8 +18,8 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.internal.lttng2.ust.core.memoryusage.MemoryUsageStateProvider;
-import org.eclipse.tracecompass.internal.lttng2.ust.core.memoryusage.UstMemoryStrings;
+import org.eclipse.tracecompass.internal.lttng2.ust.core.analysis.memory.UstMemoryStateProvider;
+import org.eclipse.tracecompass.internal.lttng2.ust.core.analysis.memory.UstMemoryStrings;
 import org.eclipse.tracecompass.lttng2.control.core.session.SessionConfigStrings;
 import org.eclipse.tracecompass.lttng2.ust.core.trace.LttngUstTrace;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisRequirement;
@@ -36,14 +36,13 @@ import com.google.common.collect.ImmutableSet;
  * UST trace
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public class UstMemoryAnalysisModule extends TmfStateSystemAnalysisModule {
 
     /**
      * Analysis ID, it should match that in the plugin.xml file
      */
-    public static String ID = "org.eclipse.linuxtools.lttng2.ust.analysis.memory"; //$NON-NLS-1$
+    public static final @NonNull String ID = "org.eclipse.linuxtools.lttng2.ust.analysis.memory"; //$NON-NLS-1$
 
     private static final ImmutableSet<String> REQUIRED_EVENTS = ImmutableSet.of(
             UstMemoryStrings.MALLOC,
@@ -76,15 +75,18 @@ public class UstMemoryAnalysisModule extends TmfStateSystemAnalysisModule {
 
     @Override
     protected ITmfStateProvider createStateProvider() {
-        return new MemoryUsageStateProvider(getTrace());
+        return new UstMemoryStateProvider(checkNotNull(getTrace()));
     }
 
+    /**
+     * @since 1.0
+     */
     @Override
-    public void setTrace(ITmfTrace trace) throws TmfAnalysisException {
+    public boolean setTrace(ITmfTrace trace) throws TmfAnalysisException {
         if (!(trace instanceof LttngUstTrace)) {
-            throw new IllegalStateException("UstMemoryAnalysisModule: trace should be of type LttngUstTrace"); //$NON-NLS-1$
+            return false;
         }
-        super.setTrace(trace);
+        return super.setTrace(trace);
     }
 
     @Override

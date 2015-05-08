@@ -22,16 +22,15 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tracecompass.internal.tmf.ui.Activator;
 import org.eclipse.tracecompass.tmf.core.TmfProjectNature;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * Utility class for common tmf.ui functionalities
- *
- * @since 2.1
  */
 public class TraceUtils {
 
@@ -47,10 +46,8 @@ public class TraceUtils {
         Display.getDefault().asyncExec(new Runnable() {
             @Override
             public void run() {
-                final MessageBox mb = new MessageBox(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
-                mb.setText(boxTitle);
-                mb.setMessage(errorMsg);
-                mb.open();
+                final Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                MessageDialog.openError(shell, boxTitle, errorMsg);
             }
         });
     }
@@ -59,7 +56,6 @@ public class TraceUtils {
      * Get the opened (accessible) projects with Tmf nature
      *
      * @return the Tmf projects
-     * @since 2.2
      */
     public static List<IProject> getOpenedTmfProjects() {
         IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
@@ -85,7 +81,6 @@ public class TraceUtils {
      *            the progress monitor
      * @throws CoreException
      *            if the folder cannot be created
-     * @since 3.0
      */
     public static void createFolder(IFolder folder, IProgressMonitor monitor) throws CoreException {
         if (!folder.exists()) {

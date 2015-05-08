@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011-2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -14,9 +14,9 @@ package org.eclipse.tracecompass.ctf.core.event;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.eclipse.tracecompass.ctf.core.trace.CTFStream;
 import org.eclipse.tracecompass.ctf.core.trace.CTFStreamInputReader;
 
@@ -25,7 +25,6 @@ import org.eclipse.tracecompass.ctf.core.trace.CTFStreamInputReader;
  * events.
  *
  * @author Matthew Khouzam
- * @since 2.0
  */
 public interface IEventDeclaration {
 
@@ -39,12 +38,11 @@ public interface IEventDeclaration {
      * @param timestamp
      *            The timestamp when the event was taken
      * @return A new EventDefinition.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             As a bitbuffer is used to read, it could have wrapped
      *             IOExceptions.
-     * @since 3.0
      */
-    EventDefinition createDefinition(CTFStreamInputReader streamInputReader, @NonNull BitBuffer input, long timestamp) throws CTFReaderException;
+    EventDefinition createDefinition(CTFStreamInputReader streamInputReader, @NonNull BitBuffer input, long timestamp) throws CTFException;
 
     /**
      * Gets the name of an event declaration
@@ -78,7 +76,6 @@ public interface IEventDeclaration {
      * Gets the {@link CTFStream} of an event declaration
      *
      * @return the stream
-     * @since 3.0
      */
     CTFStream getStream();
 
@@ -86,7 +83,6 @@ public interface IEventDeclaration {
      * What is the log level of this event?
      *
      * @return the log level.
-     * @since 2.0
      */
     long getLogLevel();
 
@@ -94,7 +90,6 @@ public interface IEventDeclaration {
      * Get the {@link Set} of names of the custom CTF attributes.
      *
      * @return The set of custom attributes
-     * @since 2.0
      */
     Set<String> getCustomAttributes();
 
@@ -104,7 +99,6 @@ public interface IEventDeclaration {
      * @param key
      *            The CTF attribute name
      * @return the CTF attribute
-     * @since 2.0
      */
     String getCustomAttribute(String key);
 

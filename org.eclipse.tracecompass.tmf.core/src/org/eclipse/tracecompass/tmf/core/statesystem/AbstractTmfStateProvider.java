@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,9 +12,11 @@
 
 package org.eclipse.tracecompass.tmf.core.statesystem;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.collect.BufferedBlockingQueue;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -34,108 +36,93 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * logic is abstracted away.
  *
  * @author Alexandre Montplaisir
- * @since 2.0
  */
 public abstract class AbstractTmfStateProvider implements ITmfStateProvider {
 
-    private static final int DEFAULT_EVENTS_QUEUE_SIZE = 10000;
+    private static final int DEFAULT_EVENTS_QUEUE_SIZE = 127;
+    private static final int DEFAULT_EVENTS_CHUNK_SIZE = 127;
 
-    private final ITmfTrace trace;
-    private final Class<? extends ITmfEvent> eventType;
-    private final BlockingQueue<ITmfEvent> eventsQueue;
-    private final Thread eventHandlerThread;
+    private final ITmfTrace fTrace;
+    private final BufferedBlockingQueue<ITmfEvent> fEventsQueue;
+    private final Thread fEventHandlerThread;
 
-    private boolean ssAssigned;
+    private boolean fStateSystemAssigned;
 
     /** State system in which to insert the state changes */
-    protected ITmfStateSystemBuilder ss = null;
+    private @Nullable ITmfStateSystemBuilder fSS = null;
 
     /**
      * Instantiate a new state provider plugin.
      *
      * @param trace
      *            The LTTng 2.0 kernel trace directory
-     * @param eventType
-     *            The specific class for the event type that will be used within
-     *            the subclass
      * @param id
      *            Name given to this state change input. Only used internally.
      */
-    public AbstractTmfStateProvider(ITmfTrace trace,
-            Class<? extends ITmfEvent> eventType, String id) {
-        this.trace = trace;
-        this.eventType = eventType;
-        eventsQueue = new ArrayBlockingQueue<>(DEFAULT_EVENTS_QUEUE_SIZE);
-        ssAssigned = false;
+    public AbstractTmfStateProvider(ITmfTrace trace, String id) {
+        fTrace = trace;
+        fEventsQueue = new BufferedBlockingQueue<>(DEFAULT_EVENTS_QUEUE_SIZE, DEFAULT_EVENTS_CHUNK_SIZE);
+        fStateSystemAssigned = false;
 
-        String id2 = (id == null ? "Unamed" : id); //$NON-NLS-1$
-        eventHandlerThread = new Thread(new EventProcessor(), id2 + " Event Handler"); //$NON-NLS-1$
+        fEventHandlerThread = new Thread(new EventProcessor(), id + " Event Handler"); //$NON-NLS-1$
+    }
+
+    /**
+     * Get the state system builder of this provider (to insert states in).
+     *
+     * @return The state system object to be filled
+     */
+    protected @Nullable ITmfStateSystemBuilder getStateSystemBuilder() {
+        return fSS;
     }
 
     @Override
     public ITmfTrace getTrace() {
-        return trace;
+        return fTrace;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public long getStartTime() {
-        return trace.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        return fTrace.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public void assignTargetStateSystem(ITmfStateSystemBuilder ssb) {
-        ss = ssb;
-        ssAssigned = true;
-        eventHandlerThread.start();
+        fSS = ssb;
+        fStateSystemAssigned = true;
+        fEventHandlerThread.start();
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
-    public ITmfStateSystem getAssignedStateSystem() {
-        return ss;
+    public @Nullable ITmfStateSystem getAssignedStateSystem() {
+        return fSS;
     }
 
     @Override
     public void dispose() {
         /* Insert a null event in the queue to stop the event handler's thread. */
         try {
-            eventsQueue.put(END_EVENT);
-            eventHandlerThread.join();
+            fEventsQueue.put(END_EVENT);
+            fEventsQueue.flushInputBuffer();
+            fEventHandlerThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        ssAssigned = false;
-        ss = null;
-    }
-
-    @Override
-    public final Class<? extends ITmfEvent> getExpectedEventType() {
-        return eventType;
+        fStateSystemAssigned = false;
+        fSS = null;
     }
 
     @Override
     public final void processEvent(ITmfEvent event) {
         /* Make sure the target state system has been assigned */
-        if (!ssAssigned) {
+        if (!fStateSystemAssigned) {
             System.err.println("Cannot process event without a target state system"); //$NON-NLS-1$
             return;
         }
 
         /* Insert the event we're received into the events queue */
         ITmfEvent curEvent = event;
-        try {
-            eventsQueue.put(curEvent);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        fEventsQueue.put(curEvent);
     }
 
     /**
@@ -148,8 +135,9 @@ public abstract class AbstractTmfStateProvider implements ITmfStateProvider {
          * for sure that the state system processed the preceding real event.
          */
         try {
-            eventsQueue.put(EMPTY_QUEUE_EVENT);
-            while (!eventsQueue.isEmpty()) {
+            fEventsQueue.put(EMPTY_QUEUE_EVENT);
+            fEventsQueue.flushInputBuffer();
+            while (!fEventsQueue.isEmpty()) {
                 Thread.sleep(100);
             }
         } catch (InterruptedException e) {
@@ -188,47 +176,44 @@ public abstract class AbstractTmfStateProvider implements ITmfStateProvider {
      */
     private class EventProcessor implements Runnable {
 
-        private ITmfEvent currentEvent;
+        private @Nullable ITmfEvent currentEvent;
 
         @Override
         public void run() {
-            if (ss == null) {
+            if (!fStateSystemAssigned) {
                 System.err.println("Cannot run event manager without assigning a target state system first!"); //$NON-NLS-1$
                 return;
             }
-            ITmfEvent event;
 
-            try {
-                event = eventsQueue.take();
-                /* This is a singleton, we want to do != instead of !x.equals */
-                while (event != END_EVENT) {
-                    if (event == EMPTY_QUEUE_EVENT) {
-                        /* Synchronization event, should be ignored */
-                        event = eventsQueue.take();
-                        continue;
-                    }
 
-                    currentEvent = event;
-
-                    /* Make sure this is an event the sub-class can process */
-                    if (eventType.isInstance(event) && event.getType() != null) {
-                        eventHandle(event);
-                    }
-                    event = eventsQueue.take();
+            /*
+             * We never insert null in the queue. Cannot be checked at
+             * compile-time until Java 8 annotations...
+             */
+            @NonNull ITmfEvent event = checkNotNull(fEventsQueue.take());
+            /* This is a singleton, we want to do != instead of !x.equals */
+            while (event != END_EVENT) {
+                if (event == EMPTY_QUEUE_EVENT) {
+                    /* Synchronization event, should be ignored */
+                    event = checkNotNull(fEventsQueue.take());
+                    continue;
                 }
-                /* We've received the last event, clean up */
-                closeStateSystem();
-            } catch (InterruptedException e) {
-                /* We've been interrupted abnormally */
-                System.out.println("Event handler interrupted!"); //$NON-NLS-1$
-                e.printStackTrace();
+                currentEvent = event;
+                eventHandle(event);
+                event = checkNotNull(fEventsQueue.take());
             }
+            /* We've received the last event, clean up */
+            closeStateSystem();
         }
 
         private void closeStateSystem() {
-            final long endTime = (currentEvent == null) ? 0 :
-                    currentEvent.getTimestamp().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-            ss.closeHistory(endTime);
+            ITmfEvent event = currentEvent;
+            final long endTime = (event == null) ? 0 :
+                    event.getTimestamp().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+
+            if (fSS != null) {
+                fSS.closeHistory(endTime);
+            }
         }
     }
 
@@ -250,4 +235,5 @@ public abstract class AbstractTmfStateProvider implements ITmfStateProvider {
      *            should check for its instance right at the beginning.
      */
     protected abstract void eventHandle(ITmfEvent event);
+
 }

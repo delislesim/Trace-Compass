@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Ericsson
+ * Copyright (c) 2010, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -110,23 +110,28 @@ public class FilterView extends TmfView {
     }
 
     /**
-     * Add a filter to the FilterView. This does not modify the XML, which must
-     * be done manually. If the filter is already in the FilterView, this is a
-     * no-op.
+     * Add a filter to the FilterView and select it. This does not modify the
+     * XML, which must be done manually. If an equivalent filter is already in
+     * the FilterView, it is not added.
      *
      * @param filter
      *            The filter to add.
-     * @since 3.1
      */
     public void addFilter(ITmfFilterTreeNode filter) {
+        if (filter == null) {
+            return;
+        }
         ITmfFilterTreeNode root = fViewer.getInput();
         for (ITmfFilterTreeNode node : root.getChildren()) {
-            if (node.equals(filter)) {
+            // Use toString(explicit) equality because equals() is not implemented
+            if (node.toString(true).equals(filter.toString(true))) {
+                fViewer.setSelection(node);
                 return;
             }
         }
         root.addChild(filter);
         fViewer.setInput(root);
+        fViewer.setSelection(filter);
     }
 
     /**
@@ -184,6 +189,13 @@ public class FilterView extends TmfView {
     @Override
     public void setFocus() {
         fViewer.setFocus();
+    }
+
+    /**
+     * @return whether the tree is in focus or not
+     */
+    public boolean isTreeInFocus() {
+        return fViewer.isTreeInFocus();
     }
 
     @Override

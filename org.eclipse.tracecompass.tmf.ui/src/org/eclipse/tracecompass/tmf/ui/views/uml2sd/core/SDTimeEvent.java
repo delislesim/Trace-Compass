@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,7 +49,6 @@ public class SDTimeEvent {
      * @param time The time stamp of the event.
      * @param event The event index.
      * @param node The time range implementing node.
-     * @since 2.0
      */
     public SDTimeEvent(ITmfTimestamp time, int event, ITimeRange node) {
         fTimestamp = time;
@@ -64,7 +63,6 @@ public class SDTimeEvent {
      * Returns the timestamp of the event.
      *
      * @return the timestamp of the event.
-     * @since 2.0
      */
     public ITmfTimestamp getTime() {
         return fTimestamp;

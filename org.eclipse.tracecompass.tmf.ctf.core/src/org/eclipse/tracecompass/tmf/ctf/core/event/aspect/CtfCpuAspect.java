@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -26,7 +26,7 @@ public class CtfCpuAspect extends TmfCpuAspect {
     @Override
     public Integer resolve(ITmfEvent event) {
         if (!(event instanceof CtfTmfEvent)) {
-            return TmfCpuAspect.CPU_UNAVAILABLE;
+            return null;
         }
         int cpu = ((CtfTmfEvent) event).getCPU();
         return cpu;

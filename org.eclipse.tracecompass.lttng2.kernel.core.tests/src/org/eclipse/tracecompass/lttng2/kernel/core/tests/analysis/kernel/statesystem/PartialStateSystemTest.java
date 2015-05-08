@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
  * accompanies this distribution, and is available at
@@ -20,12 +20,9 @@ import java.io.File;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
-import org.eclipse.tracecompass.lttng2.kernel.core.analysis.kernel.LttngKernelStateProvider;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelAnalysisModule;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
-import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
-import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
@@ -63,7 +60,7 @@ public class PartialStateSystemTest extends StateSystemTest {
 
         module = new TestLttngKernelAnalysisModule(TEST_FILE_NAME);
         try {
-            module.setTrace(testTrace.getTrace());
+            assertTrue(module.setTrace(testTrace.getTrace()));
         } catch (TmfAnalysisException e) {
             fail();
         }
@@ -154,7 +151,7 @@ public class PartialStateSystemTest extends StateSystemTest {
     }
 
     @NonNullByDefault
-    private static class TestLttngKernelAnalysisModule extends TmfStateSystemAnalysisModule {
+    private static class TestLttngKernelAnalysisModule extends KernelAnalysisModule {
 
         private final String htFileName;
 
@@ -169,16 +166,11 @@ public class PartialStateSystemTest extends StateSystemTest {
         }
 
         @Override
-        public void setTrace(@Nullable ITmfTrace trace) throws TmfAnalysisException {
+        public boolean setTrace(@Nullable ITmfTrace trace) throws TmfAnalysisException {
             if (!(trace instanceof CtfTmfTrace)) {
-                throw new IllegalStateException("TestLttngKernelAnalysisModule: trace should be of type CtfTmfTrace"); //$NON-NLS-1$
+                return false;
             }
-            super.setTrace(trace);
-        }
-
-        @Override
-        protected ITmfStateProvider createStateProvider() {
-            return new LttngKernelStateProvider(getTrace(), LttngEventLayout.getInstance());
+            return super.setTrace(trace);
         }
 
         @Override

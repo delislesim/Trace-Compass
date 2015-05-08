@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -16,8 +16,8 @@ package org.eclipse.tracecompass.tmf.core.request;
 import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.tracecompass.internal.tmf.core.TmfCoreTracer;
-import org.eclipse.tracecompass.tmf.core.component.ITmfEventProvider;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.filter.ITmfFilter;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 
 /**
@@ -60,7 +60,6 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
  * TODO: Implement request failures (codes, etc...)
  *
  * @author Francois Chouinard
- * @since 3.0
  */
 public abstract class TmfEventRequest implements ITmfEventRequest {
 
@@ -83,12 +82,10 @@ public abstract class TmfEventRequest implements ITmfEventRequest {
     /** The requested events time range */
     private final TmfTimeRange fRange;
 
-    /** The index (rank) of the requested event
-     * @since 3.0*/
+    /** The index (rank) of the requested event */
     protected long fIndex;
 
-    /** The number of requested events (ALL_DATA for all)
-     * @since 3.0*/
+    /** The number of requested events (ALL_DATA for all) */
     protected int fNbRequested;
 
     /** The number of reads so far */
@@ -102,7 +99,7 @@ public abstract class TmfEventRequest implements ITmfEventRequest {
     private boolean fRequestFailed;
     private boolean fRequestCanceled;
 
-    private ITmfEventProvider fEventProvider;
+    private ITmfFilter fEventFilter;
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -186,13 +183,6 @@ public abstract class TmfEventRequest implements ITmfEventRequest {
         }
     }
 
-    /**
-     * Resets the request counter (used for testing)
-     */
-    public static synchronized void reset() {
-        fRequestNumber = 0;
-    }
-
     // ------------------------------------------------------------------------
     // Accessors
     // ------------------------------------------------------------------------
@@ -207,9 +197,6 @@ public abstract class TmfEventRequest implements ITmfEventRequest {
         return fIndex;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public ExecutionType getExecType() {
         return fExecType;
@@ -255,20 +242,14 @@ public abstract class TmfEventRequest implements ITmfEventRequest {
         return fRange;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
-    public ITmfEventProvider getEventProvider() {
-        return fEventProvider;
+    public ITmfFilter getProviderFilter() {
+        return fEventFilter;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
-    public void setEventProvider(ITmfEventProvider provider) {
-        fEventProvider = provider;
+    public void setProviderFilter(ITmfFilter provider) {
+        fEventFilter = provider;
     }
 
     // ------------------------------------------------------------------------
@@ -413,24 +394,6 @@ public abstract class TmfEventRequest implements ITmfEventRequest {
     // ------------------------------------------------------------------------
     // Object
     // ------------------------------------------------------------------------
-
-    @Override
-    // All requests have a unique id
-    public int hashCode() {
-        return getRequestId();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other instanceof TmfEventRequest) {
-            TmfEventRequest request = (TmfEventRequest) other;
-            return request.fDataType == fDataType
-                    && request.fIndex == fIndex
-                    && request.fNbRequested == fNbRequested
-                    && request.fRange.equals(fRange);
-        }
-        return false;
-    }
 
     @Override
     public String toString() {

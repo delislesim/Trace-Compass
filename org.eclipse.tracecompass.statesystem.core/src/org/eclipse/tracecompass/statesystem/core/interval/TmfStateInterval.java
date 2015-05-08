@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  * Copyright (c) 2010, 2011 École Polytechnique de Montréal
  * Copyright (c) 2010, 2011 Alexandre Montplaisir <alexandre.montplaisir@gmail.com>
  *
@@ -20,7 +20,6 @@ import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
  * system.
  *
  * @author Alexandre Montplaisir
- * @since 3.0
  */
 public final class TmfStateInterval implements ITmfStateInterval {
 

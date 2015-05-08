@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,8 @@
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.ui.views.callstack;
+
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -46,8 +49,6 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -59,6 +60,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.tracecompass.internal.tmf.core.callstack.FunctionNameMapper;
 import org.eclipse.tracecompass.internal.tmf.ui.Activator;
 import org.eclipse.tracecompass.internal.tmf.ui.ITmfImageConstants;
 import org.eclipse.tracecompass.internal.tmf.ui.Messages;
@@ -71,9 +73,9 @@ import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue.Type;
-import org.eclipse.tracecompass.tmf.core.signal.TmfRangeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
@@ -83,14 +85,17 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestampDelta;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.editors.ITmfTraceEditor;
+import org.eclipse.tracecompass.tmf.ui.signal.TmfTimeViewAlignmentInfo;
+import org.eclipse.tracecompass.tmf.ui.views.ITmfTimeAligned;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphContentProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphRangeListener;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphTimeListener;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphCombo;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphContentProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphRangeUpdateEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphViewer;
@@ -109,9 +114,8 @@ import org.eclipse.ui.IEditorPart;
  * Main implementation for the Call Stack view
  *
  * @author Patrick Tasse
- * @since 2.0
  */
-public class CallStackView extends TmfView {
+public class CallStackView extends TmfView implements ITmfTimeAligned {
 
     // ------------------------------------------------------------------------
     // Constants
@@ -235,11 +239,11 @@ public class CallStackView extends TmfView {
     private final Object fSyncObj = new Object();
 
     // The saved time sync. signal used when switching off the pinning of a view
-    private TmfTimeSynchSignal fSavedTimeSyncSignal;
+    private TmfSelectionRangeUpdatedSignal fSavedTimeSyncSignal;
 
-    // The saved time range sync. signal used when switching off the pinning of
+    // The saved window range signal used when switching off the pinning of
     // a view
-    private TmfRangeSynchSignal fSavedRangeSyncSignal;
+    private TmfWindowRangeUpdatedSignal fSavedRangeSyncSignal;
 
     // ------------------------------------------------------------------------
     // Classes
@@ -334,47 +338,6 @@ public class CallStackView extends TmfView {
         }
     }
 
-    private class TreeContentProvider implements ITreeContentProvider {
-
-        @Override
-        public void dispose() {
-        }
-
-        @Override
-        public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-        }
-
-        @Override
-        public Object[] getElements(Object inputElement) {
-            if (inputElement != null) {
-                try {
-                    return ((List<?>) inputElement).toArray(new ITimeGraphEntry[0]);
-                } catch (ClassCastException e) {
-                }
-            }
-            return new ITimeGraphEntry[0];
-        }
-
-        @Override
-        public Object[] getChildren(Object parentElement) {
-            ITimeGraphEntry entry = (ITimeGraphEntry) parentElement;
-            return entry.getChildren().toArray();
-        }
-
-        @Override
-        public Object getParent(Object element) {
-            ITimeGraphEntry entry = (ITimeGraphEntry) element;
-            return entry.getParent();
-        }
-
-        @Override
-        public boolean hasChildren(Object element) {
-            ITimeGraphEntry entry = (ITimeGraphEntry) element;
-            return entry.hasChildren();
-        }
-
-    }
-
     private class TreeLabelProvider implements ITableLabelProvider {
 
         @Override
@@ -438,27 +401,12 @@ public class CallStackView extends TmfView {
 
     }
 
-    private class TimeGraphContentProvider implements ITimeGraphContentProvider {
-
-        @Override
-        public ITimeGraphEntry[] getElements(Object inputElement) {
-            if (inputElement != null) {
-                try {
-                    return ((List<?>) inputElement).toArray(new ITimeGraphEntry[0]);
-                } catch (ClassCastException e) {
-                }
-            }
-            return new ITimeGraphEntry[0];
-        }
-
-    }
-
     private class BuildThread extends Thread {
-        private final ITmfTrace fBuildTrace;
+        private final @NonNull ITmfTrace fBuildTrace;
         private final ITmfTrace fParentTrace;
         private final IProgressMonitor fMonitor;
 
-        public BuildThread(ITmfTrace trace, ITmfTrace parentTrace) {
+        public BuildThread(@NonNull ITmfTrace trace, ITmfTrace parentTrace) {
             super("CallStackView build"); //$NON-NLS-1$
             fBuildTrace = trace;
             fParentTrace = parentTrace;
@@ -550,9 +498,10 @@ public class CallStackView extends TmfView {
 
     @Override
     public void createPartControl(Composite parent) {
+        super.createPartControl(parent);
         fTimeGraphCombo = new TimeGraphCombo(parent, SWT.NONE);
 
-        fTimeGraphCombo.setTreeContentProvider(new TreeContentProvider());
+        fTimeGraphCombo.setTreeContentProvider(new TimeGraphContentProvider());
 
         fTimeGraphCombo.setTreeLabelProvider(new TreeLabelProvider());
 
@@ -574,7 +523,7 @@ public class CallStackView extends TmfView {
                 long startTime = event.getStartTime();
                 long endTime = event.getEndTime();
                 TmfTimeRange range = new TmfTimeRange(new TmfNanoTimestamp(startTime), new TmfNanoTimestamp(endTime));
-                broadcast(new TmfRangeSynchSignal(CallStackView.this, range));
+                broadcast(new TmfWindowRangeUpdatedSignal(CallStackView.this, range));
                 startZoomThread(startTime, endTime);
             }
         });
@@ -585,7 +534,7 @@ public class CallStackView extends TmfView {
                 long beginTime = event.getBeginTime();
                 long endTime = event.getEndTime();
                 synchingToTime(beginTime);
-                broadcast(new TmfTimeSynchSignal(CallStackView.this, new TmfNanoTimestamp(beginTime), new TmfNanoTimestamp(endTime)));
+                broadcast(new TmfSelectionRangeUpdatedSignal(CallStackView.this, new TmfNanoTimestamp(beginTime), new TmfNanoTimestamp(endTime)));
             }
         });
 
@@ -612,7 +561,7 @@ public class CallStackView extends TmfView {
                         entryTime -= spacingTime;
                         exitTime += spacingTime;
                         TmfTimeRange range = new TmfTimeRange(new TmfNanoTimestamp(entryTime), new TmfNanoTimestamp(exitTime));
-                        broadcast(new TmfRangeSynchSignal(CallStackView.this, range));
+                        broadcast(new TmfWindowRangeUpdatedSignal(CallStackView.this, range));
                         fTimeGraphCombo.getTimeGraphViewer().setStartFinishTime(entryTime, exitTime);
                         startZoomThread(entryTime, exitTime);
                     }
@@ -635,7 +584,7 @@ public class CallStackView extends TmfView {
                         startTime -= spacingTime;
                         endTime += spacingTime;
                         TmfTimeRange range = new TmfTimeRange(new TmfNanoTimestamp(startTime), new TmfNanoTimestamp(endTime));
-                        broadcast(new TmfRangeSynchSignal(CallStackView.this, range));
+                        broadcast(new TmfWindowRangeUpdatedSignal(CallStackView.this, range));
                         fTimeGraphCombo.getTimeGraphViewer().setStartFinishTime(startTime, endTime);
                         startZoomThread(startTime, endTime);
                     }
@@ -674,7 +623,6 @@ public class CallStackView extends TmfView {
      *
      * @param signal
      *            The incoming signal
-     * @since 2.0
      */
     @TmfSignalHandler
     public void traceOpened(TmfTraceOpenedSignal signal) {
@@ -706,8 +654,7 @@ public class CallStackView extends TmfView {
     @TmfSignalHandler
     public void traceClosed(final TmfTraceClosedSignal signal) {
         synchronized (fBuildThreadMap) {
-            ITmfTrace[] traces = TmfTraceManager.getTraceSet(signal.getTrace());
-            for (ITmfTrace trace : traces) {
+            for (ITmfTrace trace : TmfTraceManager.getTraceSet(signal.getTrace())) {
                 BuildThread buildThread = fBuildThreadMap.remove(trace);
                 if (buildThread != null) {
                     buildThread.cancel();
@@ -727,15 +674,16 @@ public class CallStackView extends TmfView {
     }
 
     /**
-     * Handler for the TimeSynch signal
+     * Handler for the selection range signal.
      *
      * @param signal
      *            The incoming signal
+     * @since 1.0
      */
     @TmfSignalHandler
-    public void synchToTime(final TmfTimeSynchSignal signal) {
+    public void selectionRangeUpdated(final TmfSelectionRangeUpdatedSignal signal) {
 
-        fSavedTimeSyncSignal = isPinned() ? new TmfTimeSynchSignal(signal.getSource(), signal.getBeginTime(), signal.getEndTime()) : null;
+        fSavedTimeSyncSignal = isPinned() ? new TmfSelectionRangeUpdatedSignal(signal.getSource(), signal.getBeginTime(), signal.getEndTime()) : null;
 
         if (signal.getSource() == this || fTrace == null || isPinned()) {
             return;
@@ -786,17 +734,18 @@ public class CallStackView extends TmfView {
     }
 
     /**
-     * Handler for the RangeSynch signal
+     * Handler for the window range signal.
      *
      * @param signal
      *            The incoming signal
+     * @since 1.0
      */
     @TmfSignalHandler
-    public void synchToRange(final TmfRangeSynchSignal signal) {
+    public void windowRangeUpdated(final TmfWindowRangeUpdatedSignal signal) {
 
         if (isPinned()) {
             fSavedRangeSyncSignal =
-                    new TmfRangeSynchSignal(signal.getSource(), new TmfTimeRange(signal.getCurrentRange().getStartTime(), signal.getCurrentRange().getEndTime()));
+                    new TmfWindowRangeUpdatedSignal(signal.getSource(), new TmfTimeRange(signal.getCurrentRange().getStartTime(), signal.getCurrentRange().getEndTime()));
 
             fSavedTimeSyncSignal = null;
         }
@@ -833,8 +782,8 @@ public class CallStackView extends TmfView {
                 fEndTime = Long.MIN_VALUE;
                 refresh();
                 synchronized (fBuildThreadMap) {
-                    ITmfTrace[] traces = TmfTraceManager.getTraceSet(fTrace);
-                    for (ITmfTrace trace : traces) {
+                    for (ITmfTrace trace : TmfTraceManager.getTraceSet(fTrace)) {
+                        trace = checkNotNull(trace);
                         BuildThread buildThread = new BuildThread(trace, fTrace);
                         fBuildThreadMap.put(trace, buildThread);
                         buildThread.start();
@@ -848,7 +797,7 @@ public class CallStackView extends TmfView {
         }
     }
 
-    private void buildThreadList(final ITmfTrace trace, final ITmfTrace parentTrace, IProgressMonitor monitor) {
+    private void buildThreadList(final @NonNull ITmfTrace trace, final ITmfTrace parentTrace, IProgressMonitor monitor) {
         if (monitor.isCanceled()) {
             return;
         }
@@ -1113,10 +1062,11 @@ public class CallStackView extends TmfView {
                 }
                 fTimeGraphCombo.getTimeGraphViewer().setTimeBounds(fStartTime, fEndTime);
 
-                long selectionBeginTime = fTrace == null ? 0 : fTraceManager.getSelectionBeginTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-                long selectionEndTime = fTrace == null ? 0 : fTraceManager.getSelectionEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-                long startTime = fTrace == null ? 0 : fTraceManager.getCurrentRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-                long endTime = fTrace == null ? 0 : fTraceManager.getCurrentRange().getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+                TmfTraceContext ctx = TmfTraceManager.getInstance().getCurrentTraceContext();
+                long selectionBeginTime = fTrace == null ? 0 : ctx.getSelectionRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+                long selectionEndTime = fTrace == null ? 0 : ctx.getSelectionRange().getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+                long startTime = fTrace == null ? 0 : ctx.getWindowRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+                long endTime = fTrace == null ? 0 : ctx.getWindowRange().getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
                 startTime = Math.max(startTime, fStartTime);
                 endTime = Math.min(endTime, fEndTime);
                 fTimeGraphCombo.getTimeGraphViewer().setSelectionRange(selectionBeginTime, selectionEndTime);
@@ -1184,12 +1134,12 @@ public class CallStackView extends TmfView {
             public void propertyChange(PropertyChangeEvent event) {
                 if (IAction.CHECKED.equals(event.getProperty()) && !isPinned()) {
                     if (fSavedRangeSyncSignal != null) {
-                        synchToRange(fSavedRangeSyncSignal);
+                        windowRangeUpdated(fSavedRangeSyncSignal);
                         fSavedRangeSyncSignal = null;
                     }
 
                     if (fSavedTimeSyncSignal != null) {
-                        synchToTime(fSavedTimeSyncSignal);
+                        selectionRangeUpdated(fSavedTimeSyncSignal);
                         fSavedTimeSyncSignal = null;
                     }
                 }
@@ -1315,7 +1265,7 @@ public class CallStackView extends TmfView {
         return fPrevEventAction;
     }
 
-    private static @Nullable AbstractCallStackAnalysis getCallStackModule(ITmfTrace trace) {
+    private static @Nullable AbstractCallStackAnalysis getCallStackModule(@NonNull ITmfTrace trace) {
         /*
          * Since we cannot know the exact analysis ID (in separate plugins), we
          * will search using the analysis type.
@@ -1569,4 +1519,33 @@ public class CallStackView extends TmfView {
         return ret;
     }
 
+    /**
+     * @since 1.0
+     */
+    @Override
+    public TmfTimeViewAlignmentInfo getTimeViewAlignmentInfo() {
+        if (fTimeGraphCombo == null) {
+            return null;
+        }
+        return fTimeGraphCombo.getTimeViewAlignmentInfo();
+    }
+
+    /**
+     * @since 1.0
+     */
+    @Override
+    public int getAvailableWidth(int requestedOffset) {
+        if (fTimeGraphCombo == null) {
+            return 0;
+        }
+        return fTimeGraphCombo.getAvailableWidth(requestedOffset);
+    }
+
+    /**
+     * @since 1.0
+     */
+    @Override
+    public void performAlign(int offset, int width) {
+        fTimeGraphCombo.performAlign(offset, width);
+    }
 }

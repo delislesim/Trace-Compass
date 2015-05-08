@@ -18,13 +18,13 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
 import org.eclipse.tracecompass.ctf.core.event.types.AbstractArrayDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.CompoundDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.Definition;
 import org.eclipse.tracecompass.ctf.core.event.types.IDeclaration;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -39,7 +39,6 @@ import com.google.common.collect.ImmutableList.Builder;
  * circular dependency). The length is the number of elements in an array.
  *
  * @author Matthew Khouzam
- * @since 3.1
  */
 public final class ArrayDeclaration extends CompoundDeclaration {
 
@@ -103,7 +102,7 @@ public final class ArrayDeclaration extends CompoundDeclaration {
 
     @Override
     public AbstractArrayDefinition createDefinition(@Nullable IDefinitionScope definitionScope,
-            @NonNull String fieldName, BitBuffer input) throws CTFReaderException {
+            @NonNull String fieldName, BitBuffer input) throws CTFException {
         alignRead(input);
         if (isString()) {
             byte[] data = new byte[fLength];
@@ -120,7 +119,7 @@ public final class ArrayDeclaration extends CompoundDeclaration {
         return "[declaration] array[" + Integer.toHexString(hashCode()) + ']'; //$NON-NLS-1$
     }
 
-    private @NonNull List<Definition> read(@NonNull BitBuffer input, @Nullable IDefinitionScope definitionScope, String fieldName) throws CTFReaderException {
+    private @NonNull List<Definition> read(@NonNull BitBuffer input, @Nullable IDefinitionScope definitionScope, String fieldName) throws CTFException {
         Builder<Definition> definitions = new ImmutableList.Builder<>();
         if (!fChildrenNames.containsKey(fieldName)) {
             for (int i = 0; i < fLength; i++) {

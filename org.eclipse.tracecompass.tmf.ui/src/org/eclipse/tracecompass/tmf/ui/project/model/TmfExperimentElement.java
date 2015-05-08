@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Ericsson, École Polytechnique de Montréal
+ * Copyright (c) 2010, 2015 Ericsson, École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,6 +17,8 @@ package org.eclipse.tracecompass.tmf.ui.project.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +40,13 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tracecompass.internal.tmf.ui.Activator;
+import org.eclipse.tracecompass.internal.tmf.ui.editors.ITmfEventsEditorConstants;
 import org.eclipse.tracecompass.tmf.core.TmfCommonConstants;
+import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
+import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.project.model.TmfTraceType;
 import org.eclipse.tracecompass.tmf.core.project.model.TraceTypeHelper;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
 import org.eclipse.tracecompass.tmf.ui.editors.TmfEventsEditor;
 import org.eclipse.tracecompass.tmf.ui.properties.ReadOnlyTextPropertyDescriptor;
@@ -97,7 +103,6 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
     /**
      * Initialize statically at startup by getting extensions from the platform
      * extension registry.
-     * @since 3.0
      */
     public static void init() {
         IConfigurationElement[] config = Platform.getExtensionRegistry().getConfigurationElementsFor(TmfTraceType.TMF_TRACE_TYPE_ID);
@@ -178,6 +183,27 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
 
         /* Update the analysis under this experiment */
         super.refreshChildren();
+
+        /*
+         * If the experiment is opened, add any analysis that was not added by
+         * the parent if it is available with the experiment
+         */
+        ITmfTrace experiment = getTrace();
+        if (experiment == null) {
+            return;
+        }
+        Map<String, TmfAnalysisElement> analysisMap = new HashMap<>();
+        for (TmfAnalysisElement analysis : getAvailableAnalysis()) {
+            analysisMap.put(analysis.getAnalysisId(), analysis);
+        }
+        for (IAnalysisModuleHelper module : TmfAnalysisManager.getAnalysisModules().values()) {
+            if (!analysisMap.containsKey(module.getId()) && module.appliesToExperiment() && (experiment.getAnalysisModule(module.getId()) != null)) {
+                IFolder newresource = ResourcesPlugin.getWorkspace().getRoot().getFolder(fResource.getFullPath().append(module.getId()));
+                TmfAnalysisElement analysis = new TmfAnalysisElement(module.getName(), newresource, this, module);
+                analysis.refreshChildren();
+                analysisMap.put(module.getId(), analysis);
+            }
+        }
     }
 
     private List<IResource> getTraceResources() {
@@ -195,6 +221,13 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
             }, IResource.NONE);
         } catch (CoreException e) {
         }
+        Comparator<IResource> comparator = new Comparator<IResource>() {
+            @Override
+            public int compare(IResource o1, IResource o2) {
+                return o1.getFullPath().toString().compareTo(o2.getFullPath().toString());
+            }
+        };
+        Collections.sort(list, comparator);
         return list;
     }
 
@@ -245,7 +278,6 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
      * Adds a trace to the experiment
      *
      * @param trace The trace element to add
-     * @since 2.0
      */
     public void addTrace(TmfTraceElement trace) {
         addTrace(trace, true);
@@ -256,8 +288,6 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
      *
      * @param trace The trace element to add
      * @param refresh Flag for refreshing the project
-     *
-     * @since 3.1
      */
     public void addTrace(TmfTraceElement trace, boolean refresh) {
         /**
@@ -308,7 +338,6 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
      *
      * @param trace The trace to remove
      * @throws CoreException exception
-     * @since 2.0
      */
     public void removeTrace(TmfTraceElement trace) throws CoreException {
 
@@ -332,7 +361,7 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
 
     @Override
     public IFile createBookmarksFile() throws CoreException {
-        return createBookmarksFile(getProject().getExperimentsFolder().getResource(), TmfExperiment.class.getCanonicalName());
+        return createBookmarksFile(getProject().getExperimentsFolder().getResource(), ITmfEventsEditorConstants.EXPERIMENT_EDITOR_INPUT_TYPE);
     }
 
     @Override
@@ -370,7 +399,6 @@ public class TmfExperimentElement extends TmfCommonProjectElement implements IPr
      * and the corresponding extension.
      *
      * @return the {@link TmfExperiment} or <code>null</code> for an error
-     * @since 3.0
      */
     @Override
     public TmfExperiment instantiateTrace() {

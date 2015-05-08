@@ -12,6 +12,8 @@
 
 package org.eclipse.tracecompass.tmf.core.parsers.custom;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
+
 import java.util.regex.Matcher;
 
 import org.eclipse.tracecompass.tmf.core.parsers.custom.CustomTxtTraceDefinition.InputLine;
@@ -22,7 +24,6 @@ import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
  * Trace context for custom text traces.
  *
  * @author Patrick Tassé
- * @since 3.0
  */
 public class CustomTxtTraceContext extends TmfContext {
 
@@ -73,25 +74,13 @@ public class CustomTxtTraceContext extends TmfContext {
             return false;
         }
         CustomTxtTraceContext other = (CustomTxtTraceContext) obj;
-        if (firstLine == null) {
-            if (other.firstLine != null) {
-                return false;
-            }
-        } else if (!firstLine.equals(other.firstLine)) {
+        if (!equalsNullable(firstLine, other.firstLine)) {
             return false;
         }
-        if (firstLineMatcher == null) {
-            if (other.firstLineMatcher != null) {
-                return false;
-            }
-        } else if (!firstLineMatcher.equals(other.firstLineMatcher)) {
+        if (!equalsNullable(firstLineMatcher, other.firstLineMatcher)) {
             return false;
         }
-        if (inputLine == null) {
-            if (other.inputLine != null) {
-                return false;
-            }
-        } else if (!inputLine.equals(other.inputLine)) {
+        if (!equalsNullable(inputLine, other.inputLine)) {
             return false;
         }
         if (nextLineLocation != other.nextLineLocation) {

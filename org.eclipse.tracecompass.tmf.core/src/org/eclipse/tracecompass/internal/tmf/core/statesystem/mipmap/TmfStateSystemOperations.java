@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -33,7 +33,6 @@ import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
  * performed on attributes of the state system.
  *
  * @author Patrick Tassé
- * @since 3.0
  */
 public final class TmfStateSystemOperations {
 
@@ -87,7 +86,7 @@ public final class TmfStateSystemOperations {
             case NULL:
             case STRING:
             default:
-                throw new StateValueTypeException();
+                throw new StateValueTypeException(ss.getSSID() + " Quark:" + quark + ", Type:" + value.getType()); //$NON-NLS-1$ //$NON-NLS-2$
             }
         }
         return max;
@@ -142,7 +141,7 @@ public final class TmfStateSystemOperations {
             case NULL:
             case STRING:
             default:
-                throw new StateValueTypeException();
+                throw new StateValueTypeException(ss.getSSID() + " Quark:" + quark + ", Type:" + value.getType()); //$NON-NLS-1$ //$NON-NLS-2$
             }
         }
         return min;

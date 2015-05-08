@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -18,6 +18,8 @@
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.ui.views.histogram;
+
+import java.util.Collection;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jface.action.Action;
@@ -44,10 +46,10 @@ import org.eclipse.tracecompass.internal.tmf.ui.Activator;
 import org.eclipse.tracecompass.internal.tmf.ui.ITmfImageConstants;
 import org.eclipse.tracecompass.tmf.core.request.ITmfEventRequest;
 import org.eclipse.tracecompass.tmf.core.request.ITmfEventRequest.ExecutionType;
-import org.eclipse.tracecompass.tmf.core.signal.TmfRangeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalThrottler;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceRangeUpdatedSignal;
@@ -57,6 +59,7 @@ import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.ui.IActionBars;
@@ -87,7 +90,7 @@ public class HistogramView extends TmfView {
      */
     public static final @NonNull String ID = "org.eclipse.linuxtools.tmf.ui.views.histogram"; //$NON-NLS-1$
 
-    private static final Image LINK_IMG = Activator.getDefault().getImageFromPath("/icons/etool16/link.gif"); //$NON-NLS-1$
+    private static final Image LINK_IMG = Activator.getDefault().getImageFromPath(ITmfImageConstants.IMG_UI_LINK);
 
     // ------------------------------------------------------------------------
     // Attributes
@@ -327,7 +330,7 @@ public class HistogramView extends TmfView {
         // View Action Handling
         contributeToActionBars();
 
-        ITmfTrace trace = getActiveTrace();
+        ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
         if (trace != null) {
             traceSelected(new TmfTraceSelectedSignal(this, trace));
         }
@@ -350,7 +353,6 @@ public class HistogramView extends TmfView {
      * Returns the current trace handled by the view
      *
      * @return the current trace
-     * @since 2.0
      */
     public ITmfTrace getTrace() {
         return fTrace;
@@ -360,7 +362,6 @@ public class HistogramView extends TmfView {
      * Returns the time range of the current selected window (base on default time scale).
      *
      * @return the time range of current selected window.
-     * @since 2.0
      */
     public TmfTimeRange getTimeRange() {
         return new TmfTimeRange(
@@ -372,7 +373,6 @@ public class HistogramView extends TmfView {
      * get the show lost events action
      *
      * @return The action object
-     * @since 2.2
      */
     public Action getShowLostEventsAction() {
         if (hideLostEventsAction == null) {
@@ -398,7 +398,6 @@ public class HistogramView extends TmfView {
      * get the show trace action
      *
      * @return The action object
-     * @since 3.0
      */
     public Action getShowTraceAction() {
         if (showTraceAction == null) {
@@ -433,7 +432,7 @@ public class HistogramView extends TmfView {
         updateDisplayedSelectionTime(beginTime, endTime);
         TmfTimestamp beginTs = new TmfTimestamp(beginTime, ITmfTimestamp.NANOSECOND_SCALE);
         TmfTimestamp endTs = new TmfTimestamp(endTime, ITmfTimestamp.NANOSECOND_SCALE);
-        TmfTimeSynchSignal signal = new TmfTimeSynchSignal(this, beginTs, endTs);
+        TmfSelectionRangeUpdatedSignal signal = new TmfSelectionRangeUpdatedSignal(this, beginTs, endTs);
         fTimeSyncThrottle.queue(signal);
     }
 
@@ -477,7 +476,7 @@ public class HistogramView extends TmfView {
             updateDisplayedTimeRange(startTime, endTime);
 
             // Send the FW signal
-            TmfRangeSynchSignal signal = new TmfRangeSynchSignal(this, timeRange);
+            TmfWindowRangeUpdatedSignal signal = new TmfWindowRangeUpdatedSignal(this, timeRange);
             fTimeRangeSyncThrottle.queue(signal);
         }
     }
@@ -521,7 +520,6 @@ public class HistogramView extends TmfView {
      * Handles trace opened signal. Loads histogram if new trace time range is not
      * equal <code>TmfTimeRange.NULL_RANGE</code>
      * @param signal the trace opened signal
-     * @since 2.0
      */
     @TmfSignalHandler
     public void traceOpened(TmfTraceOpenedSignal signal) {
@@ -534,7 +532,6 @@ public class HistogramView extends TmfView {
      * Handles trace selected signal. Loads histogram if new trace time range is not
      * equal <code>TmfTimeRange.NULL_RANGE</code>
      * @param signal the trace selected signal
-     * @since 2.0
      */
     @TmfSignalHandler
     public void traceSelected(TmfTraceSelectedSignal signal) {
@@ -553,7 +550,6 @@ public class HistogramView extends TmfView {
     /**
      * Handles trace closed signal. Clears the view and data model and cancels requests.
      * @param signal the trace closed signal
-     * @since 2.0
      */
     @TmfSignalHandler
     public void traceClosed(TmfTraceClosedSignal signal) {
@@ -602,7 +598,6 @@ public class HistogramView extends TmfView {
      * will be issued.
      *
      * @param signal the trace range updated signal
-     * @since 2.0
      */
     @TmfSignalHandler
     public void traceRangeUpdated(TmfTraceRangeUpdatedSignal signal) {
@@ -625,7 +620,6 @@ public class HistogramView extends TmfView {
     /**
      * Handles the trace updated signal. Used to update time limits (start and end time)
      * @param signal the trace updated signal
-     * @since 2.0
      */
     @TmfSignalHandler
     public void traceUpdated(TmfTraceUpdatedSignal signal) {
@@ -645,13 +639,15 @@ public class HistogramView extends TmfView {
 }
 
     /**
-     * Handles the current time updated signal. Sets the current time in the time range
-     * histogram as well as the full histogram.
+     * Handles the selection range updated signal. Sets the current time
+     * selection in the time range histogram as well as the full histogram.
      *
-     * @param signal the signal to process
+     * @param signal
+     *            the signal to process
+     * @since 1.0
      */
     @TmfSignalHandler
-    public void currentTimeUpdated(final TmfTimeSynchSignal signal) {
+    public void selectionRangeUpdated(final TmfSelectionRangeUpdatedSignal signal) {
         if (Display.getCurrent() == null) {
             // Make sure the signal is handled in the UI thread
             Display.getDefault().asyncExec(new Runnable() {
@@ -660,7 +656,7 @@ public class HistogramView extends TmfView {
                     if (fParent.isDisposed()) {
                         return;
                     }
-                    currentTimeUpdated(signal);
+                    selectionRangeUpdated(signal);
                 }
             });
             return;
@@ -673,11 +669,15 @@ public class HistogramView extends TmfView {
     }
 
     /**
-     * Updates the current time range in the time range histogram and full range histogram.
-     * @param signal the signal to process
+     * Updates the current window time range in the time range histogram and
+     * full range histogram.
+     *
+     * @param signal
+     *            the signal to process
+     * @since 1.0
      */
     @TmfSignalHandler
-    public void timeRangeUpdated(final TmfRangeSynchSignal signal) {
+    public void windowRangeUpdated(final TmfWindowRangeUpdatedSignal signal) {
         if (Display.getCurrent() == null) {
             // Make sure the signal is handled in the UI thread
             Display.getDefault().asyncExec(new Runnable() {
@@ -686,7 +686,7 @@ public class HistogramView extends TmfView {
                     if (fParent.isDisposed()) {
                         return;
                     }
-                    timeRangeUpdated(signal);
+                    windowRangeUpdated(signal);
                 }
             });
             return;
@@ -716,10 +716,12 @@ public class HistogramView extends TmfView {
 
     private void initializeHistograms() {
         TmfTimeRange fullRange = updateTraceTimeRange();
-        long selectionBeginTime = fTraceManager.getSelectionBeginTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-        long selectionEndTime = fTraceManager.getSelectionEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-        long startTime = fTraceManager.getCurrentRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-        long duration = fTraceManager.getCurrentRange().getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue() - startTime;
+
+        TmfTraceContext ctx = TmfTraceManager.getInstance().getCurrentTraceContext();
+        long selectionBeginTime = ctx.getSelectionRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        long selectionEndTime = ctx.getSelectionRange().getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        long startTime = ctx.getWindowRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        long duration = ctx.getWindowRange().getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue() - startTime;
 
         if ((fTimeRangeRequest != null) && !fTimeRangeRequest.isCompleted()) {
             fTimeRangeRequest.cancel();
@@ -750,9 +752,9 @@ public class HistogramView extends TmfView {
 
         fTimeSpanControl.setValue(duration);
 
-        ITmfTrace[] traces = TmfTraceManager.getTraceSet(fTrace);
-        if (traces != null) {
-            this.showTraceAction.setEnabled(traces.length < fFullTraceHistogram.getMaxNbTraces());
+        Collection<ITmfTrace> traces = TmfTraceManager.getTraceSet(fTrace);
+        if (!traces.isEmpty()) {
+            this.showTraceAction.setEnabled(traces.size() < fFullTraceHistogram.getMaxNbTraces());
         }
         updateLegendArea();
 
@@ -768,8 +770,8 @@ public class HistogramView extends TmfView {
         }
         disposeLegendImages();
         if (fFullTraceHistogram.showTraces()) {
-            ITmfTrace[] traces = TmfTraceManager.getTraceSet(fTrace);
-            fLegendImages = new Image[traces.length];
+            Collection<ITmfTrace> traces = TmfTraceManager.getTraceSet(fTrace);
+            fLegendImages = new Image[traces.size()];
             int traceIndex = 0;
             for (ITmfTrace trace : traces) {
                 fLegendImages[traceIndex] = new Image(fLegendArea.getDisplay(), 16, 16);

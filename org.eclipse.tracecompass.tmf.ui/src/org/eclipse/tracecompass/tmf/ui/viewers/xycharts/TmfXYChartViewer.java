@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2013, 2014 Ericsson, École Polytechnique de Montréal
+ * Copyright (c) 2013, 2015 Ericsson, École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -16,10 +16,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.tracecompass.tmf.core.signal.TmfRangeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTimestampFormatUpdateSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.ui.viewers.TmfTimeViewer;
 import org.swtchart.Chart;
@@ -33,18 +33,12 @@ import org.swtchart.ISeriesSet;
  * notified by any changes caused by selection and zoom.
  *
  * @author Bernd Hufmann
- * @since 3.0
  */
 public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChartTimeProvider {
 
     // ------------------------------------------------------------------------
     // Attributes
     // ------------------------------------------------------------------------
-    /**
-     * The offset to apply to any x position. This offset ensures better
-     * precision when converting long to double and back.
-     */
-    private long fTimeOffset;
     /** The SWT Chart reference */
     private Chart fSwtChart;
     /** The mouse selection provider */
@@ -57,6 +51,12 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
     private TmfBaseProvider fToolTipProvider;
     /** The middle mouse drag provider */
     private TmfBaseProvider fMouseDragProvider;
+    /**
+     * Whether or not to send time alignment signals. This should be set to true
+     * for viewers that are part of an aligned view.
+     */
+    private boolean fSendTimeAlignSignals = false;
+
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -108,16 +108,6 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
     // ------------------------------------------------------------------------
     // Getter/Setters
     // ------------------------------------------------------------------------
-    /**
-     * Sets the time offset to apply.
-     * @see ITmfChartTimeProvider#getTimeOffset()
-     *
-     * @param timeOffset
-     *            The time offset to apply
-     */
-    protected void setTimeOffset(long timeOffset) {
-        fTimeOffset = timeOffset;
-    }
 
     /**
      * Sets the SWT Chart reference
@@ -215,7 +205,7 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
 
     @Override
     public long getTimeOffset() {
-        return fTimeOffset;
+        return getWindowStartTime() - 1;
     }
 
     // ------------------------------------------------------------------------
@@ -298,11 +288,11 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
      * Signal handler for handling of the time synch signal.
      *
      * @param signal
-     *            The time synch signal {@link TmfTimeSynchSignal}
+     *            The time synch signal {@link TmfSelectionRangeUpdatedSignal}
      */
     @Override
     @TmfSignalHandler
-    public void selectionRangeUpdated(TmfTimeSynchSignal signal) {
+    public void selectionRangeUpdated(TmfSelectionRangeUpdatedSignal signal) {
         super.selectionRangeUpdated(signal);
         if ((signal.getSource() != this) && (getTrace() != null)) {
             if (fMouseSelectionProvider != null) {
@@ -312,15 +302,15 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
     }
 
     /**
-     * Signal handler for handling of the time range synch signal.
+     * Signal handler for handling of the window range signal.
      *
      * @param signal
-     *            The time range synch signal {@link TmfRangeSynchSignal}
+     *            The {@link TmfWindowRangeUpdatedSignal}
      */
     @Override
     @TmfSignalHandler
-    public void timeRangeUpdated(TmfRangeSynchSignal signal) {
-        super.timeRangeUpdated(signal);
+    public void windowRangeUpdated(TmfWindowRangeUpdatedSignal signal) {
+        super.windowRangeUpdated(signal);
         updateContent();
     }
 
@@ -370,4 +360,72 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
         return display;
     }
 
+    /**
+     * Get the offset of the point area, relative to the XY chart viewer
+     * control. We consider the point area to be from where the first point
+     * could be drawn to where the last point could be drawn.
+     *
+     * @return the offset in pixels
+     *
+     * @since 1.0
+     */
+    public int getPointAreaOffset() {
+        int pixelCoordinate = 0;
+        IAxis[] xAxes = getSwtChart().getAxisSet().getXAxes();
+        if (xAxes.length > 0) {
+            IAxis axis = xAxes[0];
+            long windowStartTime = getWindowStartTime() - getTimeOffset();
+            pixelCoordinate = axis.getPixelCoordinate(windowStartTime - 1);
+        }
+        return getSwtChart().toControl(getSwtChart().getPlotArea().toDisplay(pixelCoordinate, 0)).x;
+    }
+
+    /**
+     * Get the width of the point area. We consider the point area to be from
+     * where the first point could be drawn to where the last point could be
+     * drawn. The point area differs from the plot area because there might be a
+     * gap between where the plot area start and where the fist point is drawn.
+     * This also matches the width that the use can select.
+     *
+     * @return the width in pixels
+     *
+     * @since 1.0
+     */
+    public int getPointAreaWidth() {
+        IAxis[] xAxes = getSwtChart().getAxisSet().getXAxes();
+        if (xAxes.length > 0 && fSwtChart.getSeriesSet().getSeries().length > 0) {
+            IAxis axis = xAxes[0];
+            int x1 = getPointAreaOffset();
+            long windowEndTime = getWindowEndTime() - getTimeOffset();
+            int x2 = axis.getPixelCoordinate(windowEndTime - 1);
+            x2 = getSwtChart().toControl(getSwtChart().getPlotArea().toDisplay(x2, 0)).x;
+            int width = x2 - x1;
+            return width;
+        }
+
+        return getSwtChart().getPlotArea().getSize().x;
+    }
+
+
+    /**
+     * Sets whether or not to send time alignment signals. This should be set to
+     * true for viewers that are part of an aligned view.
+     *
+     * @param sendTimeAlignSignals
+     *            whether or not to send time alignment signals
+     * @since 1.0
+     */
+    public void setSendTimeAlignSignals(boolean sendTimeAlignSignals) {
+        fSendTimeAlignSignals = sendTimeAlignSignals;
+    }
+
+    /**
+     * Returns whether or not to send time alignment signals.
+     *
+     * @return whether or not to send time alignment signals.
+     * @since 1.0
+     */
+    public boolean isSendTimeAlignSignals() {
+        return fSendTimeAlignSignals;
+    }
 }

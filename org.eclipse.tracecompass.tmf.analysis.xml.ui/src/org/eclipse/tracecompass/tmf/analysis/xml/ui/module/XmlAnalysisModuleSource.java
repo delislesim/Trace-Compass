@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal and others
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,13 +8,18 @@
  *
  * Contributors:
  *   Geneviève Bastien - Initial API and implementation
+ *   Bernd Hufmann - Ensure backwards compatibility to Linux Tools
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.analysis.xml.ui.module;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +30,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.Activator;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.module.Messages;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.XmlUtils;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.ui.module.TmfAnalysisModuleHelperXml.XmlAnalysisModuleType;
@@ -44,7 +52,6 @@ import org.xml.sax.SAXException;
  * in the imported XML files
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public class XmlAnalysisModuleSource implements IAnalysisModuleSource {
 
@@ -53,6 +60,15 @@ public class XmlAnalysisModuleSource implements IAnalysisModuleSource {
     private static final String XML_FILE_ELEMENT = "xmlfile"; //$NON-NLS-1$
 
     private static final String XML_FILE_ATTRIB = "file"; //$NON-NLS-1$
+
+    /*
+     * Legacy (Linux Tools) XML directory.
+     * TODO Remove once we feel the transition phase is over.
+     */
+    private static final IPath XML_DIRECTORY_LEGACY =
+            Activator.getDefault().getStateLocation().removeLastSegments(1)
+            .append("org.eclipse.linuxtools.tmf.analysis.xml.core") //$NON-NLS-1$
+            .append("xml_files"); //$NON-NLS-1$
 
     private static List<IAnalysisModuleHelper> fModules = null;
 
@@ -103,20 +119,34 @@ public class XmlAnalysisModuleSource implements IAnalysisModuleSource {
         IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(TMF_XML_BUILTIN_ID);
         for (IConfigurationElement element : elements) {
             if (element.getName().equals(XML_FILE_ELEMENT)) {
-                String filename = element.getAttribute(XML_FILE_ATTRIB);
-                String name = element.getContributor().getName();
-                if (name != null) {
-                    Bundle bundle = Platform.getBundle(name);
-                    if (bundle != null) {
-                        try {
-                            URL xmlUrl = bundle.getResource(filename);
-                            URL locatedURL = FileLocator.toFileURL(xmlUrl);
-                            processFile(new File(locatedURL.getFile()));
-                        } catch (IOException e) {
-                            /* ignore */
+                final String filename = element.getAttribute(XML_FILE_ATTRIB);
+                final String name = element.getContributor().getName();
+                // Run this in a safe runner in case there is an exception
+                // (IOException, FileNotFoundException, NPE, etc).
+                // This makes sure other extensions are not prevented from
+                // working if one is faulty.
+                SafeRunner.run(new ISafeRunnable() {
+
+                    @Override
+                    public void run() throws Exception {
+                        if (name != null) {
+                            Bundle bundle = Platform.getBundle(name);
+                            if (bundle != null) {
+                                URL xmlUrl = bundle.getResource(filename);
+                                if (xmlUrl == null) {
+                                    throw new FileNotFoundException(filename);
+                                }
+                                URL locatedURL = FileLocator.toFileURL(xmlUrl);
+                                processFile(new File(locatedURL.getFile()));
+                            }
                         }
                     }
-                }
+
+                    @Override
+                    public void handleException(Throwable exception) {
+                        // Handled sufficiently in SafeRunner
+                    }
+                });
             }
         }
     }
@@ -127,6 +157,28 @@ public class XmlAnalysisModuleSource implements IAnalysisModuleSource {
         if (!(fFolder.isDirectory() && fFolder.exists())) {
             return;
         }
+
+        /*
+         * Transfer files from Linux Tools directory.
+         */
+        File fOldFolder = XML_DIRECTORY_LEGACY.toFile();
+        if ((fOldFolder.isDirectory() && fOldFolder.exists())) {
+            for (File fromFile : fOldFolder.listFiles()) {
+                File toFile = pathToFiles.append(fromFile.getName()).toFile();
+                if (!toFile.exists() && !fromFile.isDirectory()) {
+                    try (FileInputStream fis = new FileInputStream(fromFile);
+                            FileOutputStream fos = new FileOutputStream(toFile);
+                            FileChannel source = fis.getChannel();
+                            FileChannel destination = fos.getChannel();) {
+                        destination.transferFrom(source, 0, source.size());
+                    } catch (IOException e) {
+                        String error = Messages.XmlUtils_ErrorCopyingFile;
+                        Activator.logError(error, e);
+                    }
+                }
+            }
+        }
+
         for (File xmlFile : fFolder.listFiles()) {
             processFile(xmlFile);
         }

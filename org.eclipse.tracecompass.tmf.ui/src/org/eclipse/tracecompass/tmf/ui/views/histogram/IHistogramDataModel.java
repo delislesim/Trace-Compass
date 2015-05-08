@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson
+ * Copyright (c) 2011, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -20,7 +20,6 @@ import org.eclipse.tracecompass.tmf.ui.views.distribution.model.IBaseDistributio
 /**
  * Histogram data model interface.
  *
- * @version 1.0
  * @author Bernd Hufmann
  */
 public interface IHistogramDataModel extends IBaseDistributionModel {
@@ -30,7 +29,6 @@ public interface IHistogramDataModel extends IBaseDistributionModel {
      * @param eventCount the event to count
      * @param timestamp the timestamp of the event to count
      * @param trace the trace corresponding to given events
-     * @since 3.0
      */
     void countEvent(long eventCount, long timestamp, ITmfTrace trace);
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,7 +17,6 @@ package org.eclipse.tracecompass.tmf.core.tests.event;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
@@ -42,23 +41,6 @@ public class TmfTimeRangeTest {
 
         assertEquals("startTime", ts1, range.getStartTime());
         assertEquals("endTime", ts2, range.getEndTime());
-    }
-
-    @Test
-    public void testBadConstructor() {
-        try {
-            new TmfTimeRange(TmfTimestamp.BIG_BANG, null);
-            fail("TmfTimeRange: bad end time");
-        } catch (final IllegalArgumentException e) {
-            // Success
-        }
-
-        try {
-            new TmfTimeRange(null, TmfTimestamp.BIG_CRUNCH);
-            fail("TmfTimeRange: bad start time");
-        } catch (final IllegalArgumentException e) {
-            // Success
-        }
     }
 
     @Test
@@ -87,33 +69,6 @@ public class TmfTimeRangeTest {
         assertEquals("endTime", TmfTimestamp.BIG_CRUNCH, range.getEndTime());
     }
 
-    @Test
-    public void testCopyConstructor() {
-        final ITmfTimestamp ts1 = new TmfTimestamp(12345);
-        final ITmfTimestamp ts2 = new TmfTimestamp(12350);
-        final TmfTimeRange range0 = new TmfTimeRange(ts1, ts2);
-        final TmfTimeRange range1 = new TmfTimeRange(range0);
-
-        assertEquals("startTime", ts1, range1.getStartTime());
-        assertEquals("endTime", ts2, range1.getEndTime());
-
-        final TmfTimeRange range2 = new TmfTimeRange(TmfTimestamp.BIG_BANG, TmfTimestamp.BIG_CRUNCH);
-        final TmfTimeRange range3 = new TmfTimeRange(range2);
-
-        assertEquals("startTime", TmfTimestamp.BIG_BANG, range3.getStartTime());
-        assertEquals("endTime", TmfTimestamp.BIG_CRUNCH, range3.getEndTime());
-    }
-
-    @Test
-    public void testCopyConstructor2() {
-        try {
-            new TmfTimeRange(null);
-            fail("TmfTimeRange: null argument");
-        } catch (final IllegalArgumentException e) {
-            // Success
-        }
-    }
-
     // ------------------------------------------------------------------------
     // hashCode
     // ------------------------------------------------------------------------
@@ -123,9 +78,9 @@ public class TmfTimeRangeTest {
         final ITmfTimestamp ts1 = new TmfTimestamp(12345);
         final ITmfTimestamp ts2 = new TmfTimestamp(12350);
         final TmfTimeRange range1 = new TmfTimeRange(ts1, ts2);
-        final TmfTimeRange range1b = new TmfTimeRange(range1);
+        final TmfTimeRange range1b =new TmfTimeRange(ts1, ts2);
         final TmfTimeRange range2 = new TmfTimeRange(TmfTimestamp.BIG_BANG, TmfTimestamp.BIG_CRUNCH);
-        final TmfTimeRange range2b = new TmfTimeRange(range2);
+        final TmfTimeRange range2b = new TmfTimeRange(TmfTimestamp.BIG_BANG, TmfTimestamp.BIG_CRUNCH);
 
         assertTrue("hashCode", range1.hashCode() == range1b.hashCode());
         assertTrue("hashCode", range2.hashCode() == range2b.hashCode());

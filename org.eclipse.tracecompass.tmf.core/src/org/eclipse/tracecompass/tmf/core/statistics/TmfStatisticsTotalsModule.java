@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,7 +12,10 @@
 
 package org.eclipse.tracecompass.tmf.core.statistics;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
@@ -32,7 +35,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * TmfAnalysisManager), as it is being handled by the TmfStatisticsModule.
  *
  * @author Alexandre Montplaisir
- * @since 3.0
  */
 public class TmfStatisticsTotalsModule extends TmfStateSystemAnalysisModule {
 
@@ -54,7 +56,7 @@ public class TmfStatisticsTotalsModule extends TmfStateSystemAnalysisModule {
 
     @Override
     protected ITmfStateProvider createStateProvider() {
-        return new StatsProviderTotals(getTrace());
+        return new StatsProviderTotals(checkNotNull(getTrace()));
     }
 
     @Override
@@ -92,8 +94,8 @@ public class TmfStatisticsTotalsModule extends TmfStateSystemAnalysisModule {
          * @param trace
          *            The trace for which we build this state system
          */
-        public StatsProviderTotals(ITmfTrace trace) {
-            super(trace, ITmfEvent.class , NAME);
+        public StatsProviderTotals(@NonNull ITmfTrace trace) {
+            super(trace, NAME);
         }
 
         @Override
@@ -112,6 +114,8 @@ public class TmfStatisticsTotalsModule extends TmfStateSystemAnalysisModule {
             if (event instanceof ITmfLostEvent) {
                 return;
             }
+
+            ITmfStateSystemBuilder ss = checkNotNull(getStateSystemBuilder());
 
             /* Since this can be used for any trace types, normalize all the
              * timestamp values to nanoseconds. */

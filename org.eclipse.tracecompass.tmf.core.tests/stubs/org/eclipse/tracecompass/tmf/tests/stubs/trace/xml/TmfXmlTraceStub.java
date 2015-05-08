@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,7 @@
  *
  * Contributors:
  *   Geneviève Bastien - Initial implementation
+ *   Patrick Tasse - Dispose wrapped trace
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.tests.stubs.trace.xml;
@@ -40,8 +41,8 @@ import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventType;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
+import org.eclipse.tracecompass.tmf.core.event.aspect.TmfContentFieldAspect;
 import org.eclipse.tracecompass.tmf.core.event.aspect.TmfCpuAspect;
-import org.eclipse.tracecompass.tmf.core.event.aspect.TmfEventFieldAspect;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.parsers.custom.CustomEventContent;
 import org.eclipse.tracecompass.tmf.core.parsers.custom.CustomXmlEvent;
@@ -57,7 +58,6 @@ import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
 import org.xml.sax.SAXException;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 
 /**
  * An XML development trace using a custom XML trace definition and schema.
@@ -112,7 +112,6 @@ public class TmfXmlTraceStub extends TmfTrace {
             fTrace = new CustomXmlTrace(definitions[0]);
             /* Deregister the custom XML trace */
             TmfSignalManager.deregister(fTrace);
-            this.setParser(fTrace);
 
             Collection<ITmfEventAspect> aspects = TmfTrace.BASE_ASPECTS;
             fAspects = aspects;
@@ -138,6 +137,17 @@ public class TmfXmlTraceStub extends TmfTrace {
             this.setStartTime(curTime);
             this.setEndTime(curTime);
         }
+    }
+
+    @Override
+    public synchronized void dispose() {
+        super.dispose();
+        fTrace.dispose();
+    }
+
+    @Override
+    public @Nullable ITmfEvent parseEvent(@Nullable ITmfContext context) {
+        return fTrace.parseEvent(context);
     }
 
     @Override
@@ -290,25 +300,6 @@ public class TmfXmlTraceStub extends TmfTrace {
         return newEvent;
     }
 
-    private static final class XmlStubCpuAspect extends TmfCpuAspect {
-
-        private final TmfEventFieldAspect fAspect;
-
-        public XmlStubCpuAspect(TmfEventFieldAspect aspect) {
-            fAspect = aspect;
-        }
-
-        @Override
-        public Integer resolve(ITmfEvent event) {
-            Integer cpu = Ints.tryParse(fAspect.resolve(event));
-            if (cpu == null) {
-                return TmfCpuAspect.CPU_UNAVAILABLE;
-            }
-            return cpu;
-        }
-
-    }
-
     private void generateAspects(ITmfEventField[] fieldsArray) {
         ImmutableList.Builder<ITmfEventAspect> builder = new ImmutableList.Builder<>();
 
@@ -322,11 +313,21 @@ public class TmfXmlTraceStub extends TmfTrace {
             if (name == null) {
                 break;
             }
-            ITmfEventAspect aspect = new TmfEventFieldAspect(name, name);
+            final ITmfEventAspect aspect = new TmfContentFieldAspect(name, name);
             if (name.equals(ASPECT_CPU)) {
-                aspect = new XmlStubCpuAspect((TmfEventFieldAspect) aspect);
+                builder.add(new TmfCpuAspect() {
+                    @Override
+                    public @Nullable Integer resolve(ITmfEvent event) {
+                        Object result = aspect.resolve(event);
+                        if (result instanceof Number) {
+                            return ((Number) result).intValue();
+                        }
+                        return null;
+                    }
+                });
+            } else {
+                builder.add(aspect);
             }
-            builder.add(aspect);
         }
 
         /* Add the big content aspect */

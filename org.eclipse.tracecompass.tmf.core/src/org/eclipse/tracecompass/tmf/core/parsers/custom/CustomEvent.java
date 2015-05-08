@@ -12,6 +12,8 @@
 
 package org.eclipse.tracecompass.tmf.core.parsers.custom;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
+
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +36,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * Base event for custom text parsers.
  *
  * @author Patrick Tassé
- * @since 3.0
  */
 public class CustomEvent extends TmfEvent {
 
@@ -45,7 +46,7 @@ public class CustomEvent extends TmfEvent {
     protected static final String NO_MESSAGE = ""; //$NON-NLS-1$
 
     /** Replacement for the super-class' timestamp field */
-    private ITmfTimestamp customEventTimestamp;
+    private @NonNull ITmfTimestamp customEventTimestamp;
 
     /** Replacement for the super-class' content field */
     private ITmfEventField customEventContent;
@@ -71,6 +72,7 @@ public class CustomEvent extends TmfEvent {
         super(null, ITmfContext.UNKNOWN_RANK, null, null, null);
         fDefinition = definition;
         fData = new HashMap<>();
+        customEventTimestamp = TmfTimestamp.ZERO;
     }
 
     /**
@@ -112,7 +114,11 @@ public class CustomEvent extends TmfEvent {
         fData = new HashMap<>();
 
         /* Set our overridden fields */
-        customEventTimestamp = timestamp;
+        if (timestamp == null) {
+            customEventTimestamp = TmfTimestamp.ZERO;
+        } else {
+            customEventTimestamp = timestamp;
+        }
         customEventContent = null;
         customEventType = type;
     }
@@ -149,7 +155,7 @@ public class CustomEvent extends TmfEvent {
      * @param timestamp
      *            The new timestamp
      */
-    protected void setTimestamp(ITmfTimestamp timestamp) {
+    protected void setTimestamp(@NonNull ITmfTimestamp timestamp) {
         customEventTimestamp = timestamp;
     }
 
@@ -184,7 +190,6 @@ public class CustomEvent extends TmfEvent {
      *            The ID/index of the field to display. This corresponds to the
      *            index in the event content.
      * @return The String to display in the cell
-     * @since 3.1
      */
     public String getEventString(int index) {
         if (fData != null) {
@@ -195,27 +200,6 @@ public class CustomEvent extends TmfEvent {
         }
 
         return fColumnData[index].getValue().toString();
-    }
-
-    /**
-     * Get the contents of the row in the events table corresponding to this
-     * event. The order of the elements corresponds to the order of the columns.
-     *
-     * @return The event row entries
-     * @deprecated This should not be used, since this isn't related to the
-     *             order of columns in the view anymore. You should use
-     *             {@link #getEventString(int)}
-     */
-    @Deprecated
-    public String[] getEventStrings() {
-        if (fData != null) {
-            processData();
-        }
-        String[] entries = new String[fColumnData.length];
-        for (int i = 0; i < fColumnData.length; i++) {
-            entries[i] = fColumnData[i].getValue().toString();
-        }
-        return entries;
     }
 
     private void processData() {
@@ -256,7 +240,7 @@ public class CustomEvent extends TmfEvent {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ((fDefinition == null) ? 0 : fDefinition.hashCode());
-        result = prime * result + ((customEventTimestamp == null) ? 0 : customEventTimestamp.hashCode());
+        result = prime * result + customEventTimestamp.hashCode();
         result = prime * result + ((customEventContent == null) ? 0 : customEventContent.hashCode());
         result = prime * result + ((customEventType == null) ? 0 : customEventType.hashCode());
         return result;
@@ -274,38 +258,21 @@ public class CustomEvent extends TmfEvent {
             return false;
         }
         CustomEvent other = (CustomEvent) obj;
-        if (fDefinition == null) {
-            if (other.fDefinition != null) {
-                return false;
-            }
-        } else if (!fDefinition.equals(other.fDefinition)) {
+        if (!equalsNullable(fDefinition, other.fDefinition)) {
             return false;
         }
 
-        if (customEventTimestamp == null) {
-            if (other.customEventTimestamp != null) {
-                return false;
-            }
-        } else if (!customEventTimestamp.equals(other.customEventTimestamp)) {
+        if (!customEventTimestamp.equals(other.customEventTimestamp)) {
             return false;
         }
 
-        if (customEventContent == null) {
-            if (other.customEventContent != null) {
-                return false;
-            }
-        } else if (!customEventContent.equals(other.customEventContent)) {
+        if (!equalsNullable(customEventContent, other.customEventContent)) {
             return false;
         }
 
-        if (customEventType == null) {
-            if (other.customEventType != null) {
-                return false;
-            }
-        } else if (!customEventType.equals(other.customEventType)) {
+        if (!equalsNullable(customEventType, other.customEventType)) {
             return false;
         }
-
         return true;
     }
 

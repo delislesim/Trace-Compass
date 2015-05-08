@@ -13,7 +13,6 @@
 package org.eclipse.tracecompass.tmf.core.tests.trace;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -23,7 +22,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -38,6 +36,7 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.tests.TmfCoreTestPlugin;
 import org.eclipse.tracecompass.tmf.core.tests.analysis.AnalysisManagerTest;
 import org.eclipse.tracecompass.tmf.core.tests.shared.TmfTestTrace;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
@@ -128,10 +127,13 @@ public class TmfTraceUtilsTest {
      */
     @Test
     public void testGetModulesByClass() {
-        /* Open the trace, the modules should be populated */
-        fTrace.traceOpened(new TmfTraceOpenedSignal(this, fTrace, null));
+        TmfTrace trace = fTrace;
+        assertNotNull(trace);
 
-        Iterable<TestAnalysis> testModules = TmfTraceUtils.getAnalysisModulesOfClass(fTrace, TestAnalysis.class);
+        /* Open the trace, the modules should be populated */
+        trace.traceOpened(new TmfTraceOpenedSignal(this, trace, null));
+
+        Iterable<TestAnalysis> testModules = TmfTraceUtils.getAnalysisModulesOfClass(trace, TestAnalysis.class);
         assertTrue(testModules.iterator().hasNext());
 
         int count = 0;
@@ -145,28 +147,30 @@ public class TmfTraceUtilsTest {
          */
         assertTrue(count >= 2);
 
-        TestAnalysis module = TmfTraceUtils.getAnalysisModuleOfClass(fTrace, TestAnalysis.class, AnalysisManagerTest.MODULE_PARAM);
+        TestAnalysis module = TmfTraceUtils.getAnalysisModuleOfClass(trace, TestAnalysis.class, AnalysisManagerTest.MODULE_PARAM);
         assertNotNull(module);
-        IAnalysisModule traceModule = fTrace.getAnalysisModule(AnalysisManagerTest.MODULE_PARAM);
+        IAnalysisModule traceModule = trace.getAnalysisModule(AnalysisManagerTest.MODULE_PARAM);
         assertNotNull(traceModule);
         assertEquals(module, traceModule);
 
     }
 
     /**
-     * Test the {@link TmfTraceUtils#getEventAspectsOfClass} method.
+     * Test the {@link TmfTraceUtils#resolveEventAspectOfClassForEvent(ITmfTrace, Class, ITmfEvent)} method.
      */
     @Test
-    public void testGetEventAspectsOfClass() {
-        /* Our custom trace type adds 1 aspect in addition to the base ones */
-        Iterable<ITmfEventAspect> aspects = TmfTraceUtils.getEventAspectsOfClass(fTrace, ITmfEventAspect.class);
-        Collection<ITmfEventAspect> aspectColl = ImmutableList.copyOf(aspects);
-        assertEquals(TmfTrace.BASE_ASPECTS.size() + 1, aspectColl.size());
+    public void testResolveEventAspectsOfClassForEvent() {
+        TmfTrace trace = fTrace;
+        assertNotNull(trace);
 
-        /* Make sure there is one and only one CpuAspect */
-        Iterable<TmfCpuAspect> cpuAspects = TmfTraceUtils.getEventAspectsOfClass(fTrace, TmfCpuAspect.class);
-        Iterator<TmfCpuAspect> iter = cpuAspects.iterator();
-        assertNotNull(iter.next());
-        assertFalse(iter.hasNext());
+        ITmfContext context = trace.seekEvent(0L);
+        ITmfEvent event = trace.getNext(context);
+        assertNotNull(event);
+
+        /* Make sure the CPU aspect returns the expected value */
+        Object cpuObj = TmfTraceUtils.resolveEventAspectOfClassForEvent(trace,  TmfCpuAspect.class, event);
+        assertNotNull(cpuObj);
+        assertEquals(1, cpuObj);
+
     }
 }

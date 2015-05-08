@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -13,7 +13,7 @@
 package org.eclipse.tracecompass.tmf.core.event.matching;
 
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.event.matching.TmfEventMatching.MatchingType;
+import org.eclipse.tracecompass.tmf.core.event.matching.TmfEventMatching.Direction;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
 /**
@@ -21,7 +21,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * manages for a given matching type what events/fields are used to match events
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public interface ITmfMatchEventDefinition {
 
@@ -46,10 +45,14 @@ public interface ITmfMatchEventDefinition {
     boolean canMatchTrace(ITmfTrace trace);
 
     /**
-     * Return all matching types this definition covers
+     * Returns the direction of this event, whether 'send', 'receive' or null if
+     * event is neither
      *
-     * @return an array of matching types
+     * @param event
+     *            The event to check
+     * @return The direction of this event, null if uninteresting event
+     * @since 1.0
      */
-    MatchingType[] getApplicableMatchingTypes();
+    Direction getDirection(ITmfEvent event);
 
 }

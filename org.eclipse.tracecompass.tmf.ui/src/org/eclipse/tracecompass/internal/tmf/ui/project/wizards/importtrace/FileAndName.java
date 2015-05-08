@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -14,17 +14,18 @@ package org.eclipse.tracecompass.internal.tmf.ui.project.wizards.importtrace;
 
 import java.io.File;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
+
 /**
  * File and name internal helper class <br>
  * it has the file, a name to display, whether the name is conflicting and a
  * reference to the configuration element defining its trace type.
  *
  * @author Matthew Khouzam
- * @since 2.0
  */
 class FileAndName implements Comparable<FileAndName> {
 
-    final private File fFile;
+    private final File fFile;
     private String fTraceTypeId;
     private String fName;
     private boolean fConflict;
@@ -169,18 +170,10 @@ class FileAndName implements Comparable<FileAndName> {
             return false;
         }
         FileAndName other = (FileAndName) obj;
-        if (fTraceTypeId == null) {
-            if (other.fTraceTypeId != null) {
-                return false;
-            }
-        } else if (!fTraceTypeId.equals(other.fTraceTypeId)) {
+        if (!equalsNullable(fTraceTypeId, other.fTraceTypeId)) {
             return false;
         }
-        if (fFile == null) {
-            if (other.fFile != null) {
-                return false;
-            }
-        } else if (!fFile.equals(other.fFile)) {
+        if (!equalsNullable(fFile, other.fFile)) {
             return false;
         }
         return true;

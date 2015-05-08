@@ -40,7 +40,6 @@ import org.eclipse.ui.progress.WorkbenchJob;
  * On the contrary, all the "check" operations act only on what is not filtered.
  *
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- * @since 3.2
  */
 public class FilteredCheckboxTree extends FilteredTree implements ICheckable {
 
@@ -75,6 +74,7 @@ public class FilteredCheckboxTree extends FilteredTree implements ICheckable {
     @Override
     protected TreeViewer doCreateTreeViewer(Composite parentComposite, int style) {
         fCheckboxTreeViewer = new CheckboxTreeViewer(parentComposite, style);
+        fCheckboxTreeViewer.setUseHashlookup(true);
         fCheckboxTreeViewer.addCheckStateListener(new ICheckStateListener() {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {

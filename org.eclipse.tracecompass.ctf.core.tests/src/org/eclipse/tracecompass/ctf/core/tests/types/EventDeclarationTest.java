@@ -18,10 +18,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
 import org.eclipse.tracecompass.ctf.core.tests.shared.CtfTestTrace;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.eclipse.tracecompass.ctf.core.trace.CTFStream;
 import org.eclipse.tracecompass.ctf.core.trace.CTFTrace;
 import org.eclipse.tracecompass.ctf.core.trace.CTFTraceReader;
@@ -46,10 +46,10 @@ public class EventDeclarationTest {
     /**
      * Perform pre-test initialization.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      */
     @Before
-    public void setUp() throws CTFReaderException {
+    public void setUp() throws CTFException {
         assumeTrue(testTrace.exists());
         fixture = new EventDeclaration();
         fixture.setContext(new StructDeclaration(1L));
@@ -91,10 +91,10 @@ public class EventDeclarationTest {
     /**
      * Run the boolean equals(Object) method test.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      */
     @Test
-    public void testEquals() throws CTFReaderException {
+    public void testEquals() throws CTFException {
         EventDeclaration obj = new EventDeclaration();
         obj.setContext(new StructDeclaration(1L));
         obj.setId(1L);
@@ -311,10 +311,10 @@ public class EventDeclarationTest {
     /**
      * Test for the EventDefinition class
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      */
     @Test
-    public void testEventDefinition() throws CTFReaderException {
+    public void testEventDefinition() throws CTFException {
         CTFTrace trace = testTrace.getTrace();
         EventDefinition ed = null;
         try (CTFTraceReader tr = new CTFTraceReader(trace);) {

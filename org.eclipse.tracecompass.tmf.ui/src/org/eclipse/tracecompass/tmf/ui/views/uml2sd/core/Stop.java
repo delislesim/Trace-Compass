@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -99,7 +99,6 @@ public class Stop extends GraphNode {
      * Get the lifeline on which the stop must be draw
      *
      * @return the the stop owing lifeline
-     * @since 2.0
      */
     public Lifeline getLifeline() {
         return fLifeline;
@@ -109,7 +108,6 @@ public class Stop extends GraphNode {
      * Get the event occurrence when this stop appears
      *
      * @return the eventOccurence to assign to the stop
-     * @since 2.0
      */
     public int getEventOccurrence() {
         return fEventOccurrence;

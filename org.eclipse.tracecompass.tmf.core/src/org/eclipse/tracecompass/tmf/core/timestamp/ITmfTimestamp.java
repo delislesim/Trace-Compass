@@ -13,6 +13,7 @@
 
 package org.eclipse.tracecompass.tmf.core.timestamp;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 
 /**
@@ -32,8 +33,6 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
  * </ul>
  *
  * @author Francois Chouinard
- * @version 2.0
- * @since 2.0
  *
  * @see ITmfEvent
  * @see TmfTimeRange
@@ -89,7 +88,7 @@ public interface ITmfTimestamp extends Comparable<ITmfTimestamp> {
      * @param scale the new timestamp scale
      * @return a new 'adjusted' ITmfTimestamp
      */
-    ITmfTimestamp normalize(long offset, int scale);
+    @NonNull ITmfTimestamp normalize(long offset, int scale);
 
     /**
      * Returns the difference between [this] and [ts] as a timestamp
@@ -97,7 +96,7 @@ public interface ITmfTimestamp extends Comparable<ITmfTimestamp> {
      * @param ts the other timestamp
      * @return the time difference (this - other) as an ITmfTimestamp
      */
-    ITmfTimestamp getDelta(ITmfTimestamp ts);
+    @NonNull ITmfTimestamp getDelta(ITmfTimestamp ts);
 
     /**
      * Returns if this timestamp intersects the given time range. Borders are
@@ -122,7 +121,6 @@ public interface ITmfTimestamp extends Comparable<ITmfTimestamp> {
      *
      * @param format the timestamp formatter
      * @return the formatted timestamp
-     * @since 2.0
      */
     String toString(final TmfTimestampFormat format);
 

@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,9 +8,12 @@
  *
  * Contributors:
  *   Jonathan Rajotte - Initial support for machine interface lttng 2.6
+ *   Bernd Hufmann - Fix check for live session
  **********************************************************************/
 
 package org.eclipse.tracecompass.internal.lttng2.control.ui.views.service;
+
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -20,12 +23,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.validation.SchemaFactory;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.IBaseEventInfo;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.IChannelInfo;
@@ -53,8 +60,9 @@ import org.eclipse.tracecompass.internal.lttng2.control.core.model.impl.Snapshot
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.impl.UstProviderInfo;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.handlers.XmlMiValidationErrorHandler;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.messages.Messages;
-import org.eclipse.tracecompass.internal.lttng2.control.ui.views.remote.ICommandResult;
-import org.eclipse.tracecompass.internal.lttng2.control.ui.views.remote.ICommandShell;
+import org.eclipse.tracecompass.tmf.remote.core.shell.ICommandInput;
+import org.eclipse.tracecompass.tmf.remote.core.shell.ICommandResult;
+import org.eclipse.tracecompass.tmf.remote.core.shell.ICommandShell;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -90,13 +98,22 @@ public class LTTngControlServiceMI extends LTTngControlService {
      *             if the creation of the Schema and DocumentBuilder objects
      *             fails
      */
-    public LTTngControlServiceMI(ICommandShell shell, URL xsdUrl) throws ExecutionException {
+    public LTTngControlServiceMI(@NonNull ICommandShell shell, @Nullable URL xsdUrl) throws ExecutionException {
         super(shell);
 
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setValidating(false);
 
-        // TODO: Add xsd validation for machine interface via mi_lttng.xsd from LTTng
+        // Validate XSD schema
+        if (xsdUrl != null) {
+            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            try {
+                docBuilderFactory.setSchema(schemaFactory.newSchema(xsdUrl));
+            } catch (SAXException e) {
+                throw new ExecutionException(Messages.TraceControl_InvalidSchemaError, e);
+            }
+        }
+
         try {
             fDocumentBuilder = docBuilderFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
@@ -108,15 +125,15 @@ public class LTTngControlServiceMI extends LTTngControlService {
     }
 
     /**
-     * Generate a Document object from an array of String.
+     * Generate a Document object from an list of Strings.
      *
      * @param xmlStrings
-     *            array of strings representing an xml input
+     *            list of strings representing an xml input
      * @return Document generated from strings input
      * @throws ExecutionException
      *             when parsing has failed
      */
-    private Document getDocumentFromStrings(String[] xmlStrings) throws ExecutionException {
+    private Document getDocumentFromStrings(List<String> xmlStrings) throws ExecutionException {
         StringBuilder concatenedString = new StringBuilder();
         for (String string : xmlStrings) {
             concatenedString.append(string);
@@ -127,7 +144,7 @@ public class LTTngControlServiceMI extends LTTngControlService {
         try {
             document = fDocumentBuilder.parse(stream);
         } catch (SAXException | IOException e) {
-            throw new ExecutionException(Messages.TraceControl_XmlParsingError, e);
+            throw new ExecutionException(Messages.TraceControl_XmlParsingError + ':' + e.toString(), e);
         }
         return document;
 
@@ -141,7 +158,7 @@ public class LTTngControlServiceMI extends LTTngControlService {
      * @throws ExecutionException
      *             when xml extraction fail
      */
-    public void setVersion(String[] xmlOutput) throws ExecutionException {
+    public void setVersion(List<String> xmlOutput) throws ExecutionException {
         Document doc = getDocumentFromStrings(xmlOutput);
         NodeList element = doc.getElementsByTagName(MIStrings.VERSION);
         int major = 0;
@@ -197,9 +214,9 @@ public class LTTngControlServiceMI extends LTTngControlService {
     }
 
     @Override
-    public String[] getSessionNames(IProgressMonitor monitor) throws ExecutionException {
-        StringBuffer command = createCommand(LTTngControlServiceConstants.COMMAND_LIST);
-        ICommandResult result = executeCommand(command.toString(), monitor);
+    public List<String> getSessionNames(IProgressMonitor monitor) throws ExecutionException {
+        ICommandInput command = createCommand(LTTngControlServiceConstants.COMMAND_LIST);
+        ICommandResult result = executeCommand(command, monitor);
 
         Document doc = getDocumentFromStrings(result.getOutput());
 
@@ -212,13 +229,13 @@ public class LTTngControlServiceMI extends LTTngControlService {
                 retArray.add(node.getTextContent());
             }
         }
-        return retArray.toArray(new String[retArray.size()]);
+        return retArray;
     }
 
     @Override
     public ISessionInfo getSession(String sessionName, IProgressMonitor monitor) throws ExecutionException {
-        StringBuffer command = createCommand(LTTngControlServiceConstants.COMMAND_LIST, sessionName);
-        ICommandResult result = executeCommand(command.toString(), monitor);
+        ICommandInput command = createCommand(LTTngControlServiceConstants.COMMAND_LIST, sessionName);
+        ICommandResult result = executeCommand(command, monitor);
 
         ISessionInfo sessionInfo = new SessionInfo(sessionName);
         Document document = getDocumentFromStrings(result.getOutput());
@@ -273,7 +290,7 @@ public class LTTngControlServiceMI extends LTTngControlService {
                 break;
             case MIStrings.LIVE_TIMER_INTERVAL:
                 long liveDelay = Long.parseLong(rawInfo.getTextContent());
-                if (liveDelay > 0) {
+                if ((liveDelay > 0 && (liveDelay <= LTTngControlServiceConstants.MAX_LIVE_TIMER_INTERVAL))) {
                     sessionInfo.setLive(true);
                     sessionInfo.setLiveUrl(SessionInfo.DEFAULT_LIVE_NETWORK_URL);
                     sessionInfo.setLivePort(SessionInfo.DEFAULT_LIVE_PORT);
@@ -429,7 +446,7 @@ public class LTTngControlServiceMI extends LTTngControlService {
                                 channel.setOutputType(attribute.getTextContent());
                                 break;
                             case MIStrings.TRACEFILE_SIZE:
-                                channel.setMaxSizeTraceFiles(Integer.parseInt(attribute.getTextContent()));
+                                channel.setMaxSizeTraceFiles(Long.parseLong(attribute.getTextContent()));
                                 break;
                             case MIStrings.TRACEFILE_COUNT:
                                 channel.setMaxNumberTraceFiles(Integer.parseInt(attribute.getTextContent()));
@@ -459,8 +476,8 @@ public class LTTngControlServiceMI extends LTTngControlService {
         // Currently the SessionInfo object does not support multiple snashot
         // output.
         // For now only keep the last one.
-        StringBuffer command = createCommand(LTTngControlServiceConstants.COMMAND_LIST_SNAPSHOT_OUTPUT, LTTngControlServiceConstants.OPTION_SESSION, sessionName);
-        ICommandResult result = executeCommand(command.toString(), monitor);
+        ICommandInput command = createCommand(LTTngControlServiceConstants.COMMAND_SNAPSHOT, LTTngControlServiceConstants.COMMAND_LIST_SNAPSHOT_OUTPUT, LTTngControlServiceConstants.OPTION_SESSION, sessionName);
+        ICommandResult result = executeCommand(command, monitor);
         Document doc = getDocumentFromStrings(result.getOutput());
         NodeList rawSnapshotsOutputs = doc.getElementsByTagName(MIStrings.SNAPSHOT_OUTPUTS);
 
@@ -502,11 +519,11 @@ public class LTTngControlServiceMI extends LTTngControlService {
 
     @Override
     public List<IBaseEventInfo> getKernelProvider(IProgressMonitor monitor) throws ExecutionException {
-        StringBuffer command = createCommand(LTTngControlServiceConstants.COMMAND_LIST_KERNEL);
-        ICommandResult result = executeCommand(command.toString(), monitor, false);
+        ICommandInput command = createCommand(LTTngControlServiceConstants.COMMAND_LIST, LTTngControlServiceConstants.OPTION_KERNEL);
+        ICommandResult result = executeCommand(command, monitor, false);
         List<IBaseEventInfo> events = new ArrayList<>();
 
-        if (isError(result) && result.getErrorOutput() != null) {
+        if (isError(result)) {
             // Ignore the following 2 cases:
             // Spawning a session daemon
             // Error: Unable to list kernel events
@@ -515,7 +532,7 @@ public class LTTngControlServiceMI extends LTTngControlService {
             if (ignoredPattern(result.getErrorOutput(), LTTngControlServiceConstants.LIST_KERNEL_NO_KERNEL_PROVIDER_PATTERN)) {
                 return events;
             }
-            throw new ExecutionException(Messages.TraceControl_CommandError + LTTngControlServiceConstants.COMMAND_LIST_KERNEL);
+            throw new ExecutionException(Messages.TraceControl_CommandError + command.toString());
         }
 
         Document document = getDocumentFromStrings(result.getOutput());
@@ -526,15 +543,15 @@ public class LTTngControlServiceMI extends LTTngControlService {
 
     @Override
     public List<IUstProviderInfo> getUstProvider(IProgressMonitor monitor) throws ExecutionException {
-        StringBuffer command = createCommand(LTTngControlServiceConstants.COMMAND_LIST_UST);
+        ICommandInput command = createCommand(LTTngControlServiceConstants.COMMAND_LIST, LTTngControlServiceConstants.OPTION_UST);
         // Get the field to
-        command.append(LTTngControlServiceConstants.OPTION_FIELDS);
+        command.add(LTTngControlServiceConstants.OPTION_FIELDS);
 
         // Execute
-        ICommandResult result = executeCommand(command.toString(), monitor, false);
+        ICommandResult result = executeCommand(command, monitor, false);
         List<IUstProviderInfo> allProviders = new ArrayList<>();
 
-        if (isError(result) && result.getErrorOutput() != null) {
+        if (isError(result)) {
             // Ignore the following 2 cases:
             // Spawning a session daemon
             // Error: Unable to list UST events: Listing UST events failed
@@ -543,7 +560,7 @@ public class LTTngControlServiceMI extends LTTngControlService {
             if (ignoredPattern(result.getErrorOutput(), LTTngControlServiceConstants.LIST_UST_NO_UST_PROVIDER_PATTERN)) {
                 return allProviders;
             }
-            throw new ExecutionException(Messages.TraceControl_CommandError + LTTngControlServiceConstants.COMMAND_LIST_UST);
+            throw new ExecutionException(Messages.TraceControl_CommandError + command.toString());
         }
 
         Document document = getDocumentFromStrings(result.getOutput());
@@ -589,9 +606,8 @@ public class LTTngControlServiceMI extends LTTngControlService {
             return createStreamedSession(sessionInfo, monitor);
         }
 
-        StringBuffer command = prepareSessionCreationCommand(sessionInfo);
-
-        ICommandResult result = executeCommand(command.toString(), monitor);
+        ICommandInput command = prepareSessionCreationCommand(sessionInfo);
+        ICommandResult result = executeCommand(command, monitor);
 
         Document document = getDocumentFromStrings(result.getOutput());
         NodeList sessions = document.getElementsByTagName(MIStrings.SESSION);
@@ -630,11 +646,11 @@ public class LTTngControlServiceMI extends LTTngControlService {
         return outputSession;
     }
 
-    private ISessionInfo createStreamedSession(ISessionInfo sessionInfo, IProgressMonitor monitor) throws ExecutionException {
+    private @NonNull ISessionInfo createStreamedSession(ISessionInfo sessionInfo, IProgressMonitor monitor) throws ExecutionException {
 
-        StringBuffer command = prepareStreamedSessionCreationCommand(sessionInfo);
+        ICommandInput command = prepareStreamedSessionCreationCommand(sessionInfo);
 
-        ICommandResult result = executeCommand(command.toString(), monitor);
+        ICommandResult result = executeCommand(command, monitor);
 
         Document document = getDocumentFromStrings(result.getOutput());
         NodeList sessions = document.getElementsByTagName(MIStrings.SESSION);
@@ -683,25 +699,22 @@ public class LTTngControlServiceMI extends LTTngControlService {
         // yet
         // and will be set later on when listing the session
         return sessionInfo;
-
     }
 
     @Override
     public void destroySession(String sessionName, IProgressMonitor monitor) throws ExecutionException {
-        String newName = formatParameter(sessionName);
+        ICommandInput command = createCommand(LTTngControlServiceConstants.COMMAND_DESTROY_SESSION, sessionName);
 
-        StringBuffer command = createCommand(LTTngControlServiceConstants.COMMAND_DESTROY_SESSION, newName);
+        ICommandResult result = executeCommand(command, monitor, false);
+        List<String> errorOutput = result.getErrorOutput();
 
-        ICommandResult result = executeCommand(command.toString(), monitor, false);
-        String[] errorOutput = result.getErrorOutput();
-
-        if (isError(result) && (errorOutput != null)) {
+        if (isError(result)) {
             // Don't treat this as an error
             if (ignoredPattern(errorOutput, LTTngControlServiceConstants.SESSION_NOT_FOUND_ERROR_PATTERN)) {
                 return;
 
             }
-            throw new ExecutionException(Messages.TraceControl_CommandError + " " + command.toString() + "\n" + formatOutput(result)); //$NON-NLS-1$ //$NON-NLS-2$
+            throw new ExecutionException(Messages.TraceControl_CommandError + " " + command.toString() + "\n" + result.toString()); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
         // Check for action effect
@@ -722,18 +735,18 @@ public class LTTngControlServiceMI extends LTTngControlService {
         }
     }
 
-    /**
-     * @param strings
-     *            array of string that make up a command line
-     * @return string buffer with created command line
-     */
     @Override
-    protected StringBuffer createCommand(String... strings) {
-        StringBuffer command = new StringBuffer();
-        command.append(LTTngControlServiceConstants.CONTROL_COMMAND_MI_XML);
-        command.append(getTracingGroupOption());
+    protected ICommandInput createCommand(String... strings) {
+        ICommandInput command = getCommandShell().createCommand();
+        command.add(LTTngControlServiceConstants.CONTROL_COMMAND);
+        List<String> groupOption = getTracingGroupOption();
+        if (!groupOption.isEmpty()) {
+            command.addAll(groupOption);
+        }
+        command.add(LTTngControlServiceConstants.CONTROL_COMMAND_MI_OPTION);
+        command.add(LTTngControlServiceConstants.CONTROL_COMMAND_MI_XML);
         for (String string : strings) {
-            command.append(string);
+            command.add(checkNotNull(string));
         }
         return command;
     }
@@ -945,7 +958,7 @@ public class LTTngControlServiceMI extends LTTngControlService {
      *            the tag name of the desired node
      * @return the first occurrence of a node with a tag name equals to tagName
      */
-    private static Node getFirstOf(NodeList nodeList, String tagName) {
+    private static @Nullable Node getFirstOf(NodeList nodeList, String tagName) {
         Node node = null;
         for (int i = 0; i < nodeList.getLength(); i++) {
             if (nodeList.item(i).getNodeName() == tagName) {

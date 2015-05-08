@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -51,7 +51,6 @@ public interface ITmfContext {
 
     /**
      * @return the location of the event at the context rank
-     * @since 3.0
      */
     ITmfLocation getLocation();
 
@@ -66,7 +65,6 @@ public interface ITmfContext {
 
     /**
      * @param location the new location
-     * @since 3.0
      */
     void setLocation(ITmfLocation location);
 

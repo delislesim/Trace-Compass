@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -10,10 +10,12 @@
  *   Bernd Hufmann - Initial API and implementation
  *   Bernd Hufmann - Updated for support of LTTng Tools 2.1
  *   Markus Schorn - Bug 448058: Use org.eclipse.remote in favor of RSE
+ *   Bernd Hufmann - Update to org.eclipse.remote API 2.0
  **********************************************************************/
 package org.eclipse.tracecompass.internal.lttng2.control.ui.views.model.impl;
 
 import static java.text.MessageFormat.format;
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.List;
 
@@ -24,10 +26,11 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.remote.core.IRemoteConnection;
-import org.eclipse.remote.core.IRemoteConnectionChangeEvent;
 import org.eclipse.remote.core.IRemoteConnectionChangeListener;
+import org.eclipse.remote.core.RemoteConnectionChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.TargetNodeState;
@@ -35,11 +38,10 @@ import org.eclipse.tracecompass.internal.lttng2.control.ui.Activator;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.messages.Messages;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.model.ITraceControlComponent;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.property.TargetNodePropertySource;
-import org.eclipse.tracecompass.internal.lttng2.control.ui.views.remote.ICommandShell;
-import org.eclipse.tracecompass.internal.lttng2.control.ui.views.remote.IRemoteSystemProxy;
-import org.eclipse.tracecompass.internal.lttng2.control.ui.views.remote.RemoteSystemProxy;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.service.ILttngControlService;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.service.LTTngControlServiceFactory;
+import org.eclipse.tracecompass.tmf.remote.core.proxy.RemoteSystemProxy;
+import org.eclipse.tracecompass.tmf.remote.core.shell.ICommandShell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.properties.IPropertySource;
 
@@ -80,13 +82,9 @@ public class TargetNodeComponent extends TraceControlComponent implements IRemot
      */
     private Image fDisconnectedImage = null;
     /**
-     * The connection implementation.
-     */
-    private IRemoteConnection fHost = null;
-    /**
      * The remote proxy implementation.
      */
-    private IRemoteSystemProxy fRemoteProxy = null;
+    private @NonNull RemoteSystemProxy fRemoteProxy;
     /**
      * The control service for LTTng specific commands.
      */
@@ -102,34 +100,40 @@ public class TargetNodeComponent extends TraceControlComponent implements IRemot
 
     /**
      * Constructor
-     * @param name - the name of the component
-     * @param parent - the parent of the component
-     * @param host - the host connection implementation
-     * @param proxy - the remote proxy implementation
+     *
+     * @param name
+     *            the name of the component
+     * @param parent
+     *            the parent of the component
+     * @param proxy
+     *            the remote proxy implementation
      */
-    public TargetNodeComponent(String name, ITraceControlComponent parent, IRemoteConnection host, IRemoteSystemProxy proxy) {
+    public TargetNodeComponent(String name, ITraceControlComponent parent, @NonNull RemoteSystemProxy proxy) {
         super(name, parent);
         setImage(TARGET_NODE_CONNECTED_ICON_FILE);
         fDisconnectedImage = Activator.getDefault().loadIcon(TARGET_NODE_DISCONNECTED_ICON_FILE);
-        fHost = host;
         fRemoteProxy = proxy;
-        fRemoteProxy.addConnectionChangeListener(this);
-        setToolTip(fHost.getName());
+        fRemoteProxy.getRemoteConnection().addConnectionChangeListener(this);
+        setToolTip(fRemoteProxy.getRemoteConnection().getName());
     }
 
     /**
      * Constructor (using default proxy)
-     * @param name - the name of the component
-     * @param parent - the parent of the component
-     * @param host - the host connection implementation
+     *
+     * @param name
+     *            the name of the component
+     * @param parent
+     *            the parent of the component
+     * @param host
+     *            the host connection implementation
      */
-    public TargetNodeComponent(String name, ITraceControlComponent parent, IRemoteConnection host) {
-        this(name, parent, host, new RemoteSystemProxy(host));
+    public TargetNodeComponent(String name, ITraceControlComponent parent, @NonNull IRemoteConnection host) {
+        this(name, parent, new RemoteSystemProxy(host));
     }
 
     @Override
     public void dispose() {
-        fRemoteProxy.removeConnectionChangeListener(this);
+        fRemoteProxy.getRemoteConnection().removeConnectionChangeListener(this);
         fRemoteProxy.dispose();
         disposeControlService();
     }
@@ -138,7 +142,7 @@ public class TargetNodeComponent extends TraceControlComponent implements IRemot
         fService = null;
         final ICommandShell shell = fShell;
         if (shell != null) {
-            shell.disconnect();
+            shell.dispose();
             fShell = null;
         }
     }
@@ -185,16 +189,9 @@ public class TargetNodeComponent extends TraceControlComponent implements IRemot
     }
 
     /**
-     * @return the remote connection associated with this node
-     */
-    public IRemoteConnection getRemoteConnection() {
-        return fHost;
-    }
-
-    /**
      * @return remote system proxy implementation
      */
-    public IRemoteSystemProxy getRemoteSystemProxy() {
+    public @NonNull RemoteSystemProxy getRemoteSystemProxy() {
         return fRemoteProxy;
     }
 
@@ -287,22 +284,32 @@ public class TargetNodeComponent extends TraceControlComponent implements IRemot
         return !getControlService().isVersionSupported("2.2.0"); //$NON-NLS-1$
     }
 
+    /**
+     * Checks if given version is supported by this ILTTngControlService implementation.
+     *
+     * @param version The version to check
+     * @return <code>true</code> if version is supported else <code>false</code>
+     */
+    public boolean isVersionSupported(String version) {
+        return getControlService().isVersionSupported(version);
+    }
+
     // ------------------------------------------------------------------------
     // Operations
     // ------------------------------------------------------------------------
 
     @Override
-    public void connectionChanged(IRemoteConnectionChangeEvent e) {
+    public void connectionChanged(RemoteConnectionChangeEvent e) {
         if (fState == TargetNodeState.CONNECTING) {
             return;
         }
 
         switch (e.getType()) {
-        case IRemoteConnectionChangeEvent.CONNECTION_CLOSED:
-        case IRemoteConnectionChangeEvent.CONNECTION_ABORTED:
+        case RemoteConnectionChangeEvent.CONNECTION_CLOSED:
+        case RemoteConnectionChangeEvent.CONNECTION_ABORTED:
             handleDisconnected();
             break;
-        case IRemoteConnectionChangeEvent.CONNECTION_OPENED:
+        case RemoteConnectionChangeEvent.CONNECTION_OPENED:
             handleConnected();
             break;
         default:
@@ -321,7 +328,7 @@ public class TargetNodeComponent extends TraceControlComponent implements IRemot
                     @Override
                     protected IStatus run(IProgressMonitor monitor) {
                         try {
-                            fRemoteProxy.connect(monitor);
+                            fRemoteProxy.connect(checkNotNull(monitor));
                             return Status.OK_STATUS;
                         } catch (Exception e) {
                             return new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.TraceControl_ConnectionFailure, e);
@@ -417,8 +424,9 @@ public class TargetNodeComponent extends TraceControlComponent implements IRemot
     private ILttngControlService createControlService() throws ExecutionException {
         if (fService == null) {
             try {
-                fShell = fRemoteProxy.createCommandShell();
-                fService = LTTngControlServiceFactory.getInstance().getLttngControlService(fShell);
+                ICommandShell shell = fRemoteProxy.createCommandShell();
+                fShell = shell;
+                fService = LTTngControlServiceFactory.getLttngControlService(shell);
             } catch (ExecutionException e) {
                 disposeControlService();
                 throw e;

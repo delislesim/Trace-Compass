@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson, École Polytechnique de Montréal
+ * Copyright (c) 2012, 2015 Ericsson, École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -32,21 +32,26 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
+import org.eclipse.tracecompass.ctf.core.event.CTFCallsite;
 import org.eclipse.tracecompass.ctf.core.event.CTFClock;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.eclipse.tracecompass.ctf.core.trace.CTFTrace;
 import org.eclipse.tracecompass.ctf.core.trace.CTFTraceReader;
+import org.eclipse.tracecompass.ctf.core.trace.Metadata;
 import org.eclipse.tracecompass.internal.tmf.ctf.core.Activator;
+import org.eclipse.tracecompass.internal.tmf.ctf.core.trace.iterator.CtfIterator;
+import org.eclipse.tracecompass.internal.tmf.ctf.core.trace.iterator.CtfIteratorManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfNanoTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfEventParser;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceProperties;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceWithPreDefinedEvents;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
@@ -65,9 +70,7 @@ import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEvent;
 import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEventType;
 import org.eclipse.tracecompass.tmf.ctf.core.event.aspect.CtfChannelAspect;
 import org.eclipse.tracecompass.tmf.ctf.core.event.aspect.CtfCpuAspect;
-import org.eclipse.tracecompass.tmf.ctf.core.timestamp.CtfTmfTimestamp;
-import org.eclipse.tracecompass.tmf.ctf.core.trace.iterator.CtfIterator;
-import org.eclipse.tracecompass.tmf.ctf.core.trace.iterator.CtfIteratorManager;
+import org.eclipse.tracecompass.tmf.ctf.core.event.lookup.CtfTmfCallsite;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -79,7 +82,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Matthew khouzam
  */
 public class CtfTmfTrace extends TmfTrace
-        implements ITmfEventParser, ITmfTraceProperties, ITmfPersistentlyIndexable,
+        implements ITmfTraceProperties, ITmfPersistentlyIndexable,
         ITmfTraceWithPreDefinedEvents, AutoCloseable {
 
     // -------------------------------------------
@@ -93,8 +96,9 @@ public class CtfTmfTrace extends TmfTrace
 
     /**
      * Event aspects available for all CTF traces
+     * @since 1.0
      */
-    private static final @NonNull Collection<ITmfEventAspect> CTF_ASPECTS =
+    protected static final @NonNull Collection<ITmfEventAspect> CTF_ASPECTS =
             checkNotNull(ImmutableList.of(
                     ITmfEventAspect.BaseAspects.TIMESTAMP,
                     new CtfChannelAspect(),
@@ -108,6 +112,7 @@ public class CtfTmfTrace extends TmfTrace
      */
     private static final String CLOCK_HOST_PROPERTY = "uuid"; //$NON-NLS-1$
     private static final int CONFIDENCE = 10;
+    private static final int MIN_CONFIDENCE = 1;
 
     // -------------------------------------------
     // Fields
@@ -186,7 +191,7 @@ public class CtfTmfTrace extends TmfTrace
                     }
                 }
             }
-        } catch (final CTFReaderException e) {
+        } catch (final CTFException e) {
             /*
              * If it failed at the init(), we can assume it's because the file
              * was not found or was not recognized as a CTF trace. Throw into
@@ -194,15 +199,6 @@ public class CtfTmfTrace extends TmfTrace
              */
             throw new TmfTraceException(e.getMessage(), e);
         }
-    }
-
-    /**
-     * Return the iterator manager of this trace
-     *
-     * @return The iterator manager
-     */
-    public CtfIteratorManager getIteratorManager() {
-        return fIteratorManager;
     }
 
     @Override
@@ -222,33 +218,52 @@ public class CtfTmfTrace extends TmfTrace
     /**
      * {@inheritDoc}
      * <p>
-     * The default implementation sets the confidence to 10 if the trace is a
-     * valid CTF trace.
+     * The default implementation of a CTF trace.
+     *
+     * Firstly a weak validation of the metadata is done to determine if the
+     * path is actually for a CTF trace. After that a full validation is done.
+     *
+     * If the weak and full validation are successful the confidence is set
+     * to 10.
+     *
+     * If the weak validation was successful, but the full validation fails
+     * a TraceValidationStatus with severity warning and confidence of 1 is
+     * returned.
+     *
+     * If both weak and full validation fails an error status is returned.
      */
     @Override
     public IStatus validate(final IProject project, final String path) {
-        IStatus status = new TraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID);
+        boolean isMetadataFile = false;
         try {
-            final CTFTrace temp = new CTFTrace(path);
-            if (!temp.majorIsSet()) {
-                status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.CtfTmfTrace_MajorNotSet);
-            } else {
-                try (CTFTraceReader ctfTraceReader = new CTFTraceReader(temp);) {
-                    if (!ctfTraceReader.hasMoreEvents()) {
-                        // TODO: This will need an additional check when we
-                        // support live traces
-                        // because having no event is valid for a live trace
-                        status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.CtfTmfTrace_NoEvent);
-                    }
-                }
-            }
-        } catch (final CTFReaderException e) {
-            status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.CtfTmfTrace_ReadingError + ": " + e.toString()); //$NON-NLS-1$
-        } catch (final BufferOverflowException e) {
-            status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.CtfTmfTrace_ReadingError + ": " + Messages.CtfTmfTrace_BufferOverflowErrorMessage); //$NON-NLS-1$
+            isMetadataFile = Metadata.preValidate(path);
+        } catch (final CTFException e) {
+            return new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.CtfTmfTrace_ReadingError + ": " + e.toString(), e); //$NON-NLS-1$
         }
 
-        return status;
+        if (isMetadataFile) {
+            // Trace is pre-validated, continue will full validation
+            try {
+                final CTFTrace trace = new CTFTrace(path);
+                if (!trace.majorIsSet()) {
+                    if (isMetadataFile) {
+                        return new TraceValidationStatus(MIN_CONFIDENCE, IStatus.WARNING, Activator.PLUGIN_ID, Messages.CtfTmfTrace_MajorNotSet, null);
+                    }
+                    return new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.CtfTmfTrace_MajorNotSet);
+                }
+
+                // Validate using reader initialization
+                try (CTFTraceReader ctfTraceReader = new CTFTraceReader(trace)) {}
+
+                // Trace is validated, return with confidence
+                return new CtfTraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID, trace.getEnvironment());
+
+            } catch (final CTFException | BufferOverflowException e ) {
+                // return warning since it's a CTF trace but with errors in it
+                return new TraceValidationStatus(MIN_CONFIDENCE, IStatus.WARNING, Activator.PLUGIN_ID, Messages.CtfTmfTrace_ReadingError + ": " + e.toString(), e); //$NON-NLS-1$
+            }
+        }
+        return new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.CtfTmfTrace_ReadingError);
     }
 
     @Override
@@ -261,16 +276,12 @@ public class CtfTmfTrace extends TmfTrace
      *
      * @return null, since the trace has no knowledge of the current location
      * @see org.eclipse.tracecompass.tmf.core.trace.ITmfTrace#getCurrentLocation()
-     * @since 3.0
      */
     @Override
     public ITmfLocation getCurrentLocation() {
         return null;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public double getLocationRatio(ITmfLocation location) {
         final CtfLocation curLocation = (CtfLocation) location;
@@ -290,7 +301,6 @@ public class CtfTmfTrace extends TmfTrace
      * @param location
      *            ITmfLocation<?>
      * @return ITmfContext
-     * @since 3.0
      */
     @Override
     public synchronized ITmfContext seekEvent(final ITmfLocation location) {
@@ -311,7 +321,7 @@ public class CtfTmfTrace extends TmfTrace
             context.setRank(0);
         }
         if (currentLocation.getLocationInfo() == CtfLocation.INVALID_LOCATION) {
-            currentLocation = new CtfLocation(getCTFTrace().getCurrentEndTime() + 1, 0L);
+            currentLocation = new CtfLocation(fTrace.getCurrentEndTime() + 1, 0L);
         }
         context.setLocation(currentLocation);
         if (location == null) {
@@ -332,8 +342,8 @@ public class CtfTmfTrace extends TmfTrace
             context.setRank(ITmfContext.UNKNOWN_RANK);
             return context;
         }
-        final long end = getCTFTrace().getCurrentEndTime();
-        final long start = getCTFTrace().getCurrentStartTime();
+        final long end = fTrace.getCurrentEndTime();
+        final long start = fTrace.getCurrentStartTime();
         final long diff = end - start;
         final long ratioTs = Math.round(diff * ratio) + start;
         context.seek(ratioTs);
@@ -373,15 +383,6 @@ public class CtfTmfTrace extends TmfTrace
     }
 
     /**
-     * gets the CTFtrace that this is wrapping
-     *
-     * @return the CTF trace
-     */
-    public CTFTrace getCTFTrace() {
-        return fTrace;
-    }
-
-    /**
      * Ctf traces have a clock with a unique uuid that will be used to identify
      * the host. Traces with the same clock uuid will be known to have been made
      * on the same machine.
@@ -390,7 +391,7 @@ public class CtfTmfTrace extends TmfTrace
      */
     @Override
     public String getHostId() {
-        CTFClock clock = getCTFTrace().getClock();
+        CTFClock clock = fTrace.getClock();
         if (clock != null) {
             String clockHost = (String) clock.getProperty(CLOCK_HOST_PROPERTY);
             if (clockHost != null) {
@@ -400,13 +401,52 @@ public class CtfTmfTrace extends TmfTrace
         return super.getHostId();
     }
 
+    /**
+     * Get the first callsite that matches the event name
+     *
+     * @param eventName The event name to look for
+     * @return The best callsite candidate
+     */
+    public @Nullable CtfTmfCallsite getCallsite(String eventName) {
+        CTFCallsite callsite = fTrace.getCallsite(eventName);
+        if (callsite != null) {
+            return new CtfTmfCallsite(callsite);
+        }
+        return null;
+    }
+
+    /**
+     * Get the closest matching callsite for given event name and instruction
+     * pointer
+     *
+     * @param eventName
+     *            The event name
+     * @param ip
+     *            The instruction pointer
+     * @return The closest matching callsite
+     */
+    public @Nullable CtfTmfCallsite getCallsite(String eventName, long ip) {
+        CTFCallsite calliste = fTrace.getCallsite(eventName, ip);
+        if (calliste != null) {
+            return new CtfTmfCallsite(calliste);
+        }
+        return null;
+    }
+
+    /**
+     * Get the CTF environment variables defined in this CTF trace, in <name,
+     * value> form. This comes from the trace's CTF metadata.
+     *
+     * @return The CTF environment
+     */
+    public Map<String, String> getEnvironment() {
+        return fTrace.getEnvironment();
+    }
+
     // -------------------------------------------
     // ITmfTraceProperties
     // -------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public Map<String, String> getTraceProperties() {
         Map<String, String> properties = new HashMap<>();
@@ -432,9 +472,31 @@ public class CtfTmfTrace extends TmfTrace
     }
 
     /**
-     * Gets the list of declared events
+     * Convert a CTF timestamp in CPU cycles to its equivalent in nanoseconds
+     * for this trace.
      *
-     * @since 3.0
+     * @param cycles
+     *            The timestamp in cycles
+     * @return The timestamp in nanoseconds
+     */
+    public long timestampCyclesToNanos(long cycles) {
+        return fTrace.timestampCyclesToNanos(cycles);
+    }
+
+    /**
+     * Convert a CTF timestamp in nanoseconds to its equivalent in CPU cycles
+     * for this trace.
+     *
+     * @param nanos
+     *            The timestamp in nanoseconds
+     * @return The timestamp in cycles
+     */
+    public long timestampNanoToCycles(long nanos) {
+        return fTrace.timestampNanoToCycles(nanos);
+    }
+
+    /**
+     * Gets the list of declared events
      */
     @Override
     public Set<CtfTmfEventType> getContainedEventTypes() {
@@ -477,22 +539,65 @@ public class CtfTmfTrace extends TmfTrace
     }
 
     // -------------------------------------------
-    // Helpers
+    // CtfIterator factory methods
     // -------------------------------------------
 
     /**
      * Get an iterator to the trace
      *
      * @return an iterator to the trace
-     * @since 2.0
      */
-    public CtfIterator createIterator() {
+    public ITmfContext createIterator() {
         try {
-            return new CtfIterator(this);
-        } catch (CTFReaderException e) {
+            return new CtfIterator(fTrace, this);
+        } catch (CTFException e) {
             Activator.getDefault().logError(e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * Get an iterator to the trace, , which will initially point to the given
+     * location/rank.
+     *
+     * @param ctfLocationData
+     *            The initial timestamp the iterator will be pointing to
+     * @param rank
+     *            The initial rank
+     * @return The new iterator
+     */
+    public ITmfContext createIterator(CtfLocationInfo ctfLocationData, long rank) {
+        try {
+            return new CtfIterator(fTrace, this, ctfLocationData, rank);
+        } catch (CTFException e) {
+            Activator.getDefault().logError(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * Create the 'CtfIterator' object from a CtfTmfContext.
+     *
+     * @param context
+     *            The iterator will initially be pointing to this context
+     * @return A new CtfIterator object
+     * @since 1.0
+     */
+    public ITmfContext createIteratorFromContext(CtfTmfContext context) {
+        return fIteratorManager.getIterator(context);
+    }
+
+    /**
+     * Dispose an iterator that was create with
+     * {@link #createIteratorFromContext}
+     *
+     * @param context
+     *            The last context that was pointed to by the iterator (this is
+     *            the 'key' to find the correct iterator to dispose).
+     * @since 1.0
+     */
+    public void disposeContext(CtfTmfContext context) {
+        fIteratorManager.removeIterator(context);
     }
 
     // ------------------------------------------------------------------------
@@ -500,22 +605,19 @@ public class CtfTmfTrace extends TmfTrace
     // ------------------------------------------------------------------------
 
     /**
-     * @since 3.0
+     * @since 1.0
      */
     @Override
-    public CtfTmfTimestamp createTimestamp(long ts) {
-        return new CtfTmfTimestamp(getTimestampTransform().transform(ts));
+    public @NonNull TmfNanoTimestamp createTimestamp(long ts) {
+        return new TmfNanoTimestamp(getTimestampTransform().transform(ts));
     }
 
     private static int fCheckpointSize = -1;
 
-    /**
-     * @since 3.0
-     */
     @Override
     public synchronized int getCheckpointSize() {
         if (fCheckpointSize == -1) {
-            TmfCheckpoint c = new TmfCheckpoint(new CtfTmfTimestamp(0), new CtfLocation(0, 0), 0);
+            TmfCheckpoint c = new TmfCheckpoint(new TmfNanoTimestamp(0), new CtfLocation(0, 0), 0);
             ByteBuffer b = ByteBuffer.allocate(ITmfCheckpoint.MAX_SERIALIZE_SIZE);
             b.clear();
             c.serialize(b);
@@ -530,9 +632,6 @@ public class CtfTmfTrace extends TmfTrace
         return new TmfBTreeTraceIndexer(this, interval);
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public ITmfLocation restoreLocation(ByteBuffer bufferIn) {
         return new CtfLocation(bufferIn);

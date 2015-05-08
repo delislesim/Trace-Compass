@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -21,7 +21,7 @@ import org.eclipse.tracecompass.internal.tmf.core.statesystem.mipmap.TmfStateSys
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.StateSystemFactory;
 import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.InMemoryBackend;
+import org.eclipse.tracecompass.statesystem.core.backend.StateHistoryBackendFactory;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
@@ -52,14 +52,16 @@ public class TmfMipmapStateProviderWeightedTest {
     public static void init() {
         /* setup for INTEGER test */
         TmfMipmapStateProviderStub mmpi = new TmfMipmapStateProviderStub(RESOLUTION, Type.INTEGER);
-        IStateHistoryBackend bei = new InMemoryBackend(0);
-        ssqi = StateSystemFactory.newStateSystem(SSID, bei);
-        mmpi.assignTargetStateSystem(ssqi);
+        IStateHistoryBackend bei = StateHistoryBackendFactory.createInMemoryBackend(SSID, 0);
+        ITmfStateSystemBuilder ssbi = StateSystemFactory.newStateSystem(bei);
+        mmpi.assignTargetStateSystem(ssbi);
+        ssqi = ssbi;
         /* setup for DOUBLE test */
         TmfMipmapStateProviderStub mmpd = new TmfMipmapStateProviderStub(RESOLUTION, Type.DOUBLE);
-        IStateHistoryBackend bed = new InMemoryBackend(0);
-        ssqd = StateSystemFactory.newStateSystem(SSID, bed);
-        mmpd.assignTargetStateSystem(ssqd);
+        IStateHistoryBackend bed = StateHistoryBackendFactory.createInMemoryBackend(SSID, 0);
+        ITmfStateSystemBuilder ssbd = StateSystemFactory.newStateSystem(bed);
+        mmpd.assignTargetStateSystem(ssbd);
+        ssqd = ssbd;
         /*
          * Every 10,000 ns chunk contains the following states:
          *

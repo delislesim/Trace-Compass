@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -22,10 +22,9 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        TestCustomTxtWizard.class,
-        TestCustomXmlWizard.class,
-        TracingPerspectiveChecker.class,
-        org.eclipse.tracecompass.tmf.ui.swtbot.tests.table.AllTests.class
+        org.eclipse.tracecompass.tmf.ui.swtbot.tests.parsers.custom.AllTests.class,
+        org.eclipse.tracecompass.tmf.ui.swtbot.tests.perspectives.TracingPerspectiveChecker.class,
+        org.eclipse.tracecompass.tmf.ui.swtbot.tests.viewers.events.AllTests.class
 })
 public class AllTmfUISWTBotTests {
 }

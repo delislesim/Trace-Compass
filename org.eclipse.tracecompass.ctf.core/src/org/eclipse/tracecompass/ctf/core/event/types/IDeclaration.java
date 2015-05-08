@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -13,10 +13,10 @@
 package org.eclipse.tracecompass.ctf.core.event.types;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
-import org.eclipse.tracecompass.ctf.core.event.scope.LexicalScope;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
+import org.eclipse.tracecompass.ctf.core.event.scope.ILexicalScope;
 
 /**
  * A CTF data type declaration.
@@ -44,11 +44,10 @@ public interface IDeclaration {
      * @param input
      *            a bitbuffer to read from
      * @return a reference to the definition
-     * @throws CTFReaderException
+     * @throws CTFException
      *             error in reading
-     * @since 3.0
      */
-    Definition createDefinition(IDefinitionScope definitionScope, @NonNull String fieldName, @NonNull BitBuffer input) throws CTFReaderException;
+    Definition createDefinition(IDefinitionScope definitionScope, @NonNull String fieldName, @NonNull BitBuffer input) throws CTFException;
 
     /**
      * Get the path of a definition
@@ -58,9 +57,9 @@ public interface IDeclaration {
      * @param fieldName
      *            the name of the definition
      * @return the path of the definition
-     * @since 3.0
+     * @since 1.0
      */
-    @NonNull LexicalScope getPath(IDefinitionScope definitionScope, @NonNull String fieldName);
+    @NonNull ILexicalScope getPath(IDefinitionScope definitionScope, @NonNull String fieldName);
 
     /**
      * The minimum alignment. if the field is 32 bits, the definition will pad
@@ -71,10 +70,9 @@ public interface IDeclaration {
     long getAlignment();
 
     /**
-     * The MAXIMUM size of this declaration
+     * The MAXIMUM size of this declaration (in bits).
      *
      * @return the maximum size
-     * @since 3.0
      */
     int getMaximumSize();
 

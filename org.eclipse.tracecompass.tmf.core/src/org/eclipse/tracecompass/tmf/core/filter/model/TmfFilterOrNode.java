@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2012 Ericsson
+ * Copyright (c) 2010, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -20,10 +20,11 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
  * @version 1.0
  * @author Patrick Tasse
  */
-@SuppressWarnings("javadoc")
 public class TmfFilterOrNode extends TmfFilterTreeNode {
 
+    /** or node name */
     public static final String NODE_NAME = "OR"; //$NON-NLS-1$
+    /** not attribute name */
     public static final String NOT_ATTR = "not"; //$NON-NLS-1$
 
     private boolean fNot = false;
@@ -65,7 +66,7 @@ public class TmfFilterOrNode extends TmfFilterTreeNode {
     }
 
     @Override
-    public String toString() {
+    public String toString(boolean explicit) {
         StringBuffer buf = new StringBuffer();
         if (fNot) {
             buf.append("not "); //$NON-NLS-1$
@@ -75,7 +76,7 @@ public class TmfFilterOrNode extends TmfFilterTreeNode {
         }
         for (int i = 0; i < getChildrenCount(); i++) {
             ITmfFilterTreeNode node = getChildren()[i];
-            buf.append(node.toString());
+            buf.append(node.toString(explicit));
             if (i < getChildrenCount() - 1) {
                 buf.append(" or "); //$NON-NLS-1$
             }
@@ -84,31 +85,5 @@ public class TmfFilterOrNode extends TmfFilterTreeNode {
             buf.append(" )"); //$NON-NLS-1$
         }
         return buf.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (fNot ? 1231 : 1237);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!super.equals(obj)) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        TmfFilterOrNode other = (TmfFilterOrNode) obj;
-        if (fNot != other.fNot) {
-            return false;
-        }
-        return true;
     }
 }

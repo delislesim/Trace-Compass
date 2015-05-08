@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -23,7 +23,7 @@ import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.StateSystemFactory;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
 import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.InMemoryBackend;
+import org.eclipse.tracecompass.statesystem.core.backend.StateHistoryBackendFactory;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
@@ -42,7 +42,6 @@ public class StateSystemUtilsTest {
 
     private static final long START_TIME = 1000L;
     private static final @NonNull String DUMMY_STRING = "test";
-    private static final int INT_VAL = 10;
 
     private ITmfStateSystemBuilder fStateSystem;
 
@@ -52,11 +51,11 @@ public class StateSystemUtilsTest {
     @Before
     public void setupStateSystem() {
         try {
-            IStateHistoryBackend backend = new InMemoryBackend(START_TIME);
-            fStateSystem = StateSystemFactory.newStateSystem(DUMMY_STRING, backend);
+            IStateHistoryBackend backend = StateHistoryBackendFactory.createInMemoryBackend(DUMMY_STRING, START_TIME);
+            fStateSystem = StateSystemFactory.newStateSystem(backend);
             int quark = fStateSystem.getQuarkAbsoluteAndAdd(DUMMY_STRING);
 
-            fStateSystem.modifyAttribute(1200L, TmfStateValue.newValueInt(INT_VAL), quark);
+            fStateSystem.modifyAttribute(1200L, TmfStateValue.newValueInt(10), quark);
             fStateSystem.modifyAttribute(1500L, TmfStateValue.newValueInt(20), quark);
             fStateSystem.closeHistory(2000L);
         } catch (StateValueTypeException | AttributeNotFoundException e) {
@@ -101,15 +100,27 @@ public class StateSystemUtilsTest {
             ITmfStateInterval interval = StateSystemUtils.queryUntilNonNullValue(ss, quark, 1000L, 1300L);
             assertNotNull(interval);
             assertEquals(ITmfStateValue.Type.INTEGER, interval.getStateValue().getType());
-            assertEquals(INT_VAL, interval.getStateValue().unboxInt());
+            assertEquals(10, interval.getStateValue().unboxInt());
 
             interval = StateSystemUtils.queryUntilNonNullValue(ss, quark, 800L, 2500L);
             assertNotNull(interval);
             assertEquals(ITmfStateValue.Type.INTEGER, interval.getStateValue().getType());
-            assertEquals(INT_VAL, interval.getStateValue().unboxInt());
+            assertEquals(10, interval.getStateValue().unboxInt());
 
-            interval = StateSystemUtils.queryUntilNonNullValue(ss, quark, 1500L, 2500L);
-            assertNull(interval);
+            interval = StateSystemUtils.queryUntilNonNullValue(ss, quark, 1300L, 1800L);
+            assertNotNull(interval);
+            assertEquals(ITmfStateValue.Type.INTEGER, interval.getStateValue().getType());
+            assertEquals(10, interval.getStateValue().unboxInt());
+
+            interval = StateSystemUtils.queryUntilNonNullValue(ss, quark, 1500L, 1800L);
+            assertNotNull(interval);
+            assertEquals(ITmfStateValue.Type.INTEGER, interval.getStateValue().getType());
+            assertEquals(20, interval.getStateValue().unboxInt());
+
+            interval = StateSystemUtils.queryUntilNonNullValue(ss, quark, 1800L, 2500L);
+            assertNotNull(interval);
+            assertEquals(ITmfStateValue.Type.INTEGER, interval.getStateValue().getType());
+            assertEquals(20, interval.getStateValue().unboxInt());
 
         } catch (AttributeNotFoundException e) {
             fail(e.getMessage());

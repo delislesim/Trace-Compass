@@ -4,7 +4,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <version>0.1.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <artifactId>tracing</artifactId>
     <packaging>eclipse-repository</packaging>
     <name>Trace Compass RCP Product</name>
@@ -12,7 +12,7 @@
     <parent>
       <artifactId>org.eclipse.tracecompass</artifactId>
       <groupId>org.eclipse.tracecompass</groupId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -51,7 +51,7 @@
                 <configuration>
                     <products>
                         <product>
-                            <archiveFileName>trace-compass-${project.version}-${build.timestamp}</archiveFileName>
+                            <archiveFileName>trace-compass-${unqualifiedVersion}-${build.timestamp}</archiveFileName>
                             <id>${productId}</id>
                             <rootFolder>trace-compass</rootFolder>
                         </product>
@@ -61,12 +61,13 @@
         </plugins>
     </build>
 
+  <!-- Deploy RCP builds and update site to the downloads area -->
   <profiles>
     <profile>
       <id>deploy-rcp</id>
       <properties>
-        <rcpDestination>/home/data/httpd/download.eclipse.org/tracecompass/rcp/nightly/</rcpDestination>
-        <productDir>target/products</productDir> <!-- Should not be overriden! -->
+        <rcpDestination>/home/data/httpd/download.eclipse.org/tracecompass/master/rcp/</rcpDestination>
+        <rcpSiteDestination>/home/data/httpd/download.eclipse.org/tracecompass/master/rcp-repository/</rcpSiteDestination>
       </properties>
       <build>
         <plugins>
@@ -81,18 +82,29 @@
                 </goals>
                 <configuration>
                   <target>
-                    <!-- Delete the current contents of the destination -->
+                    <!-- Cleanup the "rcp" destination, and copy over the new archives -->
                     <delete includeemptydirs="false">
                       <fileset dir="${rcpDestination}">
                         <include name="*.tar.gz" />
                         <include name="*.zip" />
                       </fileset>
                     </delete>
-
-                    <!-- Copy the new archives to the destination -->
                     <copy includeemptydirs="false" todir="${rcpDestination}">
-                      <fileset dir="${productDir}">
+                      <fileset dir="target/products">
                         <include name="trace-compass-*" />
+                      </fileset>
+                    </copy>
+
+                    <!-- Cleanup the "rcp-repository" update site, and copy over the new one -->
+                    <delete includeemptydirs="false">
+                      <fileset
+                        dir="${rcpSiteDestination}">
+                        <include name="**" />
+                      </fileset>
+                    </delete>
+                    <copy includeemptydirs="false" todir="${rcpSiteDestination}">
+                      <fileset dir="target/repository">
+                        <include name="**" />
                       </fileset>
                     </copy>
                   </target>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.types.Encoding;
 import org.eclipse.tracecompass.ctf.core.event.types.EnumDeclaration;
@@ -32,7 +33,6 @@ import org.eclipse.tracecompass.ctf.core.event.types.StringDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.VariantDeclaration;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.eclipse.tracecompass.internal.ctf.core.event.types.ArrayDeclaration;
 import org.eclipse.tracecompass.internal.ctf.core.event.types.SequenceDeclaration;
 import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEventField;
@@ -77,11 +77,11 @@ public class CtfTmfEventFieldTest {
      *
      * @throws UnsupportedEncodingException
      *             Thrown when UTF-8 encoding is not available.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             error
      */
     @Before
-    public void setUp() throws UnsupportedEncodingException, CTFReaderException {
+    public void setUp() throws UnsupportedEncodingException, CTFException {
         final byte[] testStringBytes = TEST_STRING.getBytes("UTF-8");
 
         int capacity = 2048;

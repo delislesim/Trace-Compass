@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -20,7 +20,6 @@ import org.eclipse.tracecompass.ctf.core.event.types.Definition;
  * @version 1.0
  * @author Matthew Khouzam
  * @author Simon Marchi
- * @since 3.0
  */
 public interface IDefinitionScope {
 
@@ -28,9 +27,9 @@ public interface IDefinitionScope {
      * Gets the path in a C style for the scope.
      *
      * @return the path
-     * @since 3.0
+     * @since 1.0
      */
-    LexicalScope getScopePath();
+    ILexicalScope getScopePath();
 
     /**
      * Looks up in this definition scope.

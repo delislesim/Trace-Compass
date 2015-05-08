@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -21,7 +21,7 @@ import java.io.File;
 import org.eclipse.test.performance.Dimension;
 import org.eclipse.test.performance.Performance;
 import org.eclipse.test.performance.PerformanceMeter;
-import org.eclipse.tracecompass.lttng2.kernel.core.analysis.kernel.LttngKernelAnalysis;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelAnalysisModule;
 import org.eclipse.tracecompass.lttng2.kernel.core.trace.LttngKernelTrace;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
@@ -65,7 +65,7 @@ public class AnalysisBenchmark {
         for (int i = 0; i < LOOP_COUNT; i++) {
             IAnalysisModule module = null;
             try (LttngKernelTrace trace = new LttngKernelTrace()) {
-                module = new LttngKernelAnalysis();
+                module = new KernelAnalysisModule();
                 module.setId("test");
                 trace.initTrace(null, testTrace.getPath(), CtfTmfEvent.class);
                 module.setTrace(trace);

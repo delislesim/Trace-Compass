@@ -19,11 +19,11 @@ import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
 import org.eclipse.tracecompass.internal.ctf.core.Activator;
-import org.eclipse.tracecompass.internal.ctf.core.trace.StreamInputPacketIndexEntry;
 
 import com.google.common.collect.ImmutableList;
 
@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableList;
  *
  * @author Matthew Khouzam
  * @author Simon Marchi
- * @since 3.0
  */
 public class CTFStreamInputReader implements AutoCloseable {
 
@@ -82,10 +81,10 @@ public class CTFStreamInputReader implements AutoCloseable {
      *
      * @param streamInput
      *            The StreamInput to read.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             If the file cannot be opened
      */
-    public CTFStreamInputReader(CTFStreamInput streamInput) throws CTFReaderException {
+    public CTFStreamInputReader(CTFStreamInput streamInput) throws CTFException {
         if (streamInput == null) {
             throw new IllegalArgumentException("stream cannot be null"); //$NON-NLS-1$
         }
@@ -94,7 +93,7 @@ public class CTFStreamInputReader implements AutoCloseable {
         try {
             fFileChannel = FileChannel.open(fFile.toPath(), StandardOpenOption.READ);
         } catch (IOException e) {
-            throw new CTFReaderException(e);
+            throw new CTFIOException(e);
         }
         fPacketReader = new CTFStreamInputPacketReader(this);
         /*
@@ -232,16 +231,16 @@ public class CTFStreamInputReader implements AutoCloseable {
      * Reads the next event in the current event variable.
      *
      * @return If an event has been successfully read.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public CTFResponse readNextEvent() throws CTFReaderException {
+    public CTFResponse readNextEvent() throws CTFException {
 
         /*
          * Change packet if needed
          */
         if (!fPacketReader.hasMoreEvents()) {
-            final StreamInputPacketIndexEntry prevPacket = fPacketReader
+            final ICTFPacketDescriptor prevPacket = fPacketReader
                     .getCurrentPacket();
             if (prevPacket != null || fLive) {
                 goToNextPacket();
@@ -263,10 +262,10 @@ public class CTFStreamInputReader implements AutoCloseable {
     /**
      * Change the current packet of the packet reader to the next one.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    private void goToNextPacket() throws CTFReaderException {
+    private void goToNextPacket() throws CTFException {
         fPacketIndex++;
         // did we already index the packet?
         if (getPacketSize() >= (fPacketIndex + 1)) {
@@ -287,7 +286,7 @@ public class CTFStreamInputReader implements AutoCloseable {
      * @return
      */
     private int getPacketSize() {
-        return fStreamInput.getIndex().getEntries().size();
+        return fStreamInput.getIndex().size();
     }
 
     /**
@@ -297,10 +296,10 @@ public class CTFStreamInputReader implements AutoCloseable {
      * @param timestamp
      *            The timestamp to seek to.
      * @return The offset compared to the current position
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public long seek(long timestamp) throws CTFReaderException {
+    public long seek(long timestamp) throws CTFException {
         long offset = 0;
 
         gotoPacket(timestamp);
@@ -313,7 +312,7 @@ public class CTFStreamInputReader implements AutoCloseable {
             try {
                 fStreamInput.addPacketHeaderIndex();
                 goToNextPacket();
-            } catch (CTFReaderException e) {
+            } catch (CTFException e) {
                 // do nothing here
                 Activator.log(e.getMessage());
             }
@@ -344,10 +343,10 @@ public class CTFStreamInputReader implements AutoCloseable {
     /**
      * @param timestamp
      *            the time to seek
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    private void gotoPacket(long timestamp) throws CTFReaderException {
+    private void gotoPacket(long timestamp) throws CTFException {
         fPacketIndex = fStreamInput.getIndex().search(timestamp)
                 .previousIndex();
         /*
@@ -359,34 +358,47 @@ public class CTFStreamInputReader implements AutoCloseable {
     /**
      * Seeks the last event of a stream and returns it.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public void goToLastEvent() throws CTFReaderException {
-        /*
-         * Search in the index for the packet to search in.
-         */
-        final int len = fStreamInput.getIndex().getEntries().size();
+    public void goToLastEvent() throws CTFException {
 
         /*
-         * Go to beginning of trace.
+         * Go to the beginning of the trace
          */
         seek(0);
+
         /*
-         * if the trace is empty.
+         * Check that there is at least one event
          */
-        if ((len == 0) || (!fPacketReader.hasMoreEvents())) {
+        if ((fStreamInput.getIndex().isEmpty()) || (!fPacketReader.hasMoreEvents())) {
             /*
              * This means the trace is empty. abort.
              */
             return;
         }
+
+        fPacketIndex = fStreamInput.getIndex().size() - 1;
+        /*
+         * Go to last indexed packet
+         */
+        fPacketReader.setCurrentPacket(getPacket());
+
+        /*
+         * Keep going until you cannot
+         */
+        while (fPacketReader.getCurrentPacket() != null) {
+            goToNextPacket();
+        }
+
+        final int lastPacketIndex = fStreamInput.getIndex().size() - 1;
         /*
          * Go to the last packet that contains events.
          */
-        for (int pos = len - 1; pos > 0; pos--) {
+        for (int pos = lastPacketIndex; pos > 0; pos--) {
             fPacketIndex = pos;
             fPacketReader.setCurrentPacket(getPacket());
+
             if (fPacketReader.hasMoreEvents()) {
                 break;
             }
@@ -438,8 +450,8 @@ public class CTFStreamInputReader implements AutoCloseable {
         return fPacketIndex;
     }
 
-    private StreamInputPacketIndexEntry getPacket() {
-        return fStreamInput.getIndex().getEntries().get(getPacketIndex());
+    private ICTFPacketDescriptor getPacket() {
+        return fStreamInput.getIndex().getElement(getPacketIndex());
     }
 
     /**

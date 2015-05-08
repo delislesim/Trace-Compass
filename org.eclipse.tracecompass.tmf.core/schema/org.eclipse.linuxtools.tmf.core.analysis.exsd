@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.linuxtools.tmf.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.linuxtools.tmf.core" id="org.eclipse.linuxtools.tmf.core.analysis" name="Trace Analysis Module"/>
+         <meta.schema plugin="org.eclipse.linuxtools.tmf.core" id="analysis" name="Trace Analysis Module"/>
       </appinfo>
       <documentation>
          This extension point is used to contribute new analysis modules to the TMF framework.  Analysis modules provide new independent functionalities that can be run on traces.
@@ -75,7 +75,7 @@
                   The fully qualified name of a class that implements the &lt;samp&gt;IAnalysisModule&lt;/samp&gt; interface.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.linuxtools.tmf.core.analysis.IAnalysisModule"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -93,6 +93,13 @@
             <annotation>
                <documentation>
                   Whether to execute this analysis automatically when trace is opened, or wait for the user to ask for it
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="applies_experiment" type="boolean">
+            <annotation>
+               <documentation>
+                  If true, indicate that an instance of this analysis will also be added to an experiment containing one or more trace(s) it applies to. In this case, the analysis will be run on the full experiment and the result is more than just the aggregation of each trace's analysis (default false).
                </documentation>
             </annotation>
          </attribute>
@@ -136,7 +143,7 @@
                   The base trace class this analysis applies to or not (it also applies to traces extending this class).
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.linuxtools.tmf.core.trace.ITmfTrace"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.tracecompass.tmf.core.trace.ITmfTrace"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -163,7 +170,7 @@
                   The fully qualified name of a class that implements the &lt;samp&gt;IAnalysisModuleSource&lt;/samp&gt; interface.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.linuxtools.tmf.core.analysis.IAnalysisModuleSource"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleSource"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -187,7 +194,7 @@
                   The class of this output.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.linuxtools.tmf.core.analysis.IAnalysisOutput"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.tracecompass.tmf.core.analysis.IAnalysisOutput"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -234,7 +241,7 @@
                   The module class or interface the modules need to extend or implement for this output to be applicable.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.linuxtools.tmf.core.analysis.IAnalysisModule"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule"/>
                </appinfo>
             </annotation>
          </attribute>

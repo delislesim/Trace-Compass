@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -13,19 +13,17 @@
 
 package org.eclipse.tracecompass.tmf.ctf.core.context;
 
+import org.eclipse.tracecompass.internal.tmf.ctf.core.trace.iterator.CtfIterator;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
 import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEvent;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
-import org.eclipse.tracecompass.tmf.ctf.core.trace.iterator.CtfIterator;
 
 /**
  * Lightweight Context for CtfTmf traces. Should only use 3 references, 1 ref to
  * a boxed Long, a long and an int.
  *
  * @author Matthew Khouzam
- * @version 1.0
- * @since 2.0
  */
 public class CtfTmfContext implements ITmfContext {
 
@@ -47,7 +45,6 @@ public class CtfTmfContext implements ITmfContext {
      *
      * @param ctfTmfTrace
      *            the parent trace
-     * @since 1.1
      */
     public CtfTmfContext(CtfTmfTrace ctfTmfTrace) {
         fTrace = ctfTmfTrace;
@@ -63,9 +60,6 @@ public class CtfTmfContext implements ITmfContext {
         return fCurRank;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public synchronized ITmfLocation getLocation() {
         return fCurLocation;
@@ -76,9 +70,6 @@ public class CtfTmfContext implements ITmfContext {
         return fCurRank != CtfLocation.INVALID_LOCATION.getTimestamp();
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public synchronized void setLocation(ITmfLocation location) {
         fCurLocation = (CtfLocation) location;
@@ -149,7 +140,7 @@ public class CtfTmfContext implements ITmfContext {
 
     @Override
     public void dispose() {
-        fTrace.getIteratorManager().removeIterator(this);
+        fTrace.disposeContext(this);
     }
 
     /**
@@ -170,7 +161,6 @@ public class CtfTmfContext implements ITmfContext {
      *              unique location to find the event.
      *
      * @return success or not
-     * @since 2.0
      */
     public synchronized boolean seek(final CtfLocationInfo location) {
         fCurLocation = new CtfLocation(location);
@@ -188,6 +178,6 @@ public class CtfTmfContext implements ITmfContext {
      * @return an iterator
      */
     private CtfIterator getIterator() {
-        return fTrace.getIteratorManager().getIterator(this);
+        return (CtfIterator) fTrace.createIteratorFromContext(this);
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 import org.eclipse.tracecompass.internal.tmf.pcap.ui.NetworkingPerspectiveFactory;
 import org.eclipse.tracecompass.internal.tmf.pcap.ui.stream.StreamListView;
-import org.eclipse.tracecompass.tmf.ui.swtbot.tests.AbstractPerspectiveChecker;
+import org.eclipse.tracecompass.tmf.ui.swtbot.tests.shared.AbstractPerspectiveChecker;
 import org.eclipse.tracecompass.tmf.ui.views.colors.ColorsView;
 import org.eclipse.tracecompass.tmf.ui.views.filter.FilterView;
 import org.eclipse.tracecompass.tmf.ui.views.histogram.HistogramView;

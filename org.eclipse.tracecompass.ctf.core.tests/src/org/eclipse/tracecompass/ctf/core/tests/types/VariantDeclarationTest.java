@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.nio.ByteBuffer;
 
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
 import org.eclipse.tracecompass.ctf.core.event.types.Definition;
@@ -34,7 +35,6 @@ import org.eclipse.tracecompass.ctf.core.event.types.StructDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.VariantDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.VariantDefinition;
 import org.eclipse.tracecompass.ctf.core.tests.shared.CtfTestTrace;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,7 +61,7 @@ public class VariantDeclarationTest {
         fixture = new VariantDeclaration();
     }
 
-    private static IDefinitionScope createDefinitionScope() throws CTFReaderException {
+    private static IDefinitionScope createDefinitionScope() throws CTFException {
         assumeTrue(testTrace.exists());
         StructDeclaration declaration = new StructDeclaration(8);
         VariantDeclaration variantDeclaration = new VariantDeclaration();
@@ -133,11 +133,11 @@ public class VariantDeclarationTest {
      * Run the VariantDefinition createDefinition(DefinitionScope,String) method
      * test.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             Should not happen
      */
     @Test
-    public void testCreateDefinition() throws CTFReaderException {
+    public void testCreateDefinition() throws CTFException {
         fixture.setTag("tag");
         fixture.addField("a", IntegerDeclaration.UINT_64B_DECL);
         IDefinitionScope definitionScope = createDefinitionScope();
@@ -214,8 +214,14 @@ public class VariantDeclarationTest {
      */
     @Test
     public void hashcodeTest() {
-        assertEquals(923521, fixture.hashCode());
-        assertEquals(fixture.hashCode(), new VariantDeclaration().hashCode());
+        VariantDeclaration a = new VariantDeclaration();
+        assertEquals(fixture.hashCode(), a.hashCode());
+
+        VariantDeclaration b = new VariantDeclaration();
+        b.addField("hi", StringDeclaration.getStringDeclaration(Encoding.UTF8));
+        VariantDeclaration c = new VariantDeclaration();
+        c.addField("hi", StringDeclaration.getStringDeclaration(Encoding.UTF8));
+        assertEquals(b.hashCode(), c.hashCode());
     }
 
     /**

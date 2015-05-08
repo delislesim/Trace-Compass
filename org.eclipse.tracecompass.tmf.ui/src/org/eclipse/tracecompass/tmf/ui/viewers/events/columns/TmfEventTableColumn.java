@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,10 +12,9 @@
 
 package org.eclipse.tracecompass.tmf.ui.viewers.events.columns;
 
-import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
 
@@ -31,7 +30,6 @@ import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
  * @author Alexandre Montplaisir
  * @noextend This class should not be extended directly. You should instead
  *           implement an {@link ITmfEventAspect}.
- * @since 3.1
  */
 @NonNullByDefault
 public class TmfEventTableColumn {
@@ -89,7 +87,7 @@ public class TmfEventTableColumn {
      * @return The string to display in the column for this event
      */
     public String getItemString(ITmfEvent event) {
-        return checkNotNull(fAspect.resolve(event).toString());
+        return NonNullUtils.nullToEmptyString(fAspect.resolve(event));
     }
 
     /**

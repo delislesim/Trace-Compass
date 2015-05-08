@@ -19,7 +19,7 @@
 
   <groupId>org.eclipse.tracecompass</groupId>
   <artifactId>org.eclipse.tracecompass</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Trace Compass Parent</name>
 
@@ -40,18 +40,27 @@
 <properties>
   <base.test.vmargs>-Xms256m -Xmx1024m -XX:MaxPermSize=256m</base.test.vmargs>
   <tycho-version>0.22.0</tycho-version>
-  <target-platform>tracecompass-e4.4</target-platform>
+  <tycho-extras-version>0.22.0</tycho-extras-version>
+  <tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tracecompass/org.eclipse.tracecompass.git</tycho.scmUrl>
+  <target-platform>tracecompass-eStaging</target-platform>
   <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
   <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
   <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
   <sonar.java.source>1.7</sonar.java.source>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  <help-docs-eclipserun-repo>http://download.eclipse.org/eclipse/updates/4.4</help-docs-eclipserun-repo>
+  <!-- Disable GTK3 because it's not quite usable yet and it can make the tests hang (bug in IcedTea http://icedtea.classpath.org/bugzilla/show_bug.cgi?id=1736) -->
+  <SWT_GTK3>0</SWT_GTK3>
 </properties>
 
 <pluginRepositories>
   <pluginRepository>
     <id>repo.eclipse.org</id>
     <url>https://repo.eclipse.org/content/groups/releases/</url>
+  </pluginRepository>
+  <pluginRepository>
+    <id>cbi-snapshots</id>
+    <url>https://repo.eclipse.org/content/repositories/cbi-snapshots/</url>
   </pluginRepository>
   <pluginRepository>
     <id>tycho-snapshots</id>
@@ -76,16 +85,44 @@
     <build>
       <plugins>
         <plugin>
+          <groupId>org.eclipse.tycho.extras</groupId>
+          <artifactId>tycho-pack200a-plugin</artifactId>
+          <version>${tycho-extras-version}</version>
+          <executions>
+            <execution>
+              <id>pack200-normalize</id>
+              <goals>
+                <goal>normalize</goal>
+              </goals>
+              <phase>package</phase>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
           <groupId>org.eclipse.cbi.maven.plugins</groupId>
           <artifactId>eclipse-jarsigner-plugin</artifactId>
-          <version>1.1.1</version>
+          <version>1.1.2-SNAPSHOT</version>
           <executions>
             <execution>
               <id>sign</id>
-              <phase>install</phase>
+              <phase>package</phase>
               <goals>
                 <goal>sign</goal>
               </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.tycho.extras</groupId>
+          <artifactId>tycho-pack200b-plugin</artifactId>
+          <version>${tycho-extras-version}</version>
+          <executions>
+            <execution>
+              <id>pack200-pack</id>
+              <goals>
+                <goal>pack</goal>
+              </goals>
+              <phase>package</phase>
             </execution>
           </executions>
         </plugin>
@@ -124,7 +161,9 @@
 </profiles>
 
   <modules>
+    <module>doc</module>
     <module>org.eclipse.tracecompass.common.core</module>
+    <module>org.eclipse.tracecompass.common.core.tests</module>
 
     <module>org.eclipse.tracecompass.btf</module>
     <module>org.eclipse.tracecompass.btf.core</module>
@@ -149,7 +188,6 @@
     <module>org.eclipse.tracecompass.tmf.ui</module>
     <module>org.eclipse.tracecompass.tmf.ui.tests</module>
     <module>org.eclipse.tracecompass.tmf.ui.swtbot.tests</module>
-    <module>org.eclipse.tracecompass.tmf.help</module>
 
     <module>org.eclipse.tracecompass.tmf.ctf</module>
     <module>org.eclipse.tracecompass.tmf.ctf.core</module>
@@ -161,17 +199,27 @@
     <module>org.eclipse.tracecompass.tmf.pcap.core.tests</module>
     <module>org.eclipse.tracecompass.tmf.pcap.ui</module>
     <module>org.eclipse.tracecompass.tmf.pcap.ui.swtbot.tests</module>
-    <module>org.eclipse.tracecompass.tmf.pcap.help</module>
 
     <module>org.eclipse.tracecompass.tmf.analysis.xml.core</module>
     <module>org.eclipse.tracecompass.tmf.analysis.xml.core.tests</module>
     <module>org.eclipse.tracecompass.tmf.analysis.xml.ui</module>
     <module>org.eclipse.tracecompass.tmf.analysis.xml.ui.tests</module>
 
-    <module>org.eclipse.tracecompass.help</module>
+    <module>org.eclipse.tracecompass.tmf.remote</module>
+    <module>org.eclipse.tracecompass.tmf.remote.core</module>
+    <module>org.eclipse.tracecompass.tmf.remote.core.tests</module>
+    <module>org.eclipse.tracecompass.tmf.remote.ui</module>
+    <module>org.eclipse.tracecompass.tmf.remote.ui.swtbot.tests</module>
+
+    <module>org.eclipse.tracecompass.tmf.remote.ui.tests</module>
+
     <module>org.eclipse.tracecompass.releng-site</module>
     <module>org.eclipse.tracecompass.target</module>
     <module>org.eclipse.tracecompass.testing</module>
+
+    <module>org.eclipse.tracecompass.analysis.os.linux.core</module>
+    <module>org.eclipse.tracecompass.analysis.os.linux.core.tests</module>
+    <module>org.eclipse.tracecompass.analysis.os.linux.ui</module>
 
     <module>org.eclipse.tracecompass.lttng2.control</module>
     <module>org.eclipse.tracecompass.lttng2.control.core</module>
@@ -183,7 +231,6 @@
     <module>org.eclipse.tracecompass.lttng2.kernel.core</module>
     <module>org.eclipse.tracecompass.lttng2.kernel.core.tests</module>
     <module>org.eclipse.tracecompass.lttng2.kernel.ui</module>
-    <module>org.eclipse.tracecompass.lttng2.kernel.ui.tests</module>
     <module>org.eclipse.tracecompass.lttng2.kernel.ui.swtbot.tests</module>
 
     <module>org.eclipse.tracecompass.lttng2.ust</module>
@@ -197,12 +244,10 @@
     <module>org.eclipse.tracecompass.gdbtrace.core.tests</module>
     <module>org.eclipse.tracecompass.gdbtrace.ui</module>
     <module>org.eclipse.tracecompass.gdbtrace.ui.tests</module>
-    <module>org.eclipse.tracecompass.gdbtrace.help</module>
 
     <module>org.eclipse.tracecompass.rcp.branding</module>
     <module>org.eclipse.tracecompass.rcp.branding.feature</module>
     <module>org.eclipse.tracecompass.rcp</module>
-    <module>org.eclipse.tracecompass.rcp.help</module>
     <module>org.eclipse.tracecompass.rcp.ui</module>
 
     <module>org.eclipse.tracecompass.examples</module>
@@ -215,6 +260,7 @@
                 <artifactId>target-platform-configuration</artifactId>
                 <version>${tycho-version}</version>
                 <configuration>
+                    <includePackedArtifacts>true</includePackedArtifacts>
                     <environments>
                         <environment>
                             <os>win32</os>
@@ -300,7 +346,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.7.2.201409121644</version>
+          <version>0.7.4.201502262128</version>
           <executions>
             <execution>
              <id>pre-test</id>
@@ -328,6 +374,37 @@
             </execution>
           </executions>
       </plugin>
+      <plugin>
+        <groupId>org.eclipse.tycho.extras</groupId>
+        <artifactId>tycho-pack200b-plugin</artifactId>
+        <version>${tycho-extras-version}</version>
+        <executions>
+          <execution>
+            <id>pack200-pack</id>
+            <goals>
+              <goal>pack</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-p2-plugin</artifactId>
+        <version>${tycho-version}</version>
+        <executions>
+          <execution>
+            <id>p2-metadata</id>
+            <goals>
+              <goal>p2-metadata</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <defaultP2Metadata>false</defaultP2Metadata>
+        </configuration>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
@@ -339,7 +416,27 @@
             <encoding>UTF-8</encoding>
             <useProjectSettings>true</useProjectSettings>
           </configuration>
-	 </plugin>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>target-platform-configuration</artifactId>
+          <version>${tycho-version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>tycho-p2-plugin</artifactId>
+          <version>${tycho-version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>tycho-p2-publisher-plugin</artifactId>
+          <version>${tycho-version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>tycho-p2-repository-plugin</artifactId>
+          <version>${tycho-version}</version>
+        </plugin>
 	<plugin>
 	  <groupId>org.eclipse.tycho</groupId>
 	  <artifactId>tycho-surefire-plugin</artifactId>
@@ -363,10 +460,27 @@
           <artifactId>tycho-versions-plugin</artifactId>
           <version>${tycho-version}</version>
         </plugin>
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>tycho-packaging-plugin</artifactId>
+          <version>${tycho-version}</version>
+          <configuration>
+            <sourceReferences>
+              <generate>true</generate>
+            </sourceReferences>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.eclipse.tycho.extras</groupId>
+              <artifactId>tycho-sourceref-jgit</artifactId>
+              <version>${tycho-extras-version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
 	<plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>2.6</version>
+          <version>2.7</version>
           <configuration>
             <encoding>UTF-8</encoding>
           </configuration>
@@ -374,7 +488,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.7</version>
+          <version>1.8</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -383,13 +497,28 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>2.6.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>2.5.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-project-info-reports-plugin</artifactId>
-          <version>2.7</version>
+          <version>2.8</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.9.1</version>
+          <version>2.10.1</version>
           <configuration>
             <excludePackageNames>org.eclipse.tracecompass.internal.*:*.test*</excludePackageNames>
           </configuration>
@@ -398,6 +527,43 @@
           <groupId>org.jboss.tools.tycho-plugins</groupId>
           <artifactId>repository-utils</artifactId>
           <version>0.22.0</version>
+        </plugin>
+        <plugin>
+                <groupId>org.eclipse.tycho.extras</groupId>
+                <artifactId>tycho-eclipserun-plugin</artifactId>
+                <version>${tycho-extras-version}</version>
+                <configuration>
+                        <dependencies>
+                                <dependency>
+                                        <artifactId>org.apache.ant</artifactId>
+                                        <type>eclipse-plugin</type>
+                                </dependency>
+                                <dependency>
+                                        <artifactId>org.eclipse.help.base</artifactId>
+                                        <type>eclipse-plugin</type>
+                                </dependency>
+                                <dependency>
+                                        <artifactId>org.eclipse.ant.core</artifactId>
+                                        <type>eclipse-plugin</type>
+                                </dependency>
+                        </dependencies>
+                        <!-- This needs to be explicitely set now, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=395281 -->
+                        <repositories>
+                                <repository>
+                                        <id>platform</id>
+                                        <layout>p2</layout>
+                                        <url>${help-docs-eclipserun-repo}</url>
+                                </repository>
+                        </repositories>
+                </configuration>
+                <executions>
+                        <execution>
+                                <goals>
+                                        <goal>eclipse-run</goal>
+                                </goals>
+                                <phase>compile</phase>
+                        </execution>
+                </executions>
         </plugin>
       </plugins>
     </pluginManagement>

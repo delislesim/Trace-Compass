@@ -37,7 +37,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * and m is the portion of the trace covered by the selected interval.
  *
  * @author Alexandre Montplaisir
- * @since 2.0
  */
 public class TmfEventsStatistics implements ITmfStatistics {
 
@@ -197,7 +196,7 @@ public class TmfEventsStatistics implements ITmfStatistics {
         public void handleData(final ITmfEvent event) {
             super.handleData(event);
             if (event.getTrace() == trace) {
-                String eventType = event.getType().getName();
+                String eventType = event.getName();
                 /*
                  * Special handling for lost events: instead of counting just
                  * one, we will count how many actual events it represents.

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal and others.
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -19,10 +19,14 @@ import java.util.Map.Entry;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.ui.TmfUiRefreshHandler;
+import org.eclipse.tracecompass.tmf.ui.signal.TmfTimeViewAlignmentInfo;
+import org.eclipse.tracecompass.tmf.ui.signal.TmfTimeViewAlignmentSignal;
 import org.eclipse.tracecompass.tmf.ui.viewers.xycharts.TmfChartTimeStampFormat;
 import org.eclipse.tracecompass.tmf.ui.viewers.xycharts.TmfXYChartViewer;
 import org.swtchart.IAxisTick;
@@ -41,7 +45,6 @@ import org.swtchart.Range;
  * series appearance can be overridden when creating it.
  *
  * @author - Geneviève Bastien
- * @since 3.0
  */
 public abstract class TmfCommonXLineChartViewer extends TmfXYChartViewer {
 
@@ -102,8 +105,6 @@ public abstract class TmfCommonXLineChartViewer extends TmfXYChartViewer {
     /**
      * Forces a reinitialization of the data sources, even if it has already
      * been initialized for this trace before
-     *
-     * @since 3.1
      */
     protected void reinitialize() {
         fSeriesValues.clear();
@@ -208,8 +209,7 @@ public abstract class TmfCommonXLineChartViewer extends TmfXYChartViewer {
      *            The number of steps in the x axis.
      * @return The time values (converted to double) to match every step.
      */
-    protected final double[] getXAxis(long start, long end, int nb) {
-        setTimeOffset(start - 1);
+    protected static final double[] getXAxis(long start, long end, int nb) {
 
         double timestamps[] = new double[nb];
         long steps = (end - start);
@@ -356,6 +356,16 @@ public abstract class TmfCommonXLineChartViewer extends TmfXYChartViewer {
                         getSwtChart().getAxisSet().getYAxis(0).setRange(new Range(miny, maxy));
                     }
                     getSwtChart().redraw();
+
+                    if (isSendTimeAlignSignals()) {
+                        // The width of the chart might have changed and its time
+                        // axis might be misaligned with the other views
+                        Point viewPos = TmfCommonXLineChartViewer.this.getParent().getParent().toDisplay(0, 0);
+                        int axisPos = getSwtChart().toDisplay(0, 0).x + getPointAreaOffset();
+                        int timeAxisOffset = axisPos - viewPos.x;
+                        TmfTimeViewAlignmentInfo timeAlignmentInfo = new TmfTimeViewAlignmentInfo(getControl().getShell(), viewPos, timeAxisOffset);
+                        TmfSignalManager.dispatchSignal(new TmfTimeViewAlignmentSignal(TmfCommonXLineChartViewer.this, timeAlignmentInfo, true));
+                    }
                 }
             }
         });

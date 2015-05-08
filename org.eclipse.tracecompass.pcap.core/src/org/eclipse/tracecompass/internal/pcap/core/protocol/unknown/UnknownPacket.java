@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.pcap.core.packet.Packet;
 import org.eclipse.tracecompass.internal.pcap.core.protocol.PcapProtocol;
 import org.eclipse.tracecompass.internal.pcap.core.trace.PcapFile;
@@ -107,7 +108,8 @@ public class UnknownPacket extends Packet {
 
     @Override
     public UnknownEndpoint getSourceEndpoint() {
-        @Nullable UnknownEndpoint endpoint = fSourceEndpoint;
+        @Nullable
+        UnknownEndpoint endpoint = fSourceEndpoint;
         if (endpoint == null) {
             endpoint = new UnknownEndpoint(this, true);
         }
@@ -117,7 +119,8 @@ public class UnknownPacket extends Packet {
 
     @Override
     public UnknownEndpoint getDestinationEndpoint() {
-        @Nullable UnknownEndpoint endpoint = fDestinationEndpoint;
+        @Nullable
+        UnknownEndpoint endpoint = fDestinationEndpoint;
         if (endpoint == null) {
             endpoint = new UnknownEndpoint(this, false);
         }
@@ -167,12 +170,10 @@ public class UnknownPacket extends Packet {
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = 1;
+        int result = prime;
         final Packet child = fChildPacket;
         if (child != null) {
-            result = prime * result + ((fChildPacket == null) ? 0 : child.hashCode());
-        } else {
-            result = prime * result;
+            result += child.hashCode();
         }
         result = prime * result + fPayload.hashCode();
         return result;
@@ -190,17 +191,9 @@ public class UnknownPacket extends Packet {
             return false;
         }
         UnknownPacket other = (UnknownPacket) obj;
-        final Packet child = fChildPacket;
-        if (child != null) {
-            if (!child.equals(other.fChildPacket)) {
-                return false;
-            }
-        } else {
-            if (other.fChildPacket != null) {
-                return false;
-            }
+        if (!NonNullUtils.equalsNullable(fChildPacket, other.fChildPacket)) {
+            return false;
         }
-
         if (!fPayload.equals(other.fPayload)) {
             return false;
         }

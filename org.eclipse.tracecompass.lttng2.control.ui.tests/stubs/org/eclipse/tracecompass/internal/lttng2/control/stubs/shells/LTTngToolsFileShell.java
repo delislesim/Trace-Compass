@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,9 +12,12 @@
  **********************************************************************/
 package org.eclipse.tracecompass.internal.lttng2.control.stubs.shells;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,8 +30,9 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.tracecompass.internal.lttng2.control.ui.views.remote.CommandResult;
-import org.eclipse.tracecompass.internal.lttng2.control.ui.views.remote.ICommandResult;
+import org.eclipse.tracecompass.internal.tmf.remote.core.stubs.shells.TestCommandShell;
+import org.eclipse.tracecompass.tmf.remote.core.shell.ICommandInput;
+import org.eclipse.tracecompass.tmf.remote.core.shell.ICommandResult;
 
 @SuppressWarnings("javadoc")
 public class LTTngToolsFileShell extends TestCommandShell {
@@ -47,7 +51,7 @@ public class LTTngToolsFileShell extends TestCommandShell {
     private final static String ERROR_OUTPUT_END_KEY = "</COMMAND_ERROR_OUTPUT>";
     private final static String COMMENT_KEY = "#.*";
 
-    private final static Pattern LTTNG_LIST_SESSION_PATTERN =  Pattern.compile("lttng\\s+list\\s+(.+)");
+    private final static Pattern LTTNG_LIST_SESSION_PATTERN = Pattern.compile("lttng\\s+list\\s+(.+)");
     private final static String LTTNG_LIST_PROVIDER_PATTERN = "lttng\\s+list\\s+(-u|-k)";
 
     // ------------------------------------------------------------------------
@@ -61,13 +65,14 @@ public class LTTngToolsFileShell extends TestCommandShell {
 
     /**
      * Parse a scenario file with the format:
+     *
      * <pre>
      * &lt;SCENARIO&gt;
      * ScenarioName
      *
      * &lt;COMMAND_INPUT&gt;
      * Command
-     * &lt;/COMAND_INPUT&gt;
+     * &lt;/COMMAND_INPUT&gt;
      *
      * &lt;COMMAND_RESULT&gt;
      * CommandResult
@@ -85,17 +90,17 @@ public class LTTngToolsFileShell extends TestCommandShell {
      * Where: ScenarioName - is the scenario name
      *        Command - the command line string
      *        CommandResult - the result integer of the command (0 for success, 1 for failure)
-     *        ComandOutput - the command output string (multi-line possible)
-     *        ComandErrorOutput - the command error output string (multi-line possible)
+     *        CommandOutput - the command output string (multi-line possible)
+     *        CommandErrorOutput - the command error output string (multi-line possible)
      *
      * Note: 1) There can be many scenarios per file
      *       2) There can be many (Command-CommandResult-CommandOutput) triples per scenario
-     *       3) Lines starting with # will be ignored (comments)
+     * 3) Lines starting with # will be ignored (comments)
+     *
      * <pre>
      * @param scenariofile - path to scenario file
-     * @throws Exception
      */
-    public synchronized void loadScenarioFile(String scenariofile) throws Exception {
+    public synchronized void loadScenarioFile(String scenariofile) {
         fScenariofile = scenariofile;
 
         // clean up map
@@ -166,7 +171,7 @@ public class LTTngToolsFileShell extends TestCommandShell {
                             input = strLine;
 
                             // Handle instances of 'lttng list
-                            // <session"-comamand
+                            // <session"-command
                             Matcher matcher = LTTNG_LIST_SESSION_PATTERN.matcher(strLine);
                             if (matcher.matches() && !input.matches(LTTNG_LIST_PROVIDER_PATTERN)) {
                                 String sessionName = matcher.group(1).trim();
@@ -194,7 +199,9 @@ public class LTTngToolsFileShell extends TestCommandShell {
                         } else if (OUTPUT_END_KEY.equals(strLine)) {
                             // Save output/result in command map
                             if (output != null && errorOutput != null) {
-                                commandMap.put(input, new CommandResult(result, output.toArray(new String[output.size()]), errorOutput.toArray(new String[errorOutput.size()])));
+                                commandMap.put(input, createCommandResult(result,
+                                        checkNotNull(output.toArray(new String[output.size()])),
+                                        checkNotNull(errorOutput.toArray(new String[errorOutput.size()]))));
                             }
                             inOutput = false;
                         } else if (OUTPUT_KEY.equals(strLine)) {
@@ -223,6 +230,8 @@ public class LTTngToolsFileShell extends TestCommandShell {
                     }
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -236,12 +245,13 @@ public class LTTngToolsFileShell extends TestCommandShell {
     }
 
     @Override
-   public synchronized ICommandResult executeCommand(String command, IProgressMonitor monitor) throws ExecutionException {
+    public synchronized ICommandResult executeCommand(ICommandInput command, IProgressMonitor monitor) throws ExecutionException {
         Map<String, ICommandResult> commands = fScenarioMap.get(fScenario);
-        String fullCommand = command;
+        String commandLine = command.toString();
+        String fullCommand = commandLine;
 
-        Matcher matcher = LTTNG_LIST_SESSION_PATTERN.matcher(command);
-        if (matcher.matches() && !command.matches(LTTNG_LIST_PROVIDER_PATTERN)) {
+        Matcher matcher = LTTNG_LIST_SESSION_PATTERN.matcher(commandLine);
+        if (matcher.matches() && !commandLine.matches(LTTNG_LIST_PROVIDER_PATTERN)) {
             String sessionName = matcher.group(1).trim();
             Integer i = fSessionNameMap.get(sessionName);
             if (i != null) {
@@ -254,18 +264,14 @@ public class LTTngToolsFileShell extends TestCommandShell {
         }
 
         if (commands.containsKey(fullCommand)) {
-            return commands.get(fullCommand);
+            return checkNotNull(commands.get(fullCommand));
         }
 
         String[] output = new String[1];
         output[0] = String.valueOf("Command not found");
-        CommandResult result = new CommandResult(0, null, null);
-        // For verification of setters of class CommandResult
-        result.setOutput(output);
-        result.setErrorOutput(output);
-        result.setResult(1);
+        ICommandResult result = createCommandResult(1, output, output);
         return result;
-   }
+    }
 
     // ------------------------------------------------------------------------
     // Helper methods

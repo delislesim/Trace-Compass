@@ -13,6 +13,7 @@
 package org.eclipse.tracecompass.tmf.core.analysis;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.osgi.framework.Bundle;
@@ -22,7 +23,6 @@ import org.osgi.framework.Bundle;
  * creates module from a source when requested.
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public interface IAnalysisModuleHelper extends IAnalysisRequirementProvider {
 
@@ -114,6 +114,19 @@ public interface IAnalysisModuleHelper extends IAnalysisRequirementProvider {
      */
     Iterable<Class<? extends ITmfTrace>> getValidTraceTypes();
 
+    /**
+     * Determine if an analysis should be run on an experiment if it applies to
+     * at least one of its traces. It means that an instance of the analysis
+     * module will be created specifically for the experiment and the result
+     * will be more than a simple aggregation of the results of each trace's
+     * module. This method does not actually do the check, it just returns
+     * whether it should apply.
+     *
+     * @return whether this analysis should be run on an experiment
+     * @since 1.0
+     */
+    boolean appliesToExperiment();
+
     // ---------------------------------------
     // Functionalities
     // ---------------------------------------
@@ -129,10 +142,10 @@ public interface IAnalysisModuleHelper extends IAnalysisRequirementProvider {
      * @param trace
      *            The trace to be linked to the module
      * @return A new {@link IAnalysisModule} instance initialized with the
-     *         trace.
+     *         trace or {@code null} if the module couldn't be instantiated
      * @throws TmfAnalysisException
      *             Exceptions that occurred when setting trace
      */
-    IAnalysisModule newModule(@NonNull ITmfTrace trace) throws TmfAnalysisException;
+    @Nullable IAnalysisModule newModule(@NonNull ITmfTrace trace) throws TmfAnalysisException;
 
 }

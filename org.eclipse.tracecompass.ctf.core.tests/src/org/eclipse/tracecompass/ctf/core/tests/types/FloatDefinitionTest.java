@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,11 +18,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.types.FloatDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.FloatDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.IntegerDefinition;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,17 +46,17 @@ public class FloatDefinitionTest {
     /**
      * Perform pre-test initialization.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             error creating floats
      */
     @Before
-    public void setUp() throws CTFReaderException {
+    public void setUp() throws CTFException {
         testFloat248();
         testFloat5311();
     }
 
     @Test
-    public void testFloat248() throws CTFReaderException {
+    public void testFloat248() throws CTFException {
         parent = new FloatDeclaration(8, 24, ByteOrder.nativeOrder(), 0);
         BitBuffer bb = create32BitFloatByteBuffer();
         singleFixture = parent.createDefinition(null, fieldName, bb);
@@ -64,7 +64,7 @@ public class FloatDefinitionTest {
     }
 
     @Test
-    public void testFloat5311() throws CTFReaderException {
+    public void testFloat5311() throws CTFException {
         parent = new FloatDeclaration(11, 53, ByteOrder.nativeOrder(), 0);
         BitBuffer bb = create64BitFloatByteBuffer();
         doubleFixture = parent.createDefinition(null, fieldName, bb);
@@ -72,7 +72,7 @@ public class FloatDefinitionTest {
     }
 
     @Test
-    public void testFloat32Bit() throws CTFReaderException {
+    public void testFloat32Bit() throws CTFException {
         for (int i = 1; i < 31; i++) {
             parent = new FloatDeclaration(i, 32 - i, ByteOrder.nativeOrder(), 0);
 
@@ -83,7 +83,7 @@ public class FloatDefinitionTest {
     }
 
     @Test
-    public void testFloat64Bit() throws CTFReaderException {
+    public void testFloat64Bit() throws CTFException {
         for (int i = 1; i < 63; i++) {
             parent = new FloatDeclaration(i, 64 - i, ByteOrder.nativeOrder(), 0);
             fixture = parent.createDefinition(null, fieldName, create64BitFloatByteBuffer());
@@ -100,7 +100,7 @@ public class FloatDefinitionTest {
     }
 
     @Test
-    public void testFloat48Bit() throws CTFReaderException {
+    public void testFloat48Bit() throws CTFException {
         parent = new FloatDeclaration(12, 32, ByteOrder.nativeOrder(), 0);
         fixture = parent.createDefinition(null, fieldName, create64BitFloatByteBuffer());
         assertNotNull(fixture);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,7 @@
 
 package org.eclipse.tracecompass.tmf.ctf.core.event.lookup;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
 import org.eclipse.tracecompass.ctf.core.event.CTFCallsite;
 import org.eclipse.tracecompass.tmf.core.event.lookup.TmfCallsite;
 
@@ -20,7 +21,6 @@ import org.eclipse.tracecompass.tmf.core.event.lookup.TmfCallsite;
  * CTF TMF call site information for source code lookup.
  *
  * @author Patrick Tasse
- * @since 2.0
  */
 public class CtfTmfCallsite extends TmfCallsite {
 
@@ -42,7 +42,7 @@ public class CtfTmfCallsite extends TmfCallsite {
      * Standard Constructor.
      *
      * @param callsite
-     *              - a CTF call site
+     *            - a CTF call site
      */
     public CtfTmfCallsite(CTFCallsite callsite) {
         super(callsite.getFileName(), callsite.getFunctionName(), callsite.getLineNumber());
@@ -56,6 +56,7 @@ public class CtfTmfCallsite extends TmfCallsite {
 
     /**
      * Returns the event name of the call site.
+     *
      * @return the event name
      */
     public String getEventName() {
@@ -64,6 +65,7 @@ public class CtfTmfCallsite extends TmfCallsite {
 
     /**
      * Returns the instruction pointer of the call site.
+     *
      * @return the instruction pointer
      */
     public long getIntructionPointer() {
@@ -95,11 +97,7 @@ public class CtfTmfCallsite extends TmfCallsite {
             return false;
         }
         CtfTmfCallsite other = (CtfTmfCallsite) obj;
-        if (fEventName == null) {
-            if (other.fEventName != null) {
-                return false;
-            }
-        } else if (!fEventName.equals(other.fEventName)) {
+        if (!equalsNullable(fEventName, other.fEventName)) {
             return false;
         }
         if (fInstructionPointer != other.fInstructionPointer) {

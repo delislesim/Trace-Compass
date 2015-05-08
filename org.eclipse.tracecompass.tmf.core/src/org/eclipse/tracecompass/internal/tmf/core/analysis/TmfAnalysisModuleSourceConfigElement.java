@@ -29,7 +29,6 @@ import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisModuleHelperConfigE
  * platform's extensions registry.
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public final class TmfAnalysisModuleSourceConfigElement implements IAnalysisModuleSource {
 
@@ -53,6 +52,9 @@ public final class TmfAnalysisModuleSourceConfigElement implements IAnalysisModu
 
     /** Extension point attribute 'automatic' */
     public static final String AUTOMATIC_ATTR = "automatic"; //$NON-NLS-1$
+
+    /** Extension point attribute 'applies_experiment' */
+    public static final String APPLIES_EXP_ATTR = "applies_experiment"; //$NON-NLS-1$
 
     /** Extension point attribute 'icon' */
     public static final String ICON_ATTR = "icon"; //$NON-NLS-1$

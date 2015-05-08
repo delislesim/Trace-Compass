@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -19,7 +19,6 @@ package org.eclipse.tracecompass.tmf.core.trace.location;
  * comparable location information.
  *
  * @author Francois Chouinard
- * @since 3.0
  */
 public abstract class TmfLocation implements ITmfLocation {
 
@@ -57,9 +56,6 @@ public abstract class TmfLocation implements ITmfLocation {
     // Getters
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public Comparable<?> getLocationInfo() {
         return fLocationInfo;

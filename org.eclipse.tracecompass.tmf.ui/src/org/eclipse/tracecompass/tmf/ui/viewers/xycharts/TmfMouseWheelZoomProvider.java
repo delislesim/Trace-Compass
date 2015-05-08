@@ -21,15 +21,14 @@ import org.swtchart.IAxis;
  * mouse position. It also notifies the viewer about a change of range.
  *
  * @author Bernd Hufmann
- * @since 3.0
  */
 public class TmfMouseWheelZoomProvider extends TmfBaseProvider implements MouseWheelListener {
 
     // ------------------------------------------------------------------------
     // Constants
     // ------------------------------------------------------------------------
-    private final static double ZOOM_FACTOR = 0.8;
-    private final static long MIN_WINDOW_SIZE = 1;
+    private static final double ZOOM_FACTOR = 0.8;
+    private static final long MIN_WINDOW_SIZE = 1;
 
     // ------------------------------------------------------------------------
     // Constructors

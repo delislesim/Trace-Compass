@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -10,6 +10,7 @@
  *   Matthew Khouzam - Initial API and implementation
  *   Bernd Hufmann - Handling of directory traces types
  *   Geneviève Bastien - Added support of experiment types
+ *   Patrick Tasse - Renamed trace type id
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.core.project.model;
@@ -25,40 +26,41 @@ import org.eclipse.tracecompass.tmf.core.trace.TraceValidationStatus;
  * and a trace
  *
  * @author Matthew Khouzam
- * @since 3.0
  */
 public class TraceTypeHelper {
 
+    private static final String SEP = " : "; //$NON-NLS-1$
+
     private final String fName;
     private final String fCategoryName;
-    private final String fCanonicalName;
+    private final String fTraceTypeId;
     private final TraceElementType fElementType;
     @NonNull
     private final ITmfTrace fTrace;
     private final boolean fIsDirectory;
 
     /**
-     * Constructor for a trace type helper. It is a link between a canonical
-     * (hard to read) name, a category name, a name and a trace object. It is
-     * used for trace validation.
+     * Constructor for a trace type helper. It is a link between a trace type
+     * id, a category name, a name and a trace object.
      *
-     * @param canonicalName
-     *            The "path" of the tracetype
+     * @param traceTypeId
+     *            the trace type id
      * @param categoryName
      *            the category of the trace type
      * @param name
-     *            the name of the trace
+     *            the name of the trace type
      * @param trace
      *            an object of the trace type
      * @param isDir
-     *            flag indicating whether the trace type is for a directory or file trace
+     *            flag indicating whether the trace type is for a directory or
+     *            file trace
      * @param elementType
      *            True if this helper is for an experiment type
      */
-    public TraceTypeHelper(String canonicalName, String categoryName, String name, @NonNull ITmfTrace trace, boolean isDir, TraceElementType elementType) {
+    public TraceTypeHelper(String traceTypeId, String categoryName, String name, @NonNull ITmfTrace trace, boolean isDir, TraceElementType elementType) {
         fName = name;
         fCategoryName = categoryName;
-        fCanonicalName = canonicalName;
+        fTraceTypeId = traceTypeId;
         fTrace = trace;
         fIsDirectory = isDir;
         fElementType = elementType;
@@ -83,12 +85,24 @@ public class TraceTypeHelper {
     }
 
     /**
-     * Get the canonical name
+     * Get the trace type label "category : name".
      *
-     * @return the canonical Name
+     * @return the trace type label
      */
-    public String getCanonicalName() {
-        return fCanonicalName;
+    public String getLabel() {
+        if (fCategoryName.isEmpty()) {
+            return fName;
+        }
+        return fCategoryName + SEP + fName;
+    }
+
+    /**
+     * Get the trace type id
+     *
+     * @return the trace type id
+     */
+    public String getTraceTypeId() {
+        return fTraceTypeId;
     }
 
     /**
@@ -108,12 +122,11 @@ public class TraceTypeHelper {
      * @param path
      *            the trace to validate
      * @return the confidence level (0 is lowest) or -1 if validation fails
-     * @since 3.0
      */
     public int validateWithConfidence(String path) {
         int result = -1;
         IStatus status = fTrace.validate(null, path);
-        if (status.isOK()) {
+        if (status.getSeverity() != IStatus.ERROR) {
             result = 0;
             if (status instanceof TraceValidationStatus) {
                 result = ((TraceValidationStatus) status).getConfidence();
@@ -125,7 +138,6 @@ public class TraceTypeHelper {
     /**
      * Get an object of the trace type
      * @return an object of the trace type
-     * @since 2.1
      */
     public ITmfTrace getTrace() {
         return fTrace;
@@ -144,7 +156,6 @@ public class TraceTypeHelper {
      * Get the class associated with this trace type
      *
      * @return The trace class
-     * @since 3.0
      */
     public Class<? extends ITmfTrace> getTraceClass() {
         return fTrace.getClass();

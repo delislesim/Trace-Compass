@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -33,17 +33,17 @@ import org.eclipse.swtbot.swt.finder.results.BoolResult;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
-import org.eclipse.tracecompass.internal.lttng2.kernel.ui.views.controlflow.ControlFlowView;
-import org.eclipse.tracecompass.internal.lttng2.kernel.ui.views.resources.ResourcesView;
+import org.eclipse.tracecompass.analysis.os.linux.ui.views.controlflow.ControlFlowView;
+import org.eclipse.tracecompass.analysis.os.linux.ui.views.resources.ResourcesView;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEvent;
 import org.eclipse.tracecompass.tmf.ctf.core.tests.shared.CtfTmfTestTrace;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 import org.eclipse.tracecompass.tmf.ui.editors.TmfEventsEditor;
-import org.eclipse.tracecompass.tmf.ui.swtbot.tests.SWTBotUtil;
-import org.eclipse.tracecompass.tmf.ui.swtbot.tests.conditions.ConditionHelpers;
+import org.eclipse.tracecompass.tmf.ui.swtbot.tests.shared.ConditionHelpers;
+import org.eclipse.tracecompass.tmf.ui.swtbot.tests.shared.SWTBotUtils;
 import org.eclipse.tracecompass.tmf.ui.views.histogram.HistogramView;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -52,6 +52,7 @@ import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.hamcrest.Matcher;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,10 +82,11 @@ public class ImportAndReadKernelSmokeTest {
      */
     @BeforeClass
     public static void init() {
-        SWTBotUtil.failIfUIThread();
+        SWTBotUtils.failIfUIThread();
 
         /* set up for swtbot */
         SWTBotPreferences.TIMEOUT = 20000; /* 20 second timeout */
+        fLogger.removeAllAppenders();
         fLogger.addAppender(new ConsoleAppender(new SimpleLayout(), ConsoleAppender.SYSTEM_OUT));
         fBot = new SWTWorkbenchBot();
 
@@ -98,7 +100,15 @@ public class ImportAndReadKernelSmokeTest {
         /* Switch perspectives */
         switchKernelPerspective();
         /* Finish waiting for eclipse to load */
-        SWTBotUtil.waitForJobs();
+        SWTBotUtils.waitForJobs();
+    }
+
+    /**
+     * Test Class teardown
+     */
+    @AfterClass
+    public static void terminate() {
+        fLogger.removeAllAppenders();
     }
 
     private static void switchKernelPerspective() {
@@ -126,15 +136,15 @@ public class ImportAndReadKernelSmokeTest {
      */
     @Test
     public void test() {
-        SWTBotUtil.createProject(TRACE_PROJECT_NAME);
-        SWTBotUtil.openTrace(TRACE_PROJECT_NAME, CTT.getPath(), TRACE_TYPE);
+        SWTBotUtils.createProject(TRACE_PROJECT_NAME);
+        SWTBotUtils.openTrace(TRACE_PROJECT_NAME, CTT.getPath(), TRACE_TYPE);
         openEditor();
         testHV(getViewPart("Histogram"));
         testCFV((ControlFlowView) getViewPart("Control Flow"));
         testRV((ResourcesView) getViewPart("Resources"));
 
         fBot.closeAllEditors();
-        SWTBotUtil.deleteProject(TRACE_PROJECT_NAME, fBot);
+        SWTBotUtils.deleteProject(TRACE_PROJECT_NAME, fBot);
     }
 
     private void openEditor() {
@@ -151,8 +161,8 @@ public class ImportAndReadKernelSmokeTest {
             }
         });
 
-        SWTBotUtil.waitForJobs();
-        SWTBotUtil.delay(1000);
+        SWTBotUtils.waitForJobs();
+        SWTBotUtils.delay(1000);
         assertNotNull(tmfEd);
     }
 
@@ -169,21 +179,21 @@ public class ImportAndReadKernelSmokeTest {
             }
         }
         HistogramView hv = (HistogramView) vp;
-        final TmfTimeSynchSignal signal = new TmfTimeSynchSignal(hv, fDesired1.getTimestamp());
-        final TmfTimeSynchSignal signal2 = new TmfTimeSynchSignal(hv, fDesired2.getTimestamp());
+        final TmfSelectionRangeUpdatedSignal signal = new TmfSelectionRangeUpdatedSignal(hv, fDesired1.getTimestamp());
+        final TmfSelectionRangeUpdatedSignal signal2 = new TmfSelectionRangeUpdatedSignal(hv, fDesired2.getTimestamp());
         hv.updateTimeRange(100000);
-        SWTBotUtil.waitForJobs();
-        hv.currentTimeUpdated(signal);
+        SWTBotUtils.waitForJobs();
+        hv.selectionRangeUpdated(signal);
         hv.broadcast(signal);
-        SWTBotUtil.waitForJobs();
-        SWTBotUtil.delay(1000);
+        SWTBotUtils.waitForJobs();
+        SWTBotUtils.delay(1000);
 
         hv.updateTimeRange(1000000000);
-        SWTBotUtil.waitForJobs();
-        hv.currentTimeUpdated(signal2);
+        SWTBotUtils.waitForJobs();
+        hv.selectionRangeUpdated(signal2);
         hv.broadcast(signal2);
-        SWTBotUtil.waitForJobs();
-        SWTBotUtil.delay(1000);
+        SWTBotUtils.waitForJobs();
+        SWTBotUtils.delay(1000);
         assertNotNull(hv);
     }
 

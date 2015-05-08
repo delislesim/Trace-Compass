@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  * Copyright (c) 2010, 2011 École Polytechnique de Montréal
  * Copyright (c) 2010, 2011 Alexandre Montplaisir <alexandre.montplaisir@gmail.com>
  *
@@ -36,9 +36,16 @@ import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
  * which can then contain your 2-3 other backends underneath.
  *
  * @author Alexandre Montplaisir
- * @since 3.0
  */
 public interface IStateHistoryBackend {
+
+    /**
+     * Get the ID of the state system that populates this backend.
+     *
+     * @return The state system's ID.
+     * @since 1.0
+     */
+    @NonNull String getSSID();
 
     /**
      * Get the start time of this state history. This is usually the same as the

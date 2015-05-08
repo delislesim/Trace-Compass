@@ -3,7 +3,7 @@
 <feature
       id="org.eclipse.tracecompass.lttng2.kernel"
       label="%featureName"
-      version="0.1.0.qualifier"
+      version="1.0.0.qualifier"
       provider-name="%featureProvider"
       license-feature="org.eclipse.license"
       license-feature-version="0.0.0">
@@ -20,10 +20,6 @@
       %license
    </license>
 
-   <url>
-      <update label="Linux Tools Update Site" url="http://download.eclipse.org/linuxtools/update"/>
-   </url>
-
    <includes
          id="org.eclipse.tracecompass.lttng2.control"
          version="0.0.0"
@@ -37,16 +33,30 @@
    <requires>
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.core.resources"/>
-      <import plugin="org.eclipse.tracecompass.ctf.core" version="0.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tracecompass.tmf.core" version="0.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.ctf.core" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.tmf.core" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.eclipse.tracecompass.tmf.ui" version="0.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tracecompass.lttng2.control.core" version="0.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tracecompass.lttng2.control.ui" version="0.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tracecompass.lttng2.kernel.core" version="0.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.tmf.ui" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.lttng2.control.core" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.lttng2.control.ui" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.lttng2.kernel.core" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.help"/>
    </requires>
+
+   <plugin
+         id="org.eclipse.tracecompass.analysis.os.linux.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.tracecompass.analysis.os.linux.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.eclipse.tracecompass.lttng2.kernel.core"
@@ -63,7 +73,7 @@
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.tracecompass.help"
+         id="org.eclipse.tracecompass.doc.user"
          download-size="0"
          install-size="0"
          version="0.0.0"/>

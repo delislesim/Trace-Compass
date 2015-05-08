@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,6 @@ import org.eclipse.tracecompass.tmf.ui.views.uml2sd.SDView;
  * Base class for sequence diagram actions.
  *
  * @author Bernd Hufmann
- * @since 2.0
  */
 public class BaseSDAction extends Action {
 
@@ -81,7 +80,6 @@ public class BaseSDAction extends Action {
      * Gets the active SD view.
      *
      * @return view The SD view.
-     * @since 2.0
      */
     public SDView getView() {
         return fView;

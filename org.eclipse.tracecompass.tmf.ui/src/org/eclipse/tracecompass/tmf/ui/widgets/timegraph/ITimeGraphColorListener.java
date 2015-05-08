@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -16,7 +16,6 @@ package org.eclipse.tracecompass.tmf.ui.widgets.timegraph;
  * A time graph state color change listener
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public interface ITimeGraphColorListener {
 

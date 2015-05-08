@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -208,7 +208,6 @@ public class SyncMessage extends BaseMessage implements ITimeRange {
      * Set the time when the message occurs
      *
      * @param time the time when the message occurs
-     * @since 2.0
      */
     public void setTime(ITmfTimestamp time) {
         fEventTime = time;
@@ -220,17 +219,11 @@ public class SyncMessage extends BaseMessage implements ITimeRange {
         }
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public ITmfTimestamp getEndTime() {
         return fEventTime;
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public ITmfTimestamp getStartTime() {
         return fEventTime;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -12,6 +12,7 @@
 
 package org.eclipse.tracecompass.internal.tmf.core.synchronization;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.tmf.core.synchronization.ITmfTimestampTransform;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 
@@ -31,7 +32,7 @@ public final class TmfTimestampTransform implements ITmfTimestampTransformInvert
     /**
      * The unique instance of this transform, since it is always the same
      */
-    public static final TmfTimestampTransform IDENTITY = new TmfTimestampTransform();
+    public static final @NonNull TmfTimestampTransform IDENTITY = new TmfTimestampTransform();
 
     /**
      * Default constructor

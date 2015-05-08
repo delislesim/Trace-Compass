@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -15,6 +15,7 @@ package org.eclipse.tracecompass.tmf.tests.stubs.analysis;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.tests.stubs.trace.TmfTraceStub2;
 
 /**
@@ -24,8 +25,13 @@ public class TestAnalysis2 extends TmfAbstractAnalysisModule {
 
     @Override
     public boolean canExecute(ITmfTrace trace) {
-        /* This just makes sure the trace is a trace stub 2 */
-        return (TmfTraceStub2.class.isAssignableFrom(trace.getClass()));
+        /* This just makes sure the trace is or contains a trace stub 2 */
+        for (ITmfTrace aTrace : TmfTraceManager.getTraceSet(trace)) {
+            if (TmfTraceStub2.class.isAssignableFrom(aTrace.getClass())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

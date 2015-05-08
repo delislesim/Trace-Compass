@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2012 Ericsson
+ * Copyright (c) 2010, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -14,17 +14,17 @@ package org.eclipse.tracecompass.tmf.core.filter.model;
 
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 
-
 /**
  * Filter node for the 'and' operation
  *
  * @version 1.0
  * @author Patrick Tasse
  */
-@SuppressWarnings("javadoc")
 public class TmfFilterAndNode extends TmfFilterTreeNode {
 
+    /** and node name */
     public static final String NODE_NAME = "AND"; //$NON-NLS-1$
+    /** not attribute name */
     public static final String NOT_ATTR = "not"; //$NON-NLS-1$
 
     private boolean fNot = false;
@@ -66,7 +66,7 @@ public class TmfFilterAndNode extends TmfFilterTreeNode {
     }
 
     @Override
-    public String toString() {
+    public String toString(boolean explicit) {
         StringBuffer buf = new StringBuffer();
         if (fNot) {
             buf.append("not "); //$NON-NLS-1$
@@ -76,7 +76,7 @@ public class TmfFilterAndNode extends TmfFilterTreeNode {
         }
         for (int i = 0; i < getChildrenCount(); i++) {
             ITmfFilterTreeNode node = getChildren()[i];
-            buf.append(node.toString());
+            buf.append(node.toString(explicit));
             if (i < getChildrenCount() - 1) {
                 buf.append(" and "); //$NON-NLS-1$
             }
@@ -86,31 +86,4 @@ public class TmfFilterAndNode extends TmfFilterTreeNode {
         }
         return buf.toString();
     }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (fNot ? 1231 : 1237);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!super.equals(obj)) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        TmfFilterAndNode other = (TmfFilterAndNode) obj;
-        if (fNot != other.fNot) {
-            return false;
-        }
-        return true;
-    }
-
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,7 @@
  *
  * Contributors:
  *   Alexandre Montplaisir - Initial API and implementation
+ *   Bernd Hufmann - Add Content aspect
  *******************************************************************************/
 
 package org.eclipse.tracecompass.internal.gdbtrace.core.trace;
@@ -19,7 +20,7 @@ import org.eclipse.tracecompass.internal.gdbtrace.core.event.GdbTraceEvent;
 import org.eclipse.tracecompass.internal.gdbtrace.core.event.GdbTraceEventContent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
-import org.eclipse.tracecompass.tmf.core.event.aspect.TmfEventFieldAspect;
+import org.eclipse.tracecompass.tmf.core.event.aspect.TmfContentFieldAspect;
 
 import com.google.common.collect.ImmutableList;
 
@@ -34,24 +35,11 @@ public final class GdbEventAspects {
 
     private static final @NonNull Iterable<ITmfEventAspect> GDB_ASPECTS =
             checkNotNull(ImmutableList.of(
-                    new GdbTraceFrameAspect(),
-                    new GdbTracepointAspect(),
-                    new GdbFileAspect()
+                    new TmfContentFieldAspect(GdbTraceEventContent.TRACE_FRAME, GdbTraceEventContent.TRACE_FRAME),
+                    new TmfContentFieldAspect(GdbTraceEventContent.TRACEPOINT, GdbTraceEventContent.TRACEPOINT),
+                    new GdbFileAspect(),
+                    ITmfEventAspect.BaseAspects.CONTENTS
                     ));
-
-    private static class GdbTraceFrameAspect extends TmfEventFieldAspect {
-        public GdbTraceFrameAspect() {
-            super(GdbTraceEventContent.TRACE_FRAME,
-                    GdbTraceEventContent.TRACE_FRAME);
-        }
-    }
-
-    private static class GdbTracepointAspect extends TmfEventFieldAspect {
-        public GdbTracepointAspect() {
-            super(GdbTraceEventContent.TRACEPOINT,
-                    GdbTraceEventContent.TRACEPOINT);
-        }
-    }
 
     private static class GdbFileAspect implements ITmfEventAspect {
 

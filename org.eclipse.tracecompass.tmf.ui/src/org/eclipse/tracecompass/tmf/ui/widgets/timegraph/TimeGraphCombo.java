@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson, others
+ * Copyright (c) 2012, 2015 Ericsson, others
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -10,6 +10,7 @@
  *   Patrick Tasse - Initial API and implementation
  *   François Rajotte - Filter implementation
  *   Geneviève Bastien - Add event links between entries
+ *   Christian Mansky - Add check active / uncheck inactive buttons
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.ui.widgets.timegraph;
@@ -52,10 +53,13 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
@@ -63,6 +67,11 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tracecompass.internal.tmf.ui.Activator;
 import org.eclipse.tracecompass.internal.tmf.ui.ITmfImageConstants;
 import org.eclipse.tracecompass.internal.tmf.ui.Messages;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
+import org.eclipse.tracecompass.tmf.ui.signal.TmfTimeViewAlignmentInfo;
+import org.eclipse.tracecompass.tmf.ui.signal.TmfTimeViewAlignmentSignal;
+import org.eclipse.tracecompass.tmf.ui.views.ITmfTimeAligned;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.dialogs.ITimeGraphEntryActiveProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
@@ -71,7 +80,6 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
  * Time graph "combo" view (with the list/tree on the left and the gantt chart
  * on the right)
  *
- * @version 1.0
  * @author Patrick Tasse
  */
 public class TimeGraphCombo extends Composite {
@@ -80,8 +88,7 @@ public class TimeGraphCombo extends Composite {
     // Constants
     // ------------------------------------------------------------------------
 
-    /** Constant indicating that all levels of the time graph should be expanded
-     * @since 3.1 */
+    /** Constant indicating that all levels of the time graph should be expanded */
     public static final int ALL_LEVELS = AbstractTreeViewer.ALL_LEVELS;
 
     private static final Object FILLER = new Object();
@@ -130,6 +137,9 @@ public class TimeGraphCombo extends Composite {
 
     /** List of all expanded items whose parents are also expanded */
     private List<TreeItem> fVisibleExpandedItems = null;
+
+    private Listener fSashDragListener;
+    private SashForm fSashForm;
 
     // ------------------------------------------------------------------------
     // Classes
@@ -358,22 +368,21 @@ public class TimeGraphCombo extends Composite {
      * @param style
      *            the style of widget to construct
      * @param weights
-     *            The relative weights of each side of the sash form
-     * @since 2.1
+     *            The array (length 2) of relative weights of each side of the sash form
      */
     public TimeGraphCombo(Composite parent, int style, int[] weights) {
         super(parent, style);
         setLayout(new FillLayout());
 
-        final SashForm sash = new SashForm(this, SWT.NONE);
+        fSashForm = new SashForm(this, SWT.NONE);
 
-        fTreeViewer = new TreeViewer(sash, SWT.FULL_SELECTION | SWT.H_SCROLL);
+        fTreeViewer = new TreeViewer(fSashForm, SWT.FULL_SELECTION | SWT.H_SCROLL);
         fTreeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
         final Tree tree = fTreeViewer.getTree();
         tree.setHeaderVisible(true);
         tree.setLinesVisible(true);
 
-        fTimeGraphViewer = new TimeGraphViewer(sash, SWT.NONE);
+        fTimeGraphViewer = new TimeGraphViewer(fSashForm, SWT.NONE);
         fTimeGraphViewer.setItemHeight(getItemHeight(tree));
         fTimeGraphViewer.setHeaderHeight(tree.getHeaderHeight());
         fTimeGraphViewer.setBorderWidth(tree.getBorderWidth());
@@ -620,7 +629,37 @@ public class TimeGraphCombo extends Composite {
         // to a value that would cause blank space to be drawn at the bottom of the tree.
         fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight(tree);
 
-        sash.setWeights(weights);
+        fSashForm.setWeights(weights);
+
+        fTimeGraphViewer.getTimeGraphControl().addPaintListener(new PaintListener() {
+            @Override
+            public void paintControl(PaintEvent e) {
+                // Sashes in a SashForm are being created on layout so add the
+                // drag listener here
+                if (fSashDragListener == null) {
+                    for (Control control : fSashForm.getChildren()) {
+                        if (control instanceof Sash) {
+                            fSashDragListener = new Listener() {
+
+                                @Override
+                                public void handleEvent(Event event) {
+                                    sendTimeViewAlignmentChanged();
+
+                                }
+                            };
+                            control.removePaintListener(this);
+                            control.addListener(SWT.Selection, fSashDragListener);
+                            // There should be only one sash
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void sendTimeViewAlignmentChanged() {
+        TmfSignalManager.dispatchSignal(new TmfTimeViewAlignmentSignal(fSashForm, getTimeViewAlignmentInfo()));
     }
 
     // ------------------------------------------------------------------------
@@ -647,8 +686,6 @@ public class TimeGraphCombo extends Composite {
 
     /**
      * Callback for the show filter action
-     *
-     * @since 2.0
      */
     public void showFilterDialog() {
         ITimeGraphEntry[] topInput = fTimeGraphViewer.getTimeGraphContentProvider().getElements(fTimeGraphViewer.getInput());
@@ -680,6 +717,7 @@ public class TimeGraphCombo extends Composite {
                 fTreeViewer.refresh();
                 fTreeViewer.expandAll();
                 fTimeGraphViewer.refresh();
+                fTimeGraphViewer.expandAll();
                 fInhibitTreeSelection = false;
                 alignTreeItems(true);
                 // Reset selection
@@ -694,7 +732,6 @@ public class TimeGraphCombo extends Composite {
      * Get the show filter action.
      *
      * @return The Action object
-     * @since 2.0
      */
     public Action getShowFilterAction() {
         if (showFilterAction == null) {
@@ -750,7 +787,6 @@ public class TimeGraphCombo extends Composite {
      * Sets the tree content provider used by the filter dialog
      *
      * @param contentProvider the tree content provider
-     * @since 2.0
      */
     public void setFilterContentProvider(ITreeContentProvider contentProvider) {
         fFilterDialog.setContentProvider(contentProvider);
@@ -760,10 +796,31 @@ public class TimeGraphCombo extends Composite {
      * Sets the tree label provider used by the filter dialog
      *
      * @param labelProvider the tree label provider
-     * @since 2.0
      */
     public void setFilterLabelProvider(ITableLabelProvider labelProvider) {
         fFilterDialog.setLabelProvider(labelProvider);
+    }
+
+    /**
+     * Adds a "check active" button used by the filter dialog
+     *
+     * @param activeProvider
+     *            Additional button info specific to a certain view.
+     * @since 1.0
+     */
+    public void addTimeGraphFilterCheckActiveButton(ITimeGraphEntryActiveProvider activeProvider) {
+        fFilterDialog.addTimeGraphFilterCheckActiveButton(activeProvider);
+    }
+
+    /**
+     * Adds an "uncheck inactive" button used by the filter dialog
+     *
+     * @param inactiveProvider
+     *            Additional button info specific to a certain view.
+     * @since 1.0
+     */
+    public void addTimeGraphFilterUncheckInactiveButton(ITimeGraphEntryActiveProvider inactiveProvider) {
+        fFilterDialog.addTimeGraphFilterUncheckInactiveButton(inactiveProvider);
     }
 
     /**
@@ -784,7 +841,6 @@ public class TimeGraphCombo extends Composite {
      * Sets the tree columns for this time graph combo's filter dialog.
      *
      * @param columnNames the tree column names
-     * @since 2.0
      */
     public void setFilterColumns(String[] columnNames) {
         fFilterDialog.setColumnNames(columnNames);
@@ -795,8 +851,6 @@ public class TimeGraphCombo extends Composite {
      *
      * @param timeGraphContentProvider
      *            the time graph content provider
-     *
-     * @since 3.0
      */
     public void setTimeGraphContentProvider(ITimeGraphContentProvider timeGraphContentProvider) {
         fTimeGraphViewer.setTimeGraphContentProvider(timeGraphContentProvider);
@@ -815,8 +869,6 @@ public class TimeGraphCombo extends Composite {
      * Sets or clears the input for this time graph combo.
      *
      * @param input the input of this time graph combo, or <code>null</code> if none
-     *
-     * @since 3.0
      */
     public void setInput(Object input) {
         fFilter.setFiltered(null);
@@ -844,8 +896,6 @@ public class TimeGraphCombo extends Composite {
      * Gets the input for this time graph combo.
      *
      * @return The input of this time graph combo, or <code>null</code> if none
-     *
-     * @since 3.0
      */
     public Object getInput() {
         return fTreeViewer.getInput();
@@ -855,7 +905,6 @@ public class TimeGraphCombo extends Composite {
      * Sets or clears the list of links to display on this combo
      *
      * @param links the links to display in this time graph combo
-     * @since 2.1
      */
     public void setLinks(List<ILinkEvent> links) {
         fTimeGraphViewer.setLinks(links);
@@ -863,7 +912,6 @@ public class TimeGraphCombo extends Composite {
 
     /**
      * @param filter The filter object to be attached to the view
-     * @since 2.0
      */
     public void addFilter(ViewerFilter filter) {
         ViewerFilter wrapper = new ViewerFilterWrapper(filter);
@@ -875,7 +923,6 @@ public class TimeGraphCombo extends Composite {
 
     /**
      * @param filter The filter object to be removed from the view
-     * @since 2.0
      */
     public void removeFilter(ViewerFilter filter) {
         ViewerFilter wrapper = fViewerFilterMap.get(filter);
@@ -891,10 +938,13 @@ public class TimeGraphCombo extends Composite {
     public void refresh() {
         fInhibitTreeSelection = true;
         Tree tree = fTreeViewer.getTree();
-        tree.setRedraw(false);
-        fTreeViewer.refresh();
-        fTreeViewer.expandAll();
-        tree.setRedraw(true);
+        try {
+            tree.setRedraw(false);
+            fTreeViewer.refresh();
+            fTreeViewer.expandToLevel(fTreeViewer.getAutoExpandLevel());
+        } finally {
+            tree.setRedraw(true);
+        }
         fTimeGraphViewer.refresh();
         alignTreeItems(true);
         fInhibitTreeSelection = false;
@@ -953,7 +1003,6 @@ public class TimeGraphCombo extends Composite {
      * @param level
      *            non-negative level, or <code>ALL_LEVELS</code> to expand all
      *            levels of the tree
-     * @since 3.1
      */
     public void setAutoExpandLevel(int level) {
         fTimeGraphViewer.setAutoExpandLevel(level);
@@ -970,7 +1019,6 @@ public class TimeGraphCombo extends Composite {
      * @return non-negative level, or <code>ALL_LEVELS</code> if all levels of
      *         the tree are expanded automatically
      * @see #setAutoExpandLevel
-     * @since 3.1
      */
     public int getAutoExpandLevel() {
         return fTimeGraphViewer.getAutoExpandLevel();
@@ -983,8 +1031,6 @@ public class TimeGraphCombo extends Composite {
      *            The entry to expand/collapse
      * @param expanded
      *            True for expanded, false for collapsed
-     *
-     * @since 2.0
      */
     public void setExpandedState(ITimeGraphEntry entry, boolean expanded) {
         fTimeGraphViewer.setExpandedState(entry, expanded);
@@ -994,8 +1040,6 @@ public class TimeGraphCombo extends Composite {
 
     /**
      * Collapses all nodes of the viewer's tree, starting with the root.
-     *
-     * @since 2.0
      */
     public void collapseAll() {
         fTimeGraphViewer.collapseAll();
@@ -1005,8 +1049,6 @@ public class TimeGraphCombo extends Composite {
 
     /**
      * Expands all nodes of the viewer's tree, starting with the root.
-     *
-     * @since 2.0
      */
     public void expandAll() {
         fTimeGraphViewer.expandAll();
@@ -1132,4 +1174,63 @@ public class TimeGraphCombo extends Composite {
         }
     }
 
+    /**
+     * Return the time alignment information
+     *
+     * @return the time alignment information
+     *
+     * @see ITmfTimeAligned
+     *
+     * @since 1.0
+     */
+    public TmfTimeViewAlignmentInfo getTimeViewAlignmentInfo() {
+        int[] weights = fSashForm.getWeights();
+        int leftWidth = (int) (((float) weights[0] / (weights[0] + weights[1])) * fSashForm.getBounds().width) + fSashForm.getSashWidth();
+        Point location = fSashForm.toDisplay(0, 0);
+        return new TmfTimeViewAlignmentInfo(fSashForm.getShell(), location, leftWidth);
+    }
+
+    /**
+     * Return the available width for the time-axis.
+     *
+     * @see ITmfTimeAligned
+     *
+     * @param requestedOffset
+     *            the requested offset
+     * @return the available width for the time-axis
+     *
+     * @since 1.0
+     */
+    public int getAvailableWidth(int requestedOffset) {
+        int totalWidth = fSashForm.getBounds().width;
+        return Math.min(totalWidth, Math.max(0, totalWidth - requestedOffset));
+    }
+
+    /**
+     * Perform the alignment operation.
+     *
+     * @param offset
+     *            the alignment offset
+     * @param width
+     *            the alignment width
+     *
+     * @see ITmfTimeAligned
+     *
+     * @since 1.0
+     */
+    public void performAlign(int offset, int width) {
+        int total = fSashForm.getBounds().width;
+        int timeAxisOffset = Math.min(offset, total);
+        int sash1Width = (int) (timeAxisOffset / (float) total * 1000);
+        int sash2Width = (int) ((total - timeAxisOffset) / (float) total * 1000);
+        fSashForm.setWeights(new int[] { sash1Width, sash2Width });
+        fSashForm.layout();
+
+        Composite composite = fTimeGraphViewer.getTimeAlignedComposite();
+        GridLayout layout = (GridLayout) composite.getLayout();
+        int timeBasedControlsWidth = composite.getSize().x;
+        int marginSize = timeBasedControlsWidth - width;
+        layout.marginRight = Math.max(0, marginSize);
+        composite.layout();
+    }
 }

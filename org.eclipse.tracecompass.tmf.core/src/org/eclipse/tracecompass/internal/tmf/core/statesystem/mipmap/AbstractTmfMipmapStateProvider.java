@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -13,18 +13,21 @@
 
 package org.eclipse.tracecompass.internal.tmf.core.statesystem.mipmap;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
-import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue.Type;
-import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
@@ -86,14 +89,13 @@ public abstract class AbstractTmfMipmapStateProvider extends AbstractTmfStatePro
      *
      * @param trace
      *            The trace directory
-     * @param eventType
-     *            The specific class for the event type
      * @param id
      *            The name given to this state change input. Only used
      *            internally.
      */
-    public AbstractTmfMipmapStateProvider(ITmfTrace trace, Class<? extends ITmfEvent> eventType, String id) {
-        super(trace, eventType, id);
+    public AbstractTmfMipmapStateProvider(@NonNull ITmfTrace trace,
+            @NonNull String id) {
+        super(trace, id);
     }
 
     // ------------------------------------------------------------------------
@@ -143,6 +145,7 @@ public abstract class AbstractTmfMipmapStateProvider extends AbstractTmfStatePro
      */
     public void modifyMipmapAttribute(long ts, ITmfStateValue value, int baseQuark, int mipmapFeatureBits, int resolution)
             throws TimeRangeException, AttributeNotFoundException, StateValueTypeException {
+        ITmfStateSystemBuilder ss = checkNotNull(getStateSystemBuilder());
         ss.modifyAttribute(ts, value, baseQuark);
         if (value.getType() == Type.LONG || value.getType() == Type.INTEGER || value.getType() == Type.DOUBLE || value.isNull()) {
             Set<ITmfMipmapFeature> features = getFeatureSet(baseQuark, ts, value, mipmapFeatureBits, resolution);
@@ -157,6 +160,8 @@ public abstract class AbstractTmfMipmapStateProvider extends AbstractTmfStatePro
     // ------------------------------------------------------------------------
 
     private Set<ITmfMipmapFeature> getFeatureSet(int baseQuark, long ts, ITmfStateValue value, int mipmapFeatureBits, int resolution) {
+        ITmfStateSystemBuilder ss = checkNotNull(getStateSystemBuilder());
+
         Set<ITmfMipmapFeature> features = featureMap.get(baseQuark);
         if (features != null) {
             return features;

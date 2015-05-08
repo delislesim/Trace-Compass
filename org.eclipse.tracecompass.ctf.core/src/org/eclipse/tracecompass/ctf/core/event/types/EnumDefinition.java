@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -50,7 +50,6 @@ public final class EnumDefinition extends SimpleDatatypeDefinition {
      *            the field name
      * @param intValue
      *            the value of the enum
-     * @since 3.0
      */
     public EnumDefinition(@NonNull EnumDeclaration declaration,
             IDefinitionScope definitionScope, @NonNull String fieldName, IntegerDefinition intValue) {

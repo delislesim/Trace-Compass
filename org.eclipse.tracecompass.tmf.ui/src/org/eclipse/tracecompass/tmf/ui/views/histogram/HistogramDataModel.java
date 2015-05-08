@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Ericsson
+ * Copyright (c) 2011, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -20,6 +20,7 @@
 package org.eclipse.tracecompass.tmf.ui.views.histogram;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -27,6 +28,9 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
+
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 
 /**
  * Histogram-independent data model.
@@ -129,7 +133,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      *
      * @param startTime
      *            The histogram start time
-     * @since 2.0
      */
     public HistogramDataModel(long startTime) {
         this(startTime, DEFAULT_NUMBER_OF_BUCKETS);
@@ -152,7 +155,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      *            the histogram start time
      * @param nbBuckets
      *            A number of buckets.
-     * @since 2.0
      */
     public HistogramDataModel(long startTime, int nbBuckets) {
         fFirstBucketTime = fFirstEventTime = fEndTime = startTime;
@@ -195,7 +197,6 @@ public class HistogramDataModel implements IHistogramDataModel {
 
     /**
      * Disposes the data model
-     * @since 3.0
      */
     public void dispose() {
         fTraceMap.clear();
@@ -254,25 +255,20 @@ public class HistogramDataModel implements IHistogramDataModel {
     /**
      * Sets the trace of this model.
      * @param trace - a {@link ITmfTrace}
-     * @since 3.0
      */
     public void setTrace(ITmfTrace trace) {
         this.fTrace = trace;
         fTraceMap.clear();
-        ITmfTrace[] traces = TmfTraceManager.getTraceSet(fTrace);
-        if (traces != null) {
-            int i = 0;
-            for (ITmfTrace tr : traces) {
-                fTraceMap.put(tr, i);
-                i++;
-            }
+        int i = 0;
+        for (ITmfTrace tr : TmfTraceManager.getTraceSet(fTrace)) {
+            fTraceMap.put(tr, i);
+            i++;
         }
     }
 
     /**
      * Gets the trace of this model.
      * @return a {@link ITmfTrace}
-     * @since 3.0
      */
     public ITmfTrace getTrace() {
         return this.fTrace;
@@ -281,33 +277,28 @@ public class HistogramDataModel implements IHistogramDataModel {
     /**
      * Gets the traces names of this model.
      * @return an array of trace names
-     * @since 3.0
      */
     public String[] getTraceNames() {
-        ITmfTrace[] traces = TmfTraceManager.getTraceSet(fTrace);
-        if (traces == null) {
-            return new String[0];
-        }
-        String[] traceNames = new String[traces.length];
-        int i = 0;
-        for (ITmfTrace tr : traces) {
-            traceNames[i] = tr.getName();
-            i++;
-        }
-        return traceNames;
+        FluentIterable<ITmfTrace> traces = FluentIterable.from(TmfTraceManager.getTraceSet(fTrace));
+        FluentIterable<String> traceNames = traces.transform(new Function<ITmfTrace, String>() {
+            @Override
+            public String apply(ITmfTrace input) {
+                return input.getName();
+            }
+        });
+        return traceNames.toArray(String.class);
     }
 
     /**
      * Gets the number of traces of this model.
      * @return the number of traces of this model.
-     * @since 3.0
      */
     public int getNbTraces() {
-        ITmfTrace[] traces = TmfTraceManager.getTraceSet(fTrace);
-        if (traces == null) {
+        Collection<ITmfTrace> traces = TmfTraceManager.getTraceSet(fTrace);
+        if (traces.isEmpty()) {
             return 1; //
         }
-        return traces.length;
+        return traces.size();
     }
 
     /**
@@ -317,7 +308,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      *            the histogram range start time
      * @param endTime
      *            the histogram range end time
-     * @since 2.0
      */
     public void setTimeRange(long startTime, long endTime) {
         fFirstBucketTime = fFirstEventTime = fEndTime = startTime;
@@ -334,7 +324,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      *
      * @param endTime
      *            the time of the last used bucket
-     * @since 2.2
      */
     public void setEndTime(long endTime) {
         fEndTime = endTime;
@@ -354,7 +343,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      * Returns the begin time of the current selection in the model.
      *
      * @return the begin time of the current selection.
-     * @since 2.1
      */
     public long getSelectionBegin() {
         return fSelectionBegin;
@@ -364,7 +352,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      * Returns the end time of the current selection in the model.
      *
      * @return the end time of the current selection.
-     * @since 2.1
      */
     public long getSelectionEnd() {
         return fSelectionEnd;
@@ -455,7 +442,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      *            The selection begin time.
      * @param endTime
      *            The selection end time.
-     * @since 2.1
      */
     public void setSelection(long beginTime, long endTime) {
         fSelectionBegin = beginTime;
@@ -469,7 +455,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      *            The selection begin time.
      * @param endTime
      *            The selection end time.
-     * @since 2.1
      */
     public void setSelectionNotifyListeners(long beginTime, long endTime) {
         fSelectionBegin = beginTime;
@@ -486,7 +471,6 @@ public class HistogramDataModel implements IHistogramDataModel {
      *            The timestamp of the event to count
      * @param trace
      *            The event trace
-     * @since 3.0
      */
     @Override
     public synchronized void countEvent(long eventCount, long timestamp, ITmfTrace trace) {
@@ -566,24 +550,33 @@ public class HistogramDataModel implements IHistogramDataModel {
      *            the number of lost events
      * @param fullRange
      *            Full range or time range for histogram request
-     * @since 2.2
      */
     public void countLostEvent(TmfTimeRange timeRange, long nbLostEvents, boolean fullRange) {
 
+        long startTime = timeRange.getStartTime().getValue();
+        long endTime = timeRange.getEndTime().getValue();
+
         // Validate
-        if (timeRange.getStartTime().getValue() < 0 || timeRange.getEndTime().getValue() < 0) {
+        if (startTime < 0 || endTime < 0) {
             return;
+        }
+
+        // Set the start/end time if not already done
+        if ((fFirstBucketTime == 0) && (fLastBucket == 0) && (fBuckets[0] == null)) {
+            fFirstBucketTime = startTime;
+            fFirstEventTime = startTime;
+            updateEndTime();
         }
 
         // Compact as needed
         if (fullRange) {
-            while (timeRange.getEndTime().getValue() >= fTimeLimit) {
+            while (endTime >= fTimeLimit) {
                 mergeBuckets();
             }
         }
 
-        int indexStart = (int) ((timeRange.getStartTime().getValue() - fFirstBucketTime) / fBucketDuration);
-        int indexEnd = (int) ((timeRange.getEndTime().getValue() - fFirstBucketTime) / fBucketDuration);
+        int indexStart = (int) ((startTime - fFirstBucketTime) / fBucketDuration);
+        int indexEnd = (int) ((endTime - fFirstBucketTime) / fBucketDuration);
         int nbBucketRange = (indexEnd - indexStart) + 1;
 
         int lostEventPerBucket = (int) Math.ceil((double) nbLostEvents / nbBucketRange);

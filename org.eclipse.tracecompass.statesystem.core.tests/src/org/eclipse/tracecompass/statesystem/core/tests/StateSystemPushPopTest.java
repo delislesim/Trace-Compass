@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,7 @@
 
 package org.eclipse.tracecompass.statesystem.core.tests;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -26,7 +27,7 @@ import org.eclipse.tracecompass.internal.statesystem.core.StateSystem;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
 import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.historytree.HistoryTreeBackend;
+import org.eclipse.tracecompass.statesystem.core.backend.StateHistoryBackendFactory;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
@@ -81,8 +82,9 @@ public class StateSystemPushPopTest {
         ITmfStateValue value;
         testHtFile = File.createTempFile("test", ".ht");
 
-        IStateHistoryBackend backend = new HistoryTreeBackend(testHtFile, 0, 0L);
-        ss = new StateSystem("push-pop-test", backend, true);
+        IStateHistoryBackend backend = StateHistoryBackendFactory.createHistoryTreeBackendNewFile(
+                "push-pop-test", checkNotNull(testHtFile), 0, 0, 0);
+        ss = new StateSystem(backend, true);
 
         /* Build the thing */
         final int attrib = ss.getQuarkAbsoluteAndAdd("Test", "stack");

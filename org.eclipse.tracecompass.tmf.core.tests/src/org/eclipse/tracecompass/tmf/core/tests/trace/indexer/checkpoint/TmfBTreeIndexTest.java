@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -36,11 +36,11 @@ public class TmfBTreeIndexTest extends AbstractIndexTest {
      * @return the indexer for testing
      */
     @Override
-    protected TestIndexerInterface createTestIndexer(TestTrace trace) {
+    protected ITestIndexer createTestIndexer(TestTrace trace) {
         return new TestBTreeIndexer(trace);
     }
 
-    private static class TestBTreeIndexer extends TmfBTreeTraceIndexer implements TestIndexerInterface {
+    private static class TestBTreeIndexer extends TmfBTreeTraceIndexer implements ITestIndexer {
         public TestBTreeIndexer(TestTrace testTrace) {
             super(testTrace, BLOCK_SIZE);
         }

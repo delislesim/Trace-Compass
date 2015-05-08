@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2014 Ericsson
+ * Copyright (c) 2009, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -9,20 +9,24 @@
  * Contributors:
  *   Francois Chouinard - Initial API and implementation
  *   Bernd Hufmann - Added possibility to pin view
+ *   Marc-Andre Laperle - Support for view alignment
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.ui.views;
 
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tracecompass.internal.tmf.ui.views.TimeAlignViewsAction;
+import org.eclipse.tracecompass.internal.tmf.ui.views.TmfAlignmentSynchronizer;
 import org.eclipse.tracecompass.tmf.core.component.ITmfComponent;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
-import org.eclipse.tracecompass.tmf.ui.editors.ITmfTraceEditor;
-import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
 /**
@@ -31,24 +35,21 @@ import org.eclipse.ui.part.ViewPart;
  * It registers any sub class to the signal manager for receiving and sending
  * TMF signals.
  *
- * @version 1.2
  * @author Francois Chouinard
  */
 public abstract class TmfView extends ViewPart implements ITmfComponent {
 
     private final String fName;
+    /** This allows us to keep track of the view sizes */
+    private Composite fParentComposite;
+    private ControlAdapter fControlListener;
+    private static final TmfAlignmentSynchronizer TIME_ALIGNMENT_SYNCHRONIZER = new TmfAlignmentSynchronizer();
 
     /**
      * Action class for pinning of TmfView.
-     * @since 2.0
      */
     protected PinTmfViewAction fPinAction;
-
-    /**
-     * Reference to the trace manager
-     * @since 2.0
-     */
-    protected final TmfTraceManager fTraceManager;
+    private static TimeAlignViewsAction fAlignViewsAction;
 
     // ------------------------------------------------------------------------
     // Constructor
@@ -63,7 +64,6 @@ public abstract class TmfView extends ViewPart implements ITmfComponent {
     public TmfView(String viewName) {
         super();
         fName = viewName;
-        fTraceManager = TmfTraceManager.getInstance();
         TmfSignalManager.register(this);
     }
 
@@ -90,9 +90,6 @@ public abstract class TmfView extends ViewPart implements ITmfComponent {
         TmfSignalManager.dispatchSignal(signal);
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public void broadcastAsync(TmfSignal signal) {
         TmfSignalManager.dispatchSignalAsync(signal);
@@ -107,7 +104,6 @@ public abstract class TmfView extends ViewPart implements ITmfComponent {
      * For example, this flag can be used to ignore time synchronization signals from other TmfViews.
      *
      * @return pin flag
-     * @since 2.0
      */
     public boolean isPinned() {
         return ((fPinAction != null) && (fPinAction.isChecked()));
@@ -116,8 +112,6 @@ public abstract class TmfView extends ViewPart implements ITmfComponent {
     /**
      * Method adds a pin action to the TmfView. The pin action allows to toggle the <code>fIsPinned</code> flag.
      * For example, this flag can be used to ignore time synchronization signals from other TmfViews.
-     *
-     * @since 2.0
      */
     protected void contributePinActionToToolBar() {
         if (fPinAction == null) {
@@ -130,20 +124,73 @@ public abstract class TmfView extends ViewPart implements ITmfComponent {
         }
     }
 
-    /**
-     * Get the currently selected trace, or 'null' if the active editor is not a
-     * TMF trace.
-     *
-     * @return The active trace, or 'null' if not a trace
-     * @since 2.0
-     */
-    public ITmfTrace getActiveTrace() {
-        IEditorPart editor = getSite().getPage().getActiveEditor();
-        if (editor instanceof ITmfTraceEditor) {
-            ITmfTrace trace = ((ITmfTraceEditor) editor).getTrace();
-            return trace;
+    @Override
+    public void createPartControl(final Composite parent) {
+        fParentComposite = parent;
+        if (this instanceof ITmfTimeAligned) {
+            contributeAlignViewsActionToToolbar();
+
+            fControlListener = new ControlAdapter() {
+                @Override
+                public void controlResized(ControlEvent e) {
+                    TIME_ALIGNMENT_SYNCHRONIZER.handleViewResized(TmfView.this);
+                }
+            };
+            parent.addControlListener(fControlListener);
+
+            getSite().getPage().addPartListener(new IPartListener() {
+                @Override
+                public void partOpened(IWorkbenchPart part) {
+                    // do nothing
+                }
+
+                @Override
+                public void partDeactivated(IWorkbenchPart part) {
+                    // do nothing
+                }
+
+                @Override
+                public void partClosed(IWorkbenchPart part) {
+                    if (part == TmfView.this && fControlListener != null && !fParentComposite.isDisposed()) {
+                        fParentComposite.removeControlListener(fControlListener);
+                        fControlListener = null;
+                        getSite().getPage().removePartListener(this);
+                        TIME_ALIGNMENT_SYNCHRONIZER.handleViewClosed(TmfView.this);
+                    }
+                }
+
+                @Override
+                public void partBroughtToTop(IWorkbenchPart part) {
+                    // do nothing
+                }
+
+                @Override
+                public void partActivated(IWorkbenchPart part) {
+                    // do nothing
+                }
+            });
         }
-        return null;
     }
 
+    private void contributeAlignViewsActionToToolbar() {
+        if (fAlignViewsAction == null) {
+            fAlignViewsAction = new TimeAlignViewsAction();
+        }
+
+        IToolBarManager toolBarManager = getViewSite().getActionBars()
+                .getToolBarManager();
+        toolBarManager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+        toolBarManager.add(fAlignViewsAction);
+    }
+
+    /**
+     * Returns the parent control of the view
+     *
+     * @return the parent control
+     *
+     * @since 1.0
+     */
+    public Composite getParentComposite() {
+        return fParentComposite;
+    }
 }

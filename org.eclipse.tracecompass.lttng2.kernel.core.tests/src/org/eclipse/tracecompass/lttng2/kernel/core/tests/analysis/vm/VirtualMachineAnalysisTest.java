@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,6 +12,7 @@
 
 package org.eclipse.tracecompass.lttng2.kernel.core.tests.analysis.vm;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -21,11 +22,11 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelAnalysisModule;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.VcpuStateValues;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.VmAttributes;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.module.VirtualMachineCpuAnalysis;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.trace.VirtualMachineExperiment;
-import org.eclipse.tracecompass.lttng2.kernel.core.analysis.kernel.LttngKernelAnalysis;
 import org.eclipse.tracecompass.lttng2.lttng.kernel.core.tests.shared.vm.VmTestExperiment;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
@@ -96,7 +97,8 @@ public class VirtualMachineAnalysisTest {
          * is implemented, we can remove this
          */
         for (ITmfTrace trace : experiment.getTraces()) {
-            for (LttngKernelAnalysis module : TmfTraceUtils.getAnalysisModulesOfClass(trace, LttngKernelAnalysis.class)) {
+            trace = checkNotNull(trace);
+            for (KernelAnalysisModule module : TmfTraceUtils.getAnalysisModulesOfClass(trace, KernelAnalysisModule.class)) {
                 module.schedule();
                 module.waitForCompletion();
             }

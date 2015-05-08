@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,8 @@
 
 package org.eclipse.tracecompass.internal.tmf.ui.project.wizards.tracepkg.importexport;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -310,8 +313,9 @@ public class TracePackageImportOperation extends AbstractTracePackageOperation i
                     }
                     if (createMarker != null && createMarker.exists()) {
                         try {
-                            for (String key : attrs.keySet()) {
-                                String value = attrs.get(key);
+                            for (Entry<String, String> entry : attrs.entrySet()) {
+                                String key = entry.getKey();
+                                String value = entry.getValue();
                                 if (key.equals(IMarker.LOCATION)) {
                                     createMarker.setAttribute(IMarker.LOCATION, Integer.valueOf(value).intValue());
                                 } else {
@@ -332,8 +336,8 @@ public class TracePackageImportOperation extends AbstractTracePackageOperation i
     private IStatus importTraceFiles(TracePackageFilesElement traceFilesElement, TracePackageTraceElement traceElement, IProgressMonitor monitor) {
         List<Pair<String, String>> fileNameAndLabelPairs = new ArrayList<>();
 
-        String sourceName = traceFilesElement.getFileName();
-        String destinationName = traceElement.getImportName();
+        String sourceName = checkNotNull(traceFilesElement.getFileName());
+        String destinationName = checkNotNull(traceElement.getImportName());
 
         fileNameAndLabelPairs.add(new Pair<>(sourceName, destinationName));
 
@@ -394,7 +398,7 @@ public class TracePackageImportOperation extends AbstractTracePackageOperation i
         for (TracePackageElement child : suppFilesElement.getChildren()) {
             if (child.isChecked()) {
                 TracePackageSupplFileElement supplFile = (TracePackageSupplFileElement) child;
-                fileNameAndLabelPairs.add(new Pair<>(supplFile.getText(), new Path(supplFile.getText()).lastSegment()));
+                fileNameAndLabelPairs.add(new Pair<>(checkNotNull(supplFile.getText()), checkNotNull(new Path(supplFile.getText()).lastSegment())));
             }
         }
 

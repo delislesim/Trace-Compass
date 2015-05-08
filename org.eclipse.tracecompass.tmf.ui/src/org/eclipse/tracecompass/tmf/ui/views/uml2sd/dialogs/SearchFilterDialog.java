@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -410,7 +410,6 @@ public class SearchFilterDialog extends Dialog {
      * Gets the text to be used for the ok button
      *
      * @return the text to be used for the ok button
-     * @since 2.0
      */
     public String getOkText() {
         return fOkText;
@@ -420,7 +419,6 @@ public class SearchFilterDialog extends Dialog {
      * Sets the IsFind flag (true for find, else for filter)
      *
      * @param flag value to set
-     * @since 2.0
      */
     protected void setIsFind(boolean flag) {
         fIsFind = flag;
@@ -430,7 +428,6 @@ public class SearchFilterDialog extends Dialog {
      * Gets the title to be used for the dialog box.
      *
      * @return the title to be used for the dialog box.
-     * @since 2.0
      */
     public String getTitle() {
         return fTitle;
@@ -440,7 +437,6 @@ public class SearchFilterDialog extends Dialog {
      * Gets the IsFind flag (true for find, else for filter)
      *
      * @return true for find, else for filter
-     * @since 2.0
      */
     protected boolean isFind() {
         return fIsFind;

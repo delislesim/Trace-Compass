@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Ericsson, École Polytechnique de Montréal
+ * Copyright (c) 2011, 2015 Ericsson, École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -10,11 +10,11 @@
  *   Patrick Tasse - Initial API and implementation
  *   Matthew Khouzam - Added import functionalities
  *   Geneviève Bastien - Added support for experiment types
+ *   Bernd Hufmann - Updated custom trace type ID handling
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.core.project.model;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,6 +27,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
 import org.eclipse.tracecompass.tmf.core.TmfCommonConstants;
@@ -41,18 +42,14 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * Utility class for accessing TMF trace type extensions from the platform's
  * extensions registry.
  *
- * @version 1.0
  * @author Patrick Tasse
  * @author Matthew Khouzam
- * @since 3.0
  */
 public final class TmfTraceType {
 
     // ------------------------------------------------------------------
     // Constants
     // ------------------------------------------------------------------
-
-    private static final char SEPARATOR = ':';
 
     /** Extension point ID */
     public static final String TMF_TRACE_TYPE_ID = "org.eclipse.linuxtools.tmf.core.tracetype"; //$NON-NLS-1$
@@ -86,17 +83,6 @@ public final class TmfTraceType {
 
     /** Extension point attribute 'isDirectory' */
     public static final String IS_DIR_ATTR = "isDirectory"; //$NON-NLS-1$
-
-    /**
-     * Custom text label used internally and therefore should not be
-     * externalized
-     */
-    public static final String CUSTOM_TXT_CATEGORY = "Custom Text"; //$NON-NLS-1$
-
-    /**
-     * Custom XML label used internally and therefore should not be externalized
-     */
-    public static final String CUSTOM_XML_CATEGORY = "Custom XML"; //$NON-NLS-1$
 
     /** Default experiment type */
     public static final String DEFAULT_EXPERIMENT_TYPE = "org.eclipse.linuxtools.tmf.core.experiment.generic"; //$NON-NLS-1$
@@ -173,20 +159,6 @@ public final class TmfTraceType {
     }
 
     /**
-     * Retrieve the TraceTypeHelper for a given trace type ID
-     *
-     * @param id
-     *            The trace type ID
-     * @return The corresponding TraceTypeHelper, or null if there is none for
-     *         the specified ID
-     * @deprecated Use {@link #getTraceType(String)}
-     */
-    @Deprecated
-    public static TraceTypeHelper getTraceTypeHelper(String id) {
-        return TRACE_TYPES.get(id);
-    }
-
-    /**
      * Get an iterable view of the existing trace type IDs.
      *
      * @return The currently registered trace type IDs
@@ -205,24 +177,24 @@ public final class TmfTraceType {
     }
 
     /**
-     * Returns a list of "category:tracetype , ..."
+     * Returns a list of trace type labels "category : name", ...
      *
      * Returns only trace types, not experiment types
      *
-     * @return returns a list of "category:tracetype , ..."
+     * @return a list of trace type labels
      */
     public static String[] getAvailableTraceTypes() {
         return getAvailableTraceTypes(null);
     }
 
     /**
-     * Returns a list of "category:tracetype , ..." sorted by given comparator.
+     * Returns a list of trace type labels "category : name", ... sorted by given comparator.
      *
      * Returns only trace types, not experiment types
      *
      * @param comparator
      *            Comparator class (type String) or null for alphabetical order.
-     * @return sorted list according to the given comparator
+     * @return a list of trace type labels sorted according to the given comparator
      */
     public static String[] getAvailableTraceTypes(Comparator<String> comparator) {
 
@@ -232,7 +204,7 @@ public final class TmfTraceType {
         for (String key : TRACE_TYPES.keySet()) {
             TraceTypeHelper tt = TRACE_TYPES.get(key);
             if (!tt.isExperimentType()) {
-                traceTypes.add(tt.getCategoryName() + SEPARATOR + tt.getName());
+                traceTypes.add(tt.getLabel());
             }
         }
 
@@ -244,30 +216,6 @@ public final class TmfTraceType {
 
         // Format result
         return traceTypes.toArray(new String[traceTypes.size()]);
-    }
-
-    /**
-     * Gets the custom trace types (custom text and friends)
-     *
-     * @param type
-     *            the type to get (Text, xml or other...)
-     * @return the list of custom trace types
-     */
-    public static List<String> getCustomTraceTypes(String type) {
-        List<String> traceTypes = new ArrayList<>();
-        if (type.equals(CUSTOM_TXT_CATEGORY)) {
-            for (CustomTxtTraceDefinition def : CustomTxtTraceDefinition.loadAll()) {
-                String traceTypeName = def.definitionName;
-                traceTypes.add(traceTypeName);
-            }
-        }
-        if (type.equals(CUSTOM_XML_CATEGORY)) {
-            for (CustomXmlTraceDefinition def : CustomXmlTraceDefinition.loadAll()) {
-                String traceTypeName = def.definitionName;
-                traceTypes.add(traceTypeName);
-            }
-        }
-        return traceTypes;
     }
 
     /**
@@ -292,38 +240,20 @@ public final class TmfTraceType {
     private static void populateCustomTraceTypes() {
         // add the custom trace types
         for (CustomTxtTraceDefinition def : CustomTxtTraceDefinition.loadAll()) {
-            String traceTypeId = CustomTxtTrace.class.getCanonicalName() + SEPARATOR + def.categoryName + SEPARATOR + def.definitionName;
-            ITmfTrace trace = new CustomTxtTrace(def);
+            CustomTxtTrace trace = new CustomTxtTrace(def);
+            String traceTypeId = trace.getTraceTypeId();
             TraceTypeHelper tt = new TraceTypeHelper(traceTypeId, def.categoryName, def.definitionName, trace, false, TraceElementType.TRACE);
             TRACE_TYPES.put(traceTypeId, tt);
             // Deregister trace as signal handler because it is only used for validation
             TmfSignalManager.deregister(trace);
         }
         for (CustomXmlTraceDefinition def : CustomXmlTraceDefinition.loadAll()) {
-            String traceTypeId = CustomXmlTrace.class.getCanonicalName() + SEPARATOR + def.categoryName + SEPARATOR + def.definitionName;
-            ITmfTrace trace = new CustomXmlTrace(def);
+            CustomXmlTrace trace = new CustomXmlTrace(def);
+            String traceTypeId = trace.getTraceTypeId();
             TraceTypeHelper tt = new TraceTypeHelper(traceTypeId, def.categoryName, def.definitionName, trace, false, TraceElementType.TRACE);
             TRACE_TYPES.put(traceTypeId, tt);
             // Deregister trace as signal handler because it is only used for validation
             TmfSignalManager.deregister(trace);
-        }
-    }
-
-    /**
-     * Add or replace a custom trace type
-     *
-     * @param category
-     *            The custom parser category
-     * @param definitionName
-     *            The custom parser definition name to add or replace
-     * @deprecated Use {@link #addCustomTraceType(Class, String, String)}
-     */
-    @Deprecated
-    public static void addCustomTraceType(String category, String definitionName) {
-        if (category.equals(CUSTOM_TXT_CATEGORY)) {
-            addCustomTraceType(CustomTxtTrace.class, category, definitionName);
-        } else if (category.equals(CUSTOM_XML_CATEGORY)) {
-            addCustomTraceType(CustomXmlTrace.class, category, definitionName);
         }
     }
 
@@ -343,16 +273,16 @@ public final class TmfTraceType {
         ITmfTrace trace = null;
 
         if (traceClass.equals(CustomTxtTrace.class)) {
-            traceTypeId = CustomTxtTrace.class.getCanonicalName() + SEPARATOR + category + SEPARATOR + definitionName;
             CustomTxtTraceDefinition def = CustomTxtTraceDefinition.load(category, definitionName);
             if (def != null) {
                 trace = new CustomTxtTrace(def);
+                traceTypeId = trace.getTraceTypeId();
             }
         } else if (traceClass.equals(CustomXmlTrace.class)) {
-            traceTypeId = CustomXmlTrace.class.getCanonicalName() + SEPARATOR + category + SEPARATOR + definitionName;
             CustomXmlTraceDefinition def = CustomXmlTraceDefinition.load(category, definitionName);
             if (def != null) {
                 trace = new CustomXmlTrace(def);
+                traceTypeId = trace.getTraceTypeId();
             }
         }
 
@@ -371,24 +301,6 @@ public final class TmfTraceType {
     /**
      * Remove a custom trace type
      *
-     * @param category
-     *            The custom parser category
-     * @param definitionName
-     *            The custom parser definition name to add or replace
-     * @deprecated Use {@link #removeCustomTraceType(Class, String, String)}
-     */
-    @Deprecated
-    public static void removeCustomTraceType(String category, String definitionName) {
-        if (category.equals(CUSTOM_TXT_CATEGORY)) {
-            removeCustomTraceType(CustomTxtTrace.class, category, definitionName);
-        } else if (category.equals(CUSTOM_XML_CATEGORY)) {
-            removeCustomTraceType(CustomXmlTrace.class, category, definitionName);
-        }
-    }
-
-    /**
-     * Remove a custom trace type
-     *
      * @param traceClass
      *            The custom trace class, either {@link CustomTxtTrace} or
      *            {@link CustomXmlTrace}
@@ -398,10 +310,17 @@ public final class TmfTraceType {
      *            The custom parser definition name to add or replace
      */
     public static void removeCustomTraceType(Class<? extends ITmfTrace> traceClass, String category, String definitionName) {
-        String traceTypeId = traceClass.getCanonicalName() + SEPARATOR + category + SEPARATOR + definitionName;
-        TraceTypeHelper helper = TRACE_TYPES.remove(traceTypeId);
-        if (helper != null) {
-            helper.getTrace().dispose();
+        String traceTypeId = null;
+        if (traceClass.equals(CustomTxtTrace.class)) {
+            traceTypeId = CustomTxtTrace.buildTraceTypeId(category, definitionName);
+        } else if (traceClass.equals(CustomXmlTrace.class)) {
+            traceTypeId = CustomXmlTrace.buildTraceTypeId(category, definitionName);
+        }
+        if (traceTypeId != null) {
+            TraceTypeHelper helper = TRACE_TYPES.remove(traceTypeId);
+            if (helper != null) {
+                helper.getTrace().dispose();
+            }
         }
     }
 
@@ -475,7 +394,7 @@ public final class TmfTraceType {
                 return category.getAttribute(TmfTraceType.NAME_ATTR);
             }
         }
-        return "[no category]"; //$NON-NLS-1$
+        return ""; //$NON-NLS-1$
     }
 
     /**
@@ -546,27 +465,6 @@ public final class TmfTraceType {
     }
 
     /**
-     * Validate a list of files with a tracetype
-     *
-     * @param traceTypeName
-     *            the trace category (canonical name)
-     * @param traces
-     *            the list of files to check if they are trace
-     * @return true if all the traces are valid
-     */
-    public static boolean validateTraceFiles(String traceTypeName, List<File> traces) {
-        if (traceTypeName != null && !"".equals(traceTypeName) && //$NON-NLS-1$
-                !traceTypeName.startsWith(TmfTraceType.CUSTOM_TXT_CATEGORY) && !traceTypeName.startsWith(TmfTraceType.CUSTOM_XML_CATEGORY)) {
-            for (File trace : traces) {
-                if (!validate(traceTypeName, trace.getAbsolutePath())) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * Get a configuration element for a given name
      *
      * @param traceType
@@ -578,57 +476,19 @@ public final class TmfTraceType {
     }
 
     /**
-     * Find the id of a trace type by its parameters
+     * Find the id of a trace type by its label "category : name"
      *
-     * @param category
-     *            like "ctf" or "custom text"
-     * @param traceType
-     *            like "kernel"
-     * @return an id like "org.eclipse.linuxtools.blabla...
+     * @param label
+     *            the trace type label
+     * @return the trace type id
      */
-    public static String getTraceTypeId(String category, String traceType) {
+    public static String getTraceTypeId(String label) {
         for (String key : TRACE_TYPES.keySet()) {
-            if (TRACE_TYPES.get(key).getCategoryName().equals(category.trim()) && TRACE_TYPES.get(key).getName().equals(traceType.trim())) {
+            if (TRACE_TYPES.get(key).getLabel().equals(label)) {
                 return key;
             }
         }
         return null;
-    }
-
-    /**
-     * Gets the custom trace type ID from the custom trace name
-     *
-     * @param traceType
-     *            The trace type in human form (category:name)
-     * @return the trace type ID or null if the trace is not a custom one
-     * @deprecated Use {@link #getTraceTypeId(String, String)}
-     */
-    @Deprecated
-    public static String getCustomTraceTypeId(String traceType) {
-        String traceTypeToken[] = traceType.split(":", 2); //$NON-NLS-1$
-        if (traceTypeToken.length == 2) {
-            return getTraceTypeId(traceTypeToken[0], traceTypeToken[1]);
-        }
-        return null;
-    }
-
-    /**
-     * Is the trace a custom (user-defined) trace type. These are the traces
-     * like : text and xml defined by the custom trace wizard.
-     *
-     * @param traceType
-     *            the trace type in human form (category:name)
-     * @return true if the trace is a custom type
-     * @deprecated Use {@link #getTraceTypeId(String, String)} and check prefix
-     */
-    @Deprecated
-    public static boolean isCustomTrace(String traceType) {
-        String traceTypeId = getCustomTraceTypeId(traceType);
-        if (traceTypeId != null) {
-            return traceTypeId.startsWith(CustomTxtTrace.class.getCanonicalName() + SEPARATOR) ||
-                    traceTypeId.startsWith(CustomXmlTrace.class.getCanonicalName() + SEPARATOR);
-        }
-        return false;
     }
 
     /**
@@ -641,7 +501,7 @@ public final class TmfTraceType {
         final Iterable<TraceTypeHelper> traceTypeHelpers = getTraceTypeHelpers();
         for (TraceTypeHelper traceTypeHelper : traceTypeHelpers) {
             if (traceTypeHelper.isDirectoryTraceType() &&
-                    traceTypeHelper.validate(path).isOK()) {
+                    (traceTypeHelper.validate(path).getSeverity() != IStatus.ERROR)) {
                 return true;
             }
         }
@@ -672,23 +532,40 @@ public final class TmfTraceType {
      * @return the trace type id or null if it is not set
      * @throws CoreException
      *             if the trace type id cannot be accessed
-     * @since 3.2
      */
     public static String getTraceTypeId(IResource resource) throws CoreException {
         String traceTypeId = resource.getPersistentProperties().get(TmfCommonConstants.TRACETYPE);
+        return buildCompatibilityTraceTypeId(traceTypeId);
+    }
+
+    /**
+     * This methods builds a trace type ID from a given ID taking into
+     * consideration any format changes that were done for the IDs of custom
+     * text or XML traces. For example, such format change took place when
+     * moving to Trace Compass. Trace type IDs that are part of the plug-in
+     * extension for trace types won't be changed.
+     *
+     * This method is useful for IDs that were persisted in the workspace before
+     * the format changes (e.g. in the persistent properties of a trace
+     * resource).
+     *
+     * It ensures backwards compatibility of the workspace for custom text and
+     * XML traces.
+     *
+     * @param traceTypeId
+     *            the legacy trace type ID
+     * @return the trace type ID in Trace Compass format
+     */
+    public static String buildCompatibilityTraceTypeId(String traceTypeId) {
         // Fix custom trace type id with old class name or without category name for backward compatibility
         if (traceTypeId != null) {
-            int index = traceTypeId.lastIndexOf(':');
-            if (index != -1) {
-                if (traceTypeId.contains(CustomTxtTrace.class.getSimpleName() + ':') && traceTypeId.indexOf(':') == index) {
-                    traceTypeId = CustomTxtTrace.class.getCanonicalName() + ':' +
-                            TmfTraceType.CUSTOM_TXT_CATEGORY + traceTypeId.substring(index);
-                } else if (traceTypeId.contains(CustomXmlTrace.class.getSimpleName() + ':') && traceTypeId.indexOf(':') == index) {
-                    traceTypeId = CustomXmlTrace.class.getCanonicalName() + ':' +
-                            TmfTraceType.CUSTOM_XML_CATEGORY + traceTypeId.substring(index);
-                }
+            String newTraceType = CustomTxtTrace.buildCompatibilityTraceTypeId(traceTypeId);
+            if (newTraceType.equals(traceTypeId)) {
+                newTraceType = CustomXmlTrace.buildCompatibilityTraceTypeId(traceTypeId);
             }
+            return newTraceType;
         }
         return traceTypeId;
     }
+
 }

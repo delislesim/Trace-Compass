@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,12 +17,10 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
 
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
-import org.eclipse.tracecompass.lttng2.kernel.core.analysis.kernel.LttngKernelStateProvider;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelAnalysisModule;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
-import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.ctf.core.tests.shared.CtfTmfTestTrace;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
@@ -62,19 +60,16 @@ public class GenerateTestValues {
                 PrintWriter writer = new PrintWriter(new FileWriter(logFile), true);) {
 
             /* Build and query the state system */
-            TmfStateSystemAnalysisModule module = new TmfStateSystemAnalysisModule() {
-                @Override
-                protected ITmfStateProvider createStateProvider() {
-                    return new LttngKernelStateProvider(trace, LttngEventLayout.getInstance());
-                }
-
+            TmfStateSystemAnalysisModule module = new KernelAnalysisModule() {
                 @Override
                 protected String getSsFileName() {
                     return "test-values";
                 }
             };
 
-            module.setTrace(trace);
+            if (!module.setTrace(trace)) {
+                throw new IllegalStateException();
+            }
             module.setId("test-values");
             module.schedule();
             module.waitForCompletion();
@@ -88,25 +83,25 @@ public class GenerateTestValues {
             /* Start printing the java file's contents */
             writer.println("interface TestValues {");
             writer.println();
-            writer.println(INDENT + "static final int size = " + fullState.size() + ";");
+            writer.println(INDENT + "int size = " + fullState.size() + ";");
             writer.println();
 
             /* Print the array contents */
-            writer.println(INDENT + "static final long[] startTimes = {");
+            writer.println(INDENT + "long[] startTimes = {");
             for (ITmfStateInterval interval : fullState) {
                 writer.println(INDENT + INDENT + String.valueOf(interval.getStartTime()) + "L,");
             }
             writer.println(INDENT + "};");
             writer.println();
 
-            writer.println(INDENT + "static final long[] endTimes = {");
+            writer.println(INDENT + "long[] endTimes = {");
             for (ITmfStateInterval interval : fullState) {
                 writer.println(INDENT + INDENT + String.valueOf(interval.getEndTime()) + "L,");
             }
             writer.println(INDENT + "};");
             writer.println();
 
-            writer.println(INDENT + "static final ITmfStateValue[] values = {");
+            writer.println(INDENT + "ITmfStateValue[] values = {");
             for (ITmfStateInterval interval : fullState) {
                 ITmfStateValue val = interval.getStateValue();
                 writer.print(INDENT + INDENT);

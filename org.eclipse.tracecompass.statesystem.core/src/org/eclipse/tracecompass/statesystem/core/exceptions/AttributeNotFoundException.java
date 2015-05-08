@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  * Copyright (c) 2010, 2011 École Polytechnique de Montréal
  * Copyright (c) 2010, 2011 Alexandre Montplaisir <alexandre.montplaisir@gmail.com>
  *
@@ -8,6 +8,9 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * Contributors:
+ *   Alexandre Montplaisir - Initial API and implementation
+ *   Patrick Tasse - Add message to exceptions
  *******************************************************************************/
 
 package org.eclipse.tracecompass.statesystem.core.exceptions;
@@ -17,7 +20,6 @@ package org.eclipse.tracecompass.statesystem.core.exceptions;
  * doesn't exist in the system, of if the quark is simply invalid (ie, < 0).
  *
  * @author Alexandre Montplaisir
- * @since 3.0
  */
 public class AttributeNotFoundException extends Exception {
 
@@ -40,4 +42,16 @@ public class AttributeNotFoundException extends Exception {
         super(message);
     }
 
+    /**
+     * Constructor with both a message and a cause.
+     *
+     * @param message
+     *            Message to attach to this exception
+     * @param e
+     *            Cause of this exception
+     * @since 1.0
+     */
+    public AttributeNotFoundException(String message, Throwable e) {
+        super(message, e);
+    }
 }

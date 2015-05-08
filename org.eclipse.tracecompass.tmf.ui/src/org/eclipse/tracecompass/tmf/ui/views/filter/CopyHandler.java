@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Kalray
+ * Copyright (c) 2013, 2014 Kalray
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -24,8 +24,8 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Handler for copy command in filter view
+ *
  * @author Xavier Raynaud <xavier.raynaud@kalray.eu>
- * @since 3.0
  */
 public class CopyHandler extends AbstractHandler {
 
@@ -70,7 +70,8 @@ public class CopyHandler extends AbstractHandler {
         if (part instanceof FilterView) {
             FilterView tcv = (FilterView) part;
             ISelection selection = tcv.getSite().getSelectionProvider().getSelection();
-            if (!selection.isEmpty()) {
+            // only enable if tree is in focus
+            if (!selection.isEmpty() && tcv.isTreeInFocus()) {
                 return true;
             }
         }

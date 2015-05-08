@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Ericsson
+ * Copyright (c) 2011, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -19,12 +19,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.ctf.core.event.CTFCallsite;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.ICompositeDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.IDefinition;
-import org.eclipse.tracecompass.ctf.core.trace.CTFTrace;
 import org.eclipse.tracecompass.tmf.core.event.ITmfCustomAttributes;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
@@ -32,19 +30,17 @@ import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.lookup.ITmfModelLookup;
 import org.eclipse.tracecompass.tmf.core.event.lookup.ITmfSourceLookup;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfNanoTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.ctf.core.CtfConstants;
 import org.eclipse.tracecompass.tmf.ctf.core.event.lookup.CtfTmfCallsite;
-import org.eclipse.tracecompass.tmf.ctf.core.timestamp.CtfTmfTimestamp;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 
 /**
  * A wrapper class around CTF's Event Definition/Declaration that maps all types
  * of Declaration to native Java types.
  *
- * @version 1.0
  * @author Alexandre Montplaisir
- * @since 2.0
  */
 public class CtfTmfEvent extends TmfEvent
         implements ITmfSourceLookup, ITmfModelLookup, ITmfCustomAttributes {
@@ -69,6 +65,8 @@ public class CtfTmfEvent extends TmfEvent
     /** Lazy-loaded field containing the event's payload */
     private ITmfEventField fContent;
 
+    private CtfTmfEventType fCtfTmfEventType;
+
     // ------------------------------------------------------------------------
     // Constructors
     // ------------------------------------------------------------------------
@@ -76,7 +74,7 @@ public class CtfTmfEvent extends TmfEvent
     /**
      * Constructor used by {@link CtfTmfEventFactory#createEvent}
      */
-    CtfTmfEvent(CtfTmfTrace trace, long rank, CtfTmfTimestamp timestamp,
+    CtfTmfEvent(CtfTmfTrace trace, long rank, TmfNanoTimestamp timestamp,
             String fileName, int cpu, IEventDeclaration declaration, @NonNull EventDefinition eventDefinition) {
         super(trace,
                 rank,
@@ -90,8 +88,7 @@ public class CtfTmfEvent extends TmfEvent
                  * Content handled with a lazy-loaded field re-implemented in
                  * getContent().
                  */
-                null
-        );
+                null);
 
         fEventDeclaration = declaration;
         fSourceCPU = cpu;
@@ -115,7 +112,7 @@ public class CtfTmfEvent extends TmfEvent
     CtfTmfEvent(CtfTmfTrace trace) {
         super(trace,
                 ITmfContext.UNKNOWN_RANK,
-                new CtfTmfTimestamp(-1),
+                new TmfNanoTimestamp(-1),
                 null,
                 new TmfEventField("", null, new CtfTmfEventField[0])); //$NON-NLS-1$
         fSourceCPU = -1;
@@ -180,18 +177,23 @@ public class CtfTmfEvent extends TmfEvent
 
     @Override
     public ITmfEventType getType() {
-        CtfTmfEventType ctfTmfEventType = new CtfTmfEventType(fEventName, getContent());
+        if (fCtfTmfEventType == null) {
+            fCtfTmfEventType = new CtfTmfEventType(fEventName, getContent());
 
-        /* Register the event type in the owning trace, but only if there is one */
-        CtfTmfTrace trace = getTrace();
-        trace.registerEventType(ctfTmfEventType);
-
-        return ctfTmfEventType;
+            /*
+             * Register the event type in the owning trace, but only if there is
+             * one
+             */
+            getTrace().registerEventType(fCtfTmfEventType);
+        }
+        return fCtfTmfEventType;
     }
 
-    /**
-     * @since 2.0
-     */
+    @Override
+    public String getName() {
+        return fEventName;
+    }
+
     @Override
     public Set<String> listCustomAttributes() {
         if (fEventDeclaration == null) {
@@ -200,9 +202,6 @@ public class CtfTmfEvent extends TmfEvent
         return fEventDeclaration.getCustomAttributes();
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public String getCustomAttribute(String name) {
         if (fEventDeclaration == null) {
@@ -215,36 +214,25 @@ public class CtfTmfEvent extends TmfEvent
      * Get the call site for this event.
      *
      * @return the call site information, or null if there is none
-     * @since 2.0
      */
     @Override
     public CtfTmfCallsite getCallsite() {
-        CTFCallsite callsite = null;
+        CtfTmfCallsite callsite = null;
         CtfTmfTrace trace = getTrace();
-        CTFTrace ctfTrace = trace.getCTFTrace();
-        /* Should not happen, but it is a good check */
-        if (ctfTrace == null) {
-            return null;
-        }
+
         if (getContent() != null) {
             ITmfEventField ipField = getContent().getField(CtfConstants.CONTEXT_FIELD_PREFIX + CtfConstants.IP_KEY);
             if (ipField != null && ipField.getValue() instanceof Long) {
                 long ip = (Long) ipField.getValue();
-                callsite = ctfTrace.getCallsite(fEventName, ip);
+                callsite = trace.getCallsite(fEventName, ip);
             }
         }
         if (callsite == null) {
-            callsite = ctfTrace.getCallsite(fEventName);
+            callsite = trace.getCallsite(fEventName);
         }
-        if (callsite != null) {
-            return new CtfTmfCallsite(callsite);
-        }
-        return null;
+        return callsite;
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public String getModelUri() {
         return getCustomAttribute(CtfConstants.MODEL_URI_KEY);

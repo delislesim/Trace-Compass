@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -92,7 +92,7 @@ public class TmfEventTest {
         final ITmfEvent event = new TmfEvent(fTrace, ITmfContext.UNKNOWN_RANK, null, null, null);
         assertNotNull("getTrace", event.getTrace());
         assertEquals("getRank", ITmfContext.UNKNOWN_RANK, event.getRank());
-        assertNull("getTimestamp", event.getTimestamp());
+        assertEquals("getTimestamp", TmfTimestamp.ZERO, event.getTimestamp());
         assertNull("getType", event.getType());
         assertNull("getContent", event.getContent());
     }

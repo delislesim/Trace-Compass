@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ecole Polytechnique de Montreal
+ * Copyright (c) 2014, 2015 Ecole Polytechnique de Montreal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -235,14 +235,11 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
                 }
                 if (name.equals(TmfXmlStrings.CPU)) {
                     /* See if the event advertises a CPU aspect */
-                    Iterable<TmfCpuAspect> cpuAspects = TmfTraceUtils.getEventAspectsOfClass(
-                            event.getTrace(), TmfCpuAspect.class);
-                    for (TmfCpuAspect aspect : cpuAspects) {
-                        Integer cpu = aspect.resolve(event);
-                        if (!cpu.equals(TmfCpuAspect.CPU_UNAVAILABLE)) {
-                            quark = getQuarkRelativeAndAdd(startQuark, cpu.toString());
-                            break;
-                        }
+                    Object cpuObj = TmfTraceUtils.resolveEventAspectOfClassForEvent(
+                            event.getTrace(), TmfCpuAspect.class, event);
+                    if (cpuObj != null) {
+                        Integer cpu = (Integer) cpuObj;
+                        quark = getQuarkRelativeAndAdd(startQuark, cpu.toString());
                     }
                 } else {
                     final ITmfEventField content = event.getContent();
@@ -329,7 +326,7 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
                     Activator.logWarning("XML State attribute: looking for an eventname, but event is null"); //$NON-NLS-1$
                     return quark;
                 }
-                quark = getQuarkRelativeAndAdd(startQuark, event.getType().getName());
+                quark = getQuarkRelativeAndAdd(startQuark, event.getName());
                 return quark;
             }
             case SELF:

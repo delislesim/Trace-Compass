@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -21,7 +21,6 @@ import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
  * persisted to disk.
  *
  * @author Marc-Andre Laperle
- * @since 3.0
  */
 public interface ITmfPersistentlyIndexable {
 
@@ -31,8 +30,6 @@ public interface ITmfPersistentlyIndexable {
      * @param bufferIn
      *            the buffer to read from
      * @return the instantiated location
-     *
-     * @since 3.0
      */
     ITmfLocation restoreLocation(ByteBuffer bufferIn);
 
@@ -40,8 +37,6 @@ public interface ITmfPersistentlyIndexable {
      * Get the checkpoint size for this trace
      *
      * @return the checkpoint size
-     *
-     * @since 3.0
      */
     public int getCheckpointSize();
 }

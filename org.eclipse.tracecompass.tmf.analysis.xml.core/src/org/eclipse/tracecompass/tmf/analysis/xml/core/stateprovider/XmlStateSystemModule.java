@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -11,6 +11,8 @@
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider;
+
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.List;
 
@@ -26,7 +28,6 @@ import org.w3c.dom.Element;
  * Analysis module for the data-driven state systems, defined in XML.
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public class XmlStateSystemModule extends TmfStateSystemAnalysisModule {
 
@@ -40,7 +41,7 @@ public class XmlStateSystemModule extends TmfStateSystemAnalysisModule {
     @Override
     @NonNull
     protected ITmfStateProvider createStateProvider() {
-        return new XmlStateProvider(getTrace(), getId(), fXmlFile);
+        return new XmlStateProvider(checkNotNull(getTrace()), getId(), fXmlFile);
     }
 
     @Override

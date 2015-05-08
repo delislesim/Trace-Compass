@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
 import org.eclipse.tracecompass.internal.ctf.core.Activator;
@@ -86,10 +87,10 @@ public class CTFTraceReader implements AutoCloseable {
      *
      * @param trace
      *            The trace to read from.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public CTFTraceReader(CTFTrace trace) throws CTFReaderException {
+    public CTFTraceReader(CTFTrace trace) throws CTFException {
         fTrace = trace;
         fStreamInputReaders.clear();
 
@@ -118,10 +119,10 @@ public class CTFTraceReader implements AutoCloseable {
      * Copy constructor
      *
      * @return The new CTFTraceReader
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public CTFTraceReader copyFrom() throws CTFReaderException {
+    public CTFTraceReader copyFrom() throws CTFException {
         CTFTraceReader newReader = null;
 
         newReader = new CTFTraceReader(fTrace);
@@ -132,8 +133,6 @@ public class CTFTraceReader implements AutoCloseable {
 
     /**
      * Dispose the CTFTraceReader
-     *
-     * @since 3.0
      */
     @Override
     public void close() {
@@ -178,7 +177,6 @@ public class CTFTraceReader implements AutoCloseable {
      * Get the priority queue of this trace reader.
      *
      * @return The priority queue of input readers
-     * @since 2.0
      */
     protected PriorityQueue<CTFStreamInputReader> getPrio() {
         return fPrio;
@@ -191,10 +189,10 @@ public class CTFTraceReader implements AutoCloseable {
     /**
      * Creates one trace file reader per trace file contained in the trace.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    private void createStreamInputReaders() throws CTFReaderException {
+    private void createStreamInputReaders() throws CTFException {
         /*
          * For each stream.
          */
@@ -222,12 +220,10 @@ public class CTFTraceReader implements AutoCloseable {
     /**
      * Update the priority queue to make it match the parent trace
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             An error occured
-     *
-     * @since 3.0
      */
-    public void update() throws CTFReaderException {
+    public void update() throws CTFException {
         Set<CTFStreamInputReader> readers = new HashSet<>();
         for (CTFStream stream : fTrace.getStreams()) {
             Set<CTFStreamInput> streamInputs = stream.getStreamInputs();
@@ -262,7 +258,6 @@ public class CTFTraceReader implements AutoCloseable {
      * Gets an iterable of the stream input readers, useful for foreaches
      *
      * @return the iterable of the stream input readers
-     * @since 3.0
      */
     public Iterable<IEventDeclaration> getEventDeclarations() {
         ImmutableSet.Builder<IEventDeclaration> builder = new Builder<>();
@@ -276,10 +271,10 @@ public class CTFTraceReader implements AutoCloseable {
      * Initializes the priority queue used to choose the trace file with the
      * lower next event timestamp.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    private void populateStreamInputReaderHeap() throws CTFReaderException {
+    private void populateStreamInputReaderHeap() throws CTFException {
         if (fStreamInputReaders.isEmpty()) {
             fPrio = new PriorityQueue<>(MIN_PRIO_SIZE,
                     new StreamInputReaderTimestampComparator());
@@ -330,10 +325,10 @@ public class CTFTraceReader implements AutoCloseable {
      * Go to the next event.
      *
      * @return True if an event was read.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public boolean advance() throws CTFReaderException {
+    public boolean advance() throws CTFException {
         /*
          * Remove the reader from the top of the priority queue.
          */
@@ -384,10 +379,10 @@ public class CTFTraceReader implements AutoCloseable {
     /**
      * Go to the last event in the trace.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public void goToLastEvent() throws CTFReaderException {
+    public void goToLastEvent() throws CTFException {
         seek(getEndTime());
         while (fPrio.size() > 1) {
             advance();
@@ -405,10 +400,10 @@ public class CTFTraceReader implements AutoCloseable {
      *            the timestamp to seek to
      * @return true if there are events above or equal the seek timestamp, false
      *         if seek at the end of the trace (no valid event).
-     * @throws CTFReaderException
+     * @throws CTFException
      *             if an error occurs
      */
-    public boolean seek(long timestamp) throws CTFReaderException {
+    public boolean seek(long timestamp) throws CTFException {
         /*
          * Remove all the trace readers from the priority queue
          */
@@ -433,7 +428,6 @@ public class CTFTraceReader implements AutoCloseable {
      * Gets the stream with the oldest event
      *
      * @return the stream with the oldest event
-     * @since 3.0
      */
     public CTFStreamInputReader getTopStream() {
         return fPrio.peek();
@@ -508,7 +502,6 @@ public class CTFTraceReader implements AutoCloseable {
      *
      * @param live
      *            whether the trace is live
-     * @since 3.0
      */
     public void setLive(boolean live) {
         for (CTFStreamInputReader s : fPrio) {
@@ -520,8 +513,6 @@ public class CTFTraceReader implements AutoCloseable {
      * Get if the trace is to read live or not
      *
      * @return whether the trace is live or not
-     * @since 3.0
-     *
      */
     public boolean isLive() {
         return getTopStream().isLive();
@@ -575,5 +566,23 @@ public class CTFTraceReader implements AutoCloseable {
      */
     public CTFTrace getTrace() {
         return fTrace;
+    }
+
+    /**
+     * This will read the entire trace and populate all the indexes. The reader
+     * will then be reset to the first event in the trace.
+     *
+     * Do not call in the fast path.
+     *
+     * @throws CTFException
+     *             A trace reading error occurred
+     * @since 1.0
+     */
+    public void populateIndex() throws CTFException {
+        for (CTFStreamInputReader sir : fPrio) {
+            sir.goToLastEvent();
+        }
+        seek(0);
+
     }
 }

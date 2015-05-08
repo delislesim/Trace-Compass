@@ -58,7 +58,6 @@ import org.eclipse.ui.IWorkbench;
  * be scanned.
  *
  * @author Matthew Khouzam
- * @since 2.0
  */
 public class ImportTraceWizardScanPage extends AbstractImportTraceWizardPage {
 
@@ -67,7 +66,7 @@ public class ImportTraceWizardScanPage extends AbstractImportTraceWizardPage {
     private CheckboxTreeViewer traceTypeViewer;
 
     final ScanRunnable fRunnable = new ScanRunnable("Scan job"); //$NON-NLS-1$
-    final private BlockingQueue<TraceValidationHelper> fTracesToScan = new ArrayBlockingQueue<>(MAX_TRACES);
+    private final BlockingQueue<TraceValidationHelper> fTracesToScan = new ArrayBlockingQueue<>(MAX_TRACES);
     private volatile boolean fCanRun = true;
 
     // --------------------------------------------------------------------------------
@@ -273,7 +272,7 @@ public class ImportTraceWizardScanPage extends AbstractImportTraceWizardPage {
      */
 
     private final class RadioChooser implements SelectionListener {
-        final private Button isLinked;
+        private final Button isLinked;
 
         public RadioChooser(Button desiredButton) {
             isLinked = desiredButton;

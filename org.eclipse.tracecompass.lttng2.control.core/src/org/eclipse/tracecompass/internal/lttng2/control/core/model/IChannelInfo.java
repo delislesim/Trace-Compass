@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -31,7 +31,7 @@ public interface IChannelInfo extends ITraceInfo {
     /**
      * Default value for overwrite mode.
      */
-    public final static boolean DEFAULT_OVERWRITE_MODE = false;
+    boolean DEFAULT_OVERWRITE_MODE = false;
 
     /**
      * @return the overwrite mode value.
@@ -131,7 +131,7 @@ public interface IChannelInfo extends ITraceInfo {
      * Sets the maximum size of trace files
      * @param maxSizeTraceFiles - maximum size
      */
-    void setMaxSizeTraceFiles(int maxSizeTraceFiles);
+    void setMaxSizeTraceFiles(long maxSizeTraceFiles);
     /**
      * Sets the maximum number of trace files
      * @param maxNumberTraceFiles - maximum number
@@ -140,7 +140,7 @@ public interface IChannelInfo extends ITraceInfo {
     /**
      * @return maximum size of trace files
      */
-    int getMaxSizeTraceFiles();
+    long getMaxSizeTraceFiles();
     /**
      * @return maximum number of trace files
      */

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -63,7 +63,7 @@ public class TmfStateSystemAspect implements ITmfEventAspect {
         }
 
         name = fSS.getFullAttributePath(fAttribute);
-        return (name == null ? EMPTY_STRING : name);
+        return name;
     }
 
     @Override
@@ -73,12 +73,12 @@ public class TmfStateSystemAspect implements ITmfEventAspect {
     }
 
     @Override
-    public String resolve(ITmfEvent event) {
+    public @Nullable String resolve(ITmfEvent event) {
         try {
             ITmfStateValue value = fSS.querySingleState(event.getTimestamp().getValue(), fAttribute).getStateValue();
             return checkNotNull(value.toString());
         } catch (AttributeNotFoundException | StateSystemDisposedException e) {
-            return EMPTY_STRING;
+            return null;
         }
     }
 }

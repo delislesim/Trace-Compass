@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1728,7 +1728,7 @@ public class ScrollView extends Composite {
     }
 
     // static must take place here... cursor is created once.
-    private volatile static Cursor fOverviewCursor;
+    private static volatile Cursor fOverviewCursor;
 
     /** Support for click-and-see overview shell on this ScrollView */
     protected class Overview {

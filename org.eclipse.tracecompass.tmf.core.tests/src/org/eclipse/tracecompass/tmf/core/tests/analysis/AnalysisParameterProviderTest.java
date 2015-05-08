@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -18,6 +18,7 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisParameterProvider;
@@ -31,12 +32,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Multimap;
+
 /**
  * Test the TmfAbstractParameterProvider class
  *
  * @author Geneviève Bastien
  */
 public class AnalysisParameterProviderTest {
+
+    private static IAnalysisModuleHelper getModuleHelper(@NonNull String moduleId) {
+        Multimap<String, IAnalysisModuleHelper> helpers = TmfAnalysisManager.getAnalysisModules();
+        assertEquals(1, helpers.get(moduleId).size());
+        return helpers.get(moduleId).iterator().next();
+    }
 
     /**
      * Registers the parameter provider
@@ -61,11 +70,12 @@ public class AnalysisParameterProviderTest {
     public void testProviderTmfTrace() {
         ITmfTrace trace = TmfTestTrace.A_TEST_10K.getTrace();
         /* Make sure the value is set to null */
-        IAnalysisModuleHelper helper = TmfAnalysisManager.getAnalysisModule(AnalysisManagerTest.MODULE_PARAM);
+        IAnalysisModuleHelper helper = getModuleHelper(AnalysisManagerTest.MODULE_PARAM);
         assertNotNull(helper);
         IAnalysisModule module = null;
         try {
             module = helper.newModule(trace);
+            assertNotNull(module);
 
             assertEquals(10, module.getParameter(TestAnalysis.PARAM_TEST));
 

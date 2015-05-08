@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
 import org.eclipse.tracecompass.ctf.core.event.types.Declaration;
@@ -28,7 +29,6 @@ import org.eclipse.tracecompass.ctf.core.event.types.IEventHeaderDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.IntegerDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.VariantDeclaration;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 
 /**
  * An event header declaration is a declaration of a structure defined in the
@@ -149,7 +149,7 @@ public final class EventHeaderCompactDeclaration extends Declaration implements 
     }
 
     @Override
-    public EventHeaderDefinition createDefinition(@Nullable IDefinitionScope definitionScope, String fieldName, BitBuffer input) throws CTFReaderException {
+    public EventHeaderDefinition createDefinition(@Nullable IDefinitionScope definitionScope, String fieldName, BitBuffer input) throws CTFException {
         alignRead(input);
         ByteOrder bo = input.getByteOrder();
         input.setByteOrder(fByteOrder);
@@ -163,7 +163,7 @@ public final class EventHeaderCompactDeclaration extends Declaration implements 
         input.position(input.position() + 3);
         long id = input.get(ID_SIZE, false);
         if (id > Integer.MAX_VALUE) {
-            throw new CTFReaderException("ID " + id + " larger than " + Integer.MAX_VALUE + " is currently unsupported by the parser"); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+            throw new CTFException("ID " + id + " larger than " + Integer.MAX_VALUE + " is currently unsupported by the parser"); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
         }
         long timestampLong = input.get(FULL_TS, false);
         input.setByteOrder(bo);

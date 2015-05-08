@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -15,9 +15,9 @@ package org.eclipse.tracecompass.ctf.core.event.types;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 
 /**
  * A CTF string declaration.
@@ -108,29 +108,27 @@ public class StringDeclaration extends Declaration {
         return BITS_PER_BYTE;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public int getMaximumSize() {
-        return Integer.MAX_VALUE;
+        /*
+         * Every definition can have a different size, so we do not scope this.
+         * Minimum size is one byte (8 bits) though.
+         */
+        return 8;
     }
 
     // ------------------------------------------------------------------------
     // Operations
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 3.0
-     */
     @Override
     public StringDefinition createDefinition(@Nullable IDefinitionScope definitionScope,
-            String fieldName, BitBuffer input) throws CTFReaderException {
+            String fieldName, BitBuffer input) throws CTFException {
         String value = read(input);
         return new StringDefinition(this, definitionScope, fieldName, value);
     }
 
-    private String read(BitBuffer input) throws CTFReaderException {
+    private String read(BitBuffer input) throws CTFException {
         /* Offset the buffer position wrt the current alignment */
         alignRead(input);
 

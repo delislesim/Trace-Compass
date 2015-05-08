@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,9 +8,12 @@
  *
  * Contributors:
  *   Mohamad Gebai - Initial API and implementation
+ *   Patrick Tasse - Fix experiment name
  *******************************************************************************/
 
 package org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.trace;
+
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.Collections;
 import java.util.Set;
@@ -30,9 +33,8 @@ public class VirtualMachineExperiment extends TmfExperiment {
     /**
      * Default constructor. Needed by the extension point.
      */
-    @SuppressWarnings("null")
     public VirtualMachineExperiment() {
-        this("default", Collections.EMPTY_SET); //$NON-NLS-1$
+        this("", checkNotNull(Collections.EMPTY_SET)); //$NON-NLS-1$
     }
 
     /**

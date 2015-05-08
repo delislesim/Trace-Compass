@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import static org.junit.Assert.assertNotNull;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.types.Definition;
 import org.eclipse.tracecompass.ctf.core.event.types.Encoding;
@@ -24,7 +25,6 @@ import org.eclipse.tracecompass.ctf.core.event.types.IntegerDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.IntegerDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDefinition;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.eclipse.tracecompass.internal.ctf.core.event.types.ByteArrayDefinition;
 import org.eclipse.tracecompass.internal.ctf.core.event.types.SequenceDeclaration;
 import org.junit.Before;
@@ -52,14 +52,14 @@ public class SequenceDefinition2Test {
     /**
      * Perform pre-test initialization.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      */
     @Before
-    public void setUp() throws CTFReaderException {
+    public void setUp() throws CTFException {
         fixture = initString();
     }
 
-    private static ByteArrayDefinition initString() throws CTFReaderException {
+    private static ByteArrayDefinition initString() throws CTFException {
         StructDeclaration structDec;
         StructDefinition structDef;
 

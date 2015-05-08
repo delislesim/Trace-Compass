@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -42,21 +42,22 @@ import org.eclipse.tracecompass.internal.tmf.pcap.core.trace.PcapTrace;
 import org.eclipse.tracecompass.internal.tmf.pcap.ui.NetworkingPerspectiveFactory;
 import org.eclipse.tracecompass.internal.tmf.pcap.ui.stream.StreamListView;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.pcap.core.tests.shared.PcapTmfTestTrace;
 import org.eclipse.tracecompass.tmf.ui.editors.TmfEventsEditor;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfOpenTraceHelper;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfProjectRegistry;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfTraceFolder;
-import org.eclipse.tracecompass.tmf.ui.swtbot.tests.SWTBotUtil;
-import org.eclipse.tracecompass.tmf.ui.swtbot.tests.conditions.ConditionHelpers;
+import org.eclipse.tracecompass.tmf.ui.swtbot.tests.shared.ConditionHelpers;
+import org.eclipse.tracecompass.tmf.ui.swtbot.tests.shared.SWTBotUtils;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,10 +86,11 @@ public class ImportAndReadPcapTest {
     @BeforeClass
     public static void init() {
 
-        SWTBotUtil.failIfUIThread();
+        SWTBotUtils.failIfUIThread();
 
         /* set up for swtbot */
         SWTBotPreferences.TIMEOUT = 300000; /* 300 second timeout */
+        fLogger.removeAllAppenders();
         fLogger.addAppender(new ConsoleAppender(new SimpleLayout(), ConsoleAppender.SYSTEM_OUT));
         fBot = new SWTWorkbenchBot();
 
@@ -102,7 +104,15 @@ public class ImportAndReadPcapTest {
         /* Switch perspectives */
         switchNetworkPerspective();
         /* Finish waiting for eclipse to load */
-        SWTBotUtil.waitForJobs();
+        SWTBotUtils.waitForJobs();
+    }
+
+    /**
+     * Test Class teardown
+     */
+    @AfterClass
+    public static void terminate() {
+        fLogger.removeAllAppenders();
     }
 
     private static void switchNetworkPerspective() {
@@ -131,13 +141,13 @@ public class ImportAndReadPcapTest {
     @Test
     public void test() {
         assumeTrue(pttt.exists());
-        SWTBotUtil.createProject(TRACE_PROJECT_NAME);
+        SWTBotUtils.createProject(TRACE_PROJECT_NAME);
         openTrace();
         openEditor();
         testHV(getViewPart("Histogram"));
         testStreamView(getViewPartRef("Stream List"));
         fBot.closeAllEditors();
-        SWTBotUtil.deleteProject(TRACE_PROJECT_NAME, fBot);
+        SWTBotUtils.deleteProject(TRACE_PROJECT_NAME, fBot);
     }
 
     private void testStreamView(IViewReference viewPart) {
@@ -146,13 +156,13 @@ public class ImportAndReadPcapTest {
         botView.setFocus();
         SWTBotTree botTree = fBot.tree();
         assertNotNull(botTree);
-        final TmfTimeSynchSignal signal = new TmfTimeSynchSignal(slv, fDesired1.getTimestamp());
+        final TmfSelectionRangeUpdatedSignal signal = new TmfSelectionRangeUpdatedSignal(slv, fDesired1.getTimestamp());
         slv.broadcast(signal);
-        SWTBotUtil.waitForJobs();
+        SWTBotUtils.waitForJobs();
         // FIXME This is a race condition:
         // TmfEventsTable launches an async exec that may be run after the wait
         // for jobs. This last delay catches it.
-        SWTBotUtil.delay(1000);
+        SWTBotUtils.delay(1000);
 
     }
 
@@ -176,8 +186,8 @@ public class ImportAndReadPcapTest {
             fail(exception[0].getMessage());
         }
 
-        SWTBotUtil.delay(1000);
-        SWTBotUtil.waitForJobs();
+        SWTBotUtils.delay(1000);
+        SWTBotUtils.waitForJobs();
     }
 
     private void openEditor() {
@@ -209,8 +219,8 @@ public class ImportAndReadPcapTest {
             }
         });
 
-        SWTBotUtil.waitForJobs();
-        SWTBotUtil.delay(1000);
+        SWTBotUtils.waitForJobs();
+        SWTBotUtils.delay(1000);
         assertNotNull(tmfEd);
     }
 

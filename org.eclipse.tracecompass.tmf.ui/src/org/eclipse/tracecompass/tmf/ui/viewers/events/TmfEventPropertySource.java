@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -28,8 +28,6 @@ import org.eclipse.ui.views.properties.IPropertySource;
 
 /**
  * Property source for events
- *
- * @since 2.0
  */
 public class TmfEventPropertySource implements IPropertySource {
 
@@ -158,7 +156,7 @@ public class TmfEventPropertySource implements IPropertySource {
         private static final String NAME_FUNCTION_NAME = "Function"; //$NON-NLS-1$
         private static final String NAME_LINE_NUMBER = "Line"; //$NON-NLS-1$
 
-        final private ITmfSourceLookup fSourceLookup;
+        private final ITmfSourceLookup fSourceLookup;
 
         public SourceLookupPropertySource(ITmfSourceLookup lookup) {
             fSourceLookup = lookup;
@@ -306,7 +304,7 @@ public class TmfEventPropertySource implements IPropertySource {
 
     @Override
     public Object getPropertyValue(Object id) {
-        if (id.equals(ID_TIMESTAMP) && fEvent.getTimestamp() != null) {
+        if (id.equals(ID_TIMESTAMP)) {
             return new TimestampPropertySource(fEvent.getTimestamp());
         } else if (id.equals(ID_TYPE) && fEvent.getType() != null) {
             return fEvent.getType().toString();

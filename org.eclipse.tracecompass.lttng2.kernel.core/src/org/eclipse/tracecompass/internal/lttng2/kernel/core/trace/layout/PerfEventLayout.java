@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,6 +17,7 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.util.Collection;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 
 import com.google.common.collect.ImmutableList;
 
@@ -72,6 +73,11 @@ public class PerfEventLayout implements IKernelAnalysisEventLayout {
     @Override
     public String eventSchedSwitch() {
         return "sched:sched_switch"; //$NON-NLS-1$
+    }
+
+    @Override
+    public String eventSchedPiSetprio() {
+        return "sched:sched_pi_setprio"; //$NON-NLS-1$
     }
 
     private static final Collection<String> WAKEUP_EVENTS =
@@ -170,6 +176,21 @@ public class PerfEventLayout implements IKernelAnalysisEventLayout {
     @Override
     public String fieldChildTid() {
         return "child_pid"; //$NON-NLS-1$
+    }
+
+    @Override
+    public String fieldPrio() {
+        return "prio"; //$NON-NLS-1$
+    }
+
+    @Override
+    public String fieldNewPrio() {
+        return "newprio"; //$NON-NLS-1$
+    }
+
+    @Override
+    public String fieldNextPrio() {
+        return "next_prio"; //$NON-NLS-1$
     }
 
 }

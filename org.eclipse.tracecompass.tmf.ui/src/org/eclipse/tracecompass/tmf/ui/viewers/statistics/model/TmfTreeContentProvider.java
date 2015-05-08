@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson
+ * Copyright (c) 2011, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -18,8 +18,6 @@ import org.eclipse.jface.viewers.Viewer;
 /**
  * Adapter TreeViewers can use to interact with StatisticsTreeNode objects.
  *
- * @version 2.0
- * @since 2.0
  * @author Mathieu Denis
  * @see org.eclipse.jface.viewers.ITreeContentProvider
  */

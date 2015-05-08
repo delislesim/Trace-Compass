@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Ericsson
+ * Copyright (c) 2010, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -55,12 +55,17 @@ import org.xml.sax.SAXParseException;
  * Trace definition for custom XML traces.
  *
  * @author Patrick Tassé
- * @since 3.0
  */
 public class CustomXmlTraceDefinition extends CustomTraceDefinition {
 
     /** "ignore" tag */
     public static final String TAG_IGNORE = Messages.CustomXmlTraceDefinition_ignoreTag;
+
+    /**
+     * Custom XML label used internally and therefore should not be externalized
+     */
+    public static final String CUSTOM_XML_CATEGORY = "Custom XML"; //$NON-NLS-1$
+
 
     /** Name of the default XML definitions file */
     protected static final String CUSTOM_XML_TRACE_DEFINITIONS_DEFAULT_FILE_NAME = "custom_xml_default_parsers.xml"; //$NON-NLS-1$
@@ -78,12 +83,21 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
             Activator.getDefault().getStateLocation().addTrailingSeparator().append(CUSTOM_XML_TRACE_DEFINITIONS_FILE_NAME).toString();
 
     /**
-     * Legacy path to the XML definitions file (in the UI plug-in) TODO Remove
+     * Legacy path to the XML definitions file (in the UI plug-in of linux tools) TODO Remove
      * once we feel the transition phase is over.
      */
-    private static final String CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY =
+    private static final String CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY_UI =
             Activator.getDefault().getStateLocation().removeLastSegments(1).addTrailingSeparator()
                     .append("org.eclipse.linuxtools.tmf.ui") //$NON-NLS-1$
+                    .append(CUSTOM_XML_TRACE_DEFINITIONS_FILE_NAME).toString();
+
+    /**
+     * Legacy path to the XML definitions file (in the core plug-in of linux tools) TODO Remove
+     * once we feel the transition phase is over.
+     */
+    private static final String CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY_CORE =
+            Activator.getDefault().getStateLocation().removeLastSegments(1).addTrailingSeparator()
+                    .append("org.eclipse.linuxtools.tmf.core") //$NON-NLS-1$
                     .append(CUSTOM_XML_TRACE_DEFINITIONS_FILE_NAME).toString();
 
     // TODO: These strings should not be externalized
@@ -107,30 +121,7 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
      * Default constructor
      */
     public CustomXmlTraceDefinition() {
-        this(TmfTraceType.CUSTOM_XML_CATEGORY, "", null, new ArrayList<OutputColumn>(), ""); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    /**
-     * Full constructor
-     *
-     * @param traceType
-     *            Name of the trace type
-     * @param rootElement
-     *            The top-level XML element
-     * @param outputs
-     *            The list of output columns
-     * @param timeStampOutputFormat
-     *            The timestamp format to use
-     * @deprecated Use
-     *             {@link #CustomXmlTraceDefinition(String, String, CustomXmlInputElement, List, String)}
-     */
-    @Deprecated
-    public CustomXmlTraceDefinition(String traceType, CustomXmlInputElement rootElement,
-            List<OutputColumn> outputs, String timeStampOutputFormat) {
-        this.definitionName = traceType;
-        this.rootInputElement = rootElement;
-        this.outputs = outputs;
-        this.timeStampOutputFormat = timeStampOutputFormat;
+        this(CUSTOM_XML_CATEGORY, "", null, new ArrayList<OutputColumn>(), ""); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     /**
@@ -146,7 +137,6 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
      *            The list of output columns
      * @param timeStampOutputFormat
      *            The timestamp format to use
-     * @since 3.2
      */
     public CustomXmlTraceDefinition(String category, String traceType, CustomXmlInputElement rootElement,
             List<OutputColumn> outputs, String timeStampOutputFormat) {
@@ -294,21 +284,21 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
      *            if true, the default (built-in) parsers are included
      *
      * @return The loaded trace definitions
-     * @since 3.2
      */
     public static CustomXmlTraceDefinition[] loadAll(boolean includeDefaults) {
         File defaultFile = new File(CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME);
-        File legacyFile = new File(CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY);
+        File legacyFileUI = new File(CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY_UI);
+        File legacyFileCore = new File(CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY_CORE);
 
         /*
          * If there is no file at the expected location, check the legacy
-         * location instead.
+         * locations instead.
          */
-        if (!defaultFile.exists() && legacyFile.exists()) {
-            CustomXmlTraceDefinition[] oldDefs = loadAll(CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY);
-            for (CustomXmlTraceDefinition def : oldDefs) {
-                /* Save in the new location */
-                def.save();
+        if (!defaultFile.exists()) {
+            if (legacyFileCore.exists()) {
+                transferDefinitions(CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY_CORE);
+            } else if (legacyFileUI.exists()) {
+                transferDefinitions(CUSTOM_XML_TRACE_DEFINITIONS_PATH_NAME_LEGACY_UI);
             }
         }
 
@@ -328,6 +318,15 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
         }
         return defs.toArray(new CustomXmlTraceDefinition[0]);
     }
+
+    private static void transferDefinitions(String defFile) {
+        CustomXmlTraceDefinition[] oldDefs = loadAll(defFile);
+        for (CustomXmlTraceDefinition def : oldDefs) {
+            /* Save in the new location */
+            def.save();
+        }
+    }
+
 
     /**
      * Load all the XML trace definitions in the given definitions file.
@@ -355,7 +354,6 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
      * @param stream
      *            An input stream from which to read the definitions
      * @return The loaded trace definitions
-     * @since 3.2
      */
     public static CustomXmlTraceDefinition[] loadAll(InputStream stream) {
         try {
@@ -395,25 +393,11 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
     /**
      * Load the given trace definition.
      *
-     * @param definitionName
-     *            Name of the XML trace definition to load
-     * @return The loaded trace definition
-     * @deprecated Use {@link #load(String, String)}
-     */
-    @Deprecated
-    public static CustomXmlTraceDefinition load(String definitionName) {
-        return load(TmfTraceType.CUSTOM_XML_CATEGORY, definitionName);
-    }
-
-    /**
-     * Load the given trace definition.
-     *
      * @param categoryName
      *            Category of the definition to load
      * @param definitionName
      *            Name of the XML trace definition to load
      * @return The loaded trace definition
-     * @since 3.2
      */
     public static CustomXmlTraceDefinition load(String categoryName, String definitionName) {
         try {
@@ -486,7 +470,7 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
                 Element element = (Element) node;
                 String categoryAttribute = element.getAttribute(CATEGORY_ATTRIBUTE);
                 if (categoryAttribute.isEmpty()) {
-                    categoryAttribute = TmfTraceType.CUSTOM_XML_CATEGORY;
+                    categoryAttribute = CUSTOM_XML_CATEGORY;
                 }
                 String nameAttribute = element.getAttribute(NAME_ATTRIBUTE);
                 if (categoryName.equals(categoryAttribute) &&
@@ -510,7 +494,7 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
 
         def.categoryName = definitionElement.getAttribute(CATEGORY_ATTRIBUTE);
         if (def.categoryName.isEmpty()) {
-            def.categoryName = TmfTraceType.CUSTOM_XML_CATEGORY;
+            def.categoryName = CUSTOM_XML_CATEGORY;
         }
         def.definitionName = definitionElement.getAttribute(NAME_ATTRIBUTE);
         if (def.definitionName.isEmpty()) {
@@ -589,23 +573,10 @@ public class CustomXmlTraceDefinition extends CustomTraceDefinition {
     /**
      * Delete a definition from the currently loaded ones.
      *
-     * @param definitionName
-     *            The name of the definition to delete
-     * @deprecated Use {@link #delete(String, String)}
-     */
-    @Deprecated
-    public static void delete(String definitionName) {
-        delete(TmfTraceType.CUSTOM_XML_CATEGORY, definitionName);
-    }
-
-    /**
-     * Delete a definition from the currently loaded ones.
-     *
      * @param categoryName
      *            The category of the definition to delete
      * @param definitionName
      *            The name of the definition to delete
-     * @since 3.2
      */
     public static void delete(String categoryName, String definitionName) {
         try {

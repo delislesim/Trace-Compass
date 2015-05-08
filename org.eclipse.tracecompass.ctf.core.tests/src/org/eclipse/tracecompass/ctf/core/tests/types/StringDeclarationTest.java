@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,12 +17,12 @@ import static org.junit.Assert.assertNotNull;
 
 import java.nio.ByteBuffer;
 
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
 import org.eclipse.tracecompass.ctf.core.event.types.Encoding;
 import org.eclipse.tracecompass.ctf.core.event.types.StringDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StringDefinition;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -74,11 +74,11 @@ public class StringDeclarationTest {
      * Run the StringDefinition createDefinition(DefinitionScope,String) method
      * test.
      *
-     * @throws CTFReaderException
+     * @throws CTFException
      *             out of buffer exception
      */
     @Test
-    public void testCreateDefinition() throws CTFReaderException {
+    public void testCreateDefinition() throws CTFException {
         IDefinitionScope definitionScope = null;
         String fieldName = "id";
         ByteBuffer allocate = ByteBuffer.allocate(100);

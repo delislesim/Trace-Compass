@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 
 /**
  * A CTF enum declaration.
@@ -77,9 +77,6 @@ public final class EnumDeclaration extends Declaration implements ISimpleDatatyp
         return this.getContainerType().getAlignment();
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public int getMaximumSize() {
         return fContainerType.getMaximumSize();
@@ -89,11 +86,8 @@ public final class EnumDeclaration extends Declaration implements ISimpleDatatyp
     // Operations
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 3.0
-     */
     @Override
-    public EnumDefinition createDefinition(@Nullable IDefinitionScope definitionScope, String fieldName, BitBuffer input) throws CTFReaderException {
+    public EnumDefinition createDefinition(@Nullable IDefinitionScope definitionScope, String fieldName, BitBuffer input) throws CTFException {
         alignRead(input);
         IntegerDefinition value = getContainerType().createDefinition(definitionScope, fieldName, input);
         return new EnumDefinition(this, definitionScope, fieldName, value);
@@ -134,7 +128,6 @@ public final class EnumDeclaration extends Declaration implements ISimpleDatatyp
      * Gets a set of labels of the enum
      *
      * @return A set of labels of the enum, can be empty but not null
-     * @since 3.0
      */
     public Set<String> getLabels() {
         return Collections.unmodifiableSet(fLabels);

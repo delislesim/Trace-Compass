@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,8 @@
  *******************************************************************************/
 
 package org.eclipse.tracecompass.internal.tmf.core.trace.experiment;
+
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
 
 import java.nio.ByteBuffer;
 
@@ -93,11 +95,7 @@ public final class TmfExperimentLocation implements ITmfLocation {
             return false;
         }
         final TmfExperimentLocation other = (TmfExperimentLocation) obj;
-        if (fLocation == null) {
-            if (other.fLocation != null) {
-                return false;
-            }
-        } else if (!fLocation.equals(other.fLocation)) {
+        if(!equalsNullable(fLocation, other.fLocation)){
             return false;
         }
         return true;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -21,7 +21,6 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
  * its operations. Implementors can store checkpoints in various ways and
  * optionally restore them later, see ({@link #isCreatedFromScratch})
  *
- * @since 3.0
  * @author Marc-Andre Laperle
  */
 public interface ITmfCheckpointIndex {

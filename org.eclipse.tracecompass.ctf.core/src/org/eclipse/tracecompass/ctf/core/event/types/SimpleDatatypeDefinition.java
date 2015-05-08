@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -19,7 +19,6 @@ import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
  * getIntegerValue and getStringValue to a class.
  *
  * @author Matthew Khouzam
- * @since 1.2
  */
 public abstract class SimpleDatatypeDefinition extends Definition {
 
@@ -33,7 +32,6 @@ public abstract class SimpleDatatypeDefinition extends Definition {
      * @param fieldName
      *            The name of the field matching this definition in the parent
      *            scope
-     * @since 3.0
      */
     public SimpleDatatypeDefinition(@NonNull IDeclaration declaration, IDefinitionScope definitionScope,
             @NonNull String fieldName) {

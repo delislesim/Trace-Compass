@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -23,21 +23,24 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 public final class NonNullUtils {
 
-    private NonNullUtils() {}
+    private NonNullUtils() {
+    }
 
     /**
-     * Convert a potentially null string into an empty one if it is null.
+     * Returns a non-null {@link String} for a potentially null object. This
+     * method calls {@link Object#toString()} if the object is not null, or
+     * returns an empty string otherwise.
      *
-     * @param str
-     *            The string to null-check, and convert to an empty string if
-     *            null.
+     * @param obj
+     *            A {@link Nullable} object that we want converted to a string
      * @return The non-null string
      */
-    public static String nullToEmptyString(@Nullable String str) {
-        if (str == null) {
+    public static String nullToEmptyString(@Nullable Object obj) {
+        if (obj == null) {
             return ""; //$NON-NLS-1$
         }
-        return str;
+        String str = obj.toString();
+        return (str == null ? "" : str); //$NON-NLS-1$
     }
 
     /**
@@ -58,5 +61,25 @@ public final class NonNullUtils {
             throw new NullPointerException();
         }
         return obj;
+    }
+
+    /**
+     * Checks equality with two nullable objects
+     *
+     * @param o1
+     *            the first object to compare
+     * @param o2
+     *            the second object to compare
+     * @return true if o1.equals(o2) or o1 == o2
+     * @since 1.0
+     */
+    public static boolean equalsNullable(final @Nullable Object o1, final @Nullable Object o2) {
+        if (o1 == o2) {
+            return true;
+        }
+        if (o1 == null) {
+            return false;
+        }
+        return o1.equals(o2);
     }
 }

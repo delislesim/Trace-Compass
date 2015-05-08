@@ -18,9 +18,8 @@ import org.swtchart.IAxis;
  * Base class for any provider such as tool tip, zoom and selection providers.
  *
  * @author Bernd Hufmann
- * @since 3.0
  */
-abstract public class TmfBaseProvider {
+public abstract class TmfBaseProvider {
 
     // ------------------------------------------------------------------------
     // Attributes

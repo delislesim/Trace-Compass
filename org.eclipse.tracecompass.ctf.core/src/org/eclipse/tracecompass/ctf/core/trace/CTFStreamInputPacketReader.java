@@ -17,11 +17,13 @@ import java.nio.channels.FileChannel.MapMode;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.CTFStrings;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
+import org.eclipse.tracecompass.ctf.core.event.scope.ILexicalScope;
 import org.eclipse.tracecompass.ctf.core.event.scope.LexicalScope;
 import org.eclipse.tracecompass.ctf.core.event.types.Definition;
 import org.eclipse.tracecompass.ctf.core.event.types.ICompositeDefinition;
@@ -37,7 +39,6 @@ import org.eclipse.tracecompass.ctf.core.event.types.VariantDefinition;
 import org.eclipse.tracecompass.internal.ctf.core.SafeMappedByteBuffer;
 import org.eclipse.tracecompass.internal.ctf.core.event.EventDeclaration;
 import org.eclipse.tracecompass.internal.ctf.core.event.types.composite.EventHeaderDefinition;
-import org.eclipse.tracecompass.internal.ctf.core.trace.StreamInputPacketIndexEntry;
 
 import com.google.common.collect.ImmutableList;
 
@@ -46,7 +47,6 @@ import com.google.common.collect.ImmutableList;
  *
  * @author Matthew Khouzam
  * @author Simon Marchi
- * @since 3.0
  */
 public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseable {
 
@@ -79,7 +79,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
     private ICompositeDefinition fCurrentStreamEventHeaderDef;
     private ICompositeDefinition fCurrentStreamPacketContextDef;
     /** Reference to the index entry of the current packet. */
-    private StreamInputPacketIndexEntry fCurrentPacket = null;
+    private ICTFPacketDescriptor fCurrentPacket = null;
 
     /**
      * Last timestamp recorded.
@@ -131,29 +131,11 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
      * @param input
      *            the bitbuffer to read from
      * @return an context definition, can be null
-     * @throws CTFReaderException
+     * @throws CTFException
      *             out of bounds exception or such
      */
-    public StructDefinition getEventContextDefinition(@NonNull BitBuffer input) throws CTFReaderException {
-        return fStreamEventContextDecl.createDefinition(fStreamInputReader.getStreamInput(), LexicalScope.STREAM_EVENT_CONTEXT, input);
-    }
-
-    /**
-     * Get the stream context defintiion
-     *
-     * @param input
-     *            the bitbuffer to read from
-     * @return an context definition, can be null
-     * @throws CTFReaderException
-     *             out of bounds exception or such
-     * @deprecated it was not used
-     */
-    @Deprecated
-    public StructDefinition getStreamEventHeaderDefinition(@NonNull BitBuffer input) throws CTFReaderException {
-        if (!(fStreamEventHeaderDecl instanceof StructDeclaration)) {
-            throw new IllegalStateException("Definition is not a struct definition, this is a deprecated method that doesn't work so well, stop using it."); //$NON-NLS-1$
-        }
-        return ((StructDeclaration) fStreamEventHeaderDecl).createDefinition(this, LexicalScope.STREAM_EVENT_HEADER, input);
+    public StructDefinition getEventContextDefinition(@NonNull BitBuffer input) throws CTFException {
+        return fStreamEventContextDecl.createDefinition(fStreamInputReader.getStreamInput(), ILexicalScope.STREAM_EVENT_CONTEXT, input);
     }
 
     /**
@@ -162,11 +144,11 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
      * @param input
      *            the bitbuffer to read from
      * @return an context definition, can be null
-     * @throws CTFReaderException
+     * @throws CTFException
      *             out of bounds exception or such
      */
-    public StructDefinition getStreamPacketContextDefinition(@NonNull BitBuffer input) throws CTFReaderException {
-        return fStreamPacketContextDecl.createDefinition(fStreamInputReader.getStreamInput(), LexicalScope.STREAM_PACKET_CONTEXT, input);
+    public StructDefinition getStreamPacketContextDefinition(@NonNull BitBuffer input) throws CTFException {
+        return fStreamPacketContextDecl.createDefinition(fStreamInputReader.getStreamInput(), ILexicalScope.STREAM_PACKET_CONTEXT, input);
     }
 
     /**
@@ -175,11 +157,11 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
      * @param input
      *            the bitbuffer to read from
      * @return an header definition, can be null
-     * @throws CTFReaderException
+     * @throws CTFException
      *             out of bounds exception or such
      */
-    public StructDefinition getTracePacketHeaderDefinition(@NonNull BitBuffer input) throws CTFReaderException {
-        return fTracePacketHeaderDecl.createDefinition(fStreamInputReader.getStreamInput().getStream().getTrace(), LexicalScope.TRACE_PACKET_HEADER, input);
+    public StructDefinition getTracePacketHeaderDefinition(@NonNull BitBuffer input) throws CTFException {
+        return fTracePacketHeaderDecl.createDefinition(fStreamInputReader.getStreamInput().getStream().getTrace(), ILexicalScope.TRACE_PACKET_HEADER, input);
     }
 
     /**
@@ -199,7 +181,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
      *
      * @return the current packet
      */
-    StreamInputPacketIndexEntry getCurrentPacket() {
+    ICTFPacketDescriptor getCurrentPacket() {
         return fCurrentPacket;
     }
 
@@ -214,7 +196,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
 
     @Override
     public LexicalScope getScopePath() {
-        return LexicalScope.PACKET;
+        return ILexicalScope.PACKET;
     }
 
     // ------------------------------------------------------------------------
@@ -222,10 +204,10 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
     // ------------------------------------------------------------------------
 
     @NonNull
-    private ByteBuffer getByteBufferAt(long position, long size) throws CTFReaderException, IOException {
+    private ByteBuffer getByteBufferAt(long position, long size) throws CTFException, IOException {
         ByteBuffer map = SafeMappedByteBuffer.map(fStreamInputReader.getFc(), MapMode.READ_ONLY, position, size);
         if (map == null) {
-            throw new CTFReaderException("Failed to allocate mapped byte buffer"); //$NON-NLS-1$
+            throw new CTFIOException("Failed to allocate mapped byte buffer"); //$NON-NLS-1$
         }
         return map;
     }
@@ -235,11 +217,12 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
      *
      * @param currentPacket
      *            The index entry of the packet to switch to.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             If we get an error reading the packet
+     * @since 1.0
      */
-    void setCurrentPacket(StreamInputPacketIndexEntry currentPacket) throws CTFReaderException {
-        StreamInputPacketIndexEntry prevPacket = null;
+    public void setCurrentPacket(ICTFPacketDescriptor currentPacket) throws CTFException {
+        ICTFPacketDescriptor prevPacket = null;
         fCurrentPacket = currentPacket;
 
         if (fCurrentPacket != null) {
@@ -248,11 +231,9 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
              */
             ByteBuffer bb = null;
             try {
-                bb = getByteBufferAt(
-                        fCurrentPacket.getOffsetBytes(),
-                        (fCurrentPacket.getPacketSizeBits() + BITS_PER_BYTE - 1) / BITS_PER_BYTE);
+                bb = getByteBufferAt(fCurrentPacket.getOffsetBytes(), (fCurrentPacket.getPacketSizeBits() + BITS_PER_BYTE - 1) / BITS_PER_BYTE);
             } catch (IOException e) {
-                throw new CTFReaderException(e.getMessage(), e);
+                throw new CTFIOException(e.getMessage(), e);
             }
 
             BitBuffer bitBuffer = new BitBuffer(bb);
@@ -285,11 +266,11 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
                      * to 1.
                      */
                     long lostEventsStartTime;
-                    int index = fStreamInputReader.getStreamInput().getIndex().getEntries().indexOf(currentPacket);
+                    int index = fStreamInputReader.getStreamInput().getIndex().indexOf(currentPacket);
                     if (index == 0) {
                         lostEventsStartTime = currentPacket.getTimestampBegin() + 1;
                     } else {
-                        prevPacket = fStreamInputReader.getStreamInput().getIndex().getEntries().get(index - 1);
+                        prevPacket = fStreamInputReader.getStreamInput().getIndex().getElement(index - 1);
                         lostEventsStartTime = prevPacket.getTimestampEnd();
                     }
                     fLostEventsDuration = Math.abs(lostEventsStartTime - currentPacket.getTimestampBegin());
@@ -314,7 +295,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
      */
     public boolean hasMoreEvents() {
         BitBuffer bitBuffer = fBitBuffer;
-        StreamInputPacketIndexEntry currentPacket = fCurrentPacket;
+        ICTFPacketDescriptor currentPacket = fCurrentPacket;
         if (currentPacket != null && bitBuffer != null) {
             return fHasLost || (bitBuffer.position() < currentPacket.getContentSizeBits());
         }
@@ -326,10 +307,10 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
      *
      * @return The event definition containing the event data that was just
      *         read.
-     * @throws CTFReaderException
+     * @throws CTFException
      *             If there was a problem reading the trace
      */
-    public EventDefinition readNextEvent() throws CTFReaderException {
+    public EventDefinition readNextEvent() throws CTFException {
         /* Default values for those fields */
         // compromise since we cannot have 64 bit addressing of arrays yet.
         int eventID = (int) EventDeclaration.UNSET_EVENT_ID;
@@ -382,7 +363,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
                 eventID = ehd.getId();
                 timestamp = calculateTimestamp(ehd.getTimestamp(), ehd.getTimestampLength());
             } else {
-                fCurrentStreamEventHeaderDef = ((StructDeclaration) fStreamEventHeaderDecl).createDefinition(null, LexicalScope.EVENT_HEADER, currentBitBuffer);
+                fCurrentStreamEventHeaderDef = ((StructDeclaration) fStreamEventHeaderDecl).createDefinition(null, ILexicalScope.EVENT_HEADER, currentBitBuffer);
                 StructDefinition StructEventHeaderDef = (StructDefinition) fCurrentStreamEventHeaderDef;
                 /* Check for the event id. */
                 IDefinition idDef = StructEventHeaderDef.lookupDefinition("id"); //$NON-NLS-1$
@@ -390,7 +371,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
                 if (idDef instanceof SimpleDatatypeDefinition) {
                     simpleIdDef = ((SimpleDatatypeDefinition) idDef);
                 } else if (idDef != null) {
-                    throw new CTFReaderException("Id defintion not an integer, enum or float definiton in event header."); //$NON-NLS-1$
+                    throw new CTFIOException("Id defintion not an integer, enum or float definiton in event header."); //$NON-NLS-1$
                 }
 
                 /*
@@ -433,7 +414,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
         /* Get the right event definition using the event id. */
         IEventDeclaration eventDeclaration = fStreamInputReader.getStreamInput().getStream().getEventDeclaration(eventID);
         if (eventDeclaration == null) {
-            throw new CTFReaderException("Incorrect event id : " + eventID); //$NON-NLS-1$
+            throw new CTFIOException("Incorrect event id : " + eventID); //$NON-NLS-1$
         }
         EventDefinition eventDef = eventDeclaration.createDefinition(fStreamInputReader, currentBitBuffer, timestamp);
 
@@ -443,7 +424,7 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
          */
 
         if (posStart == currentBitBuffer.position()) {
-            throw new CTFReaderException("Empty event not allowed, event: " + eventDef.getDeclaration().getName()); //$NON-NLS-1$
+            throw new CTFIOException("Empty event not allowed, event: " + eventDef.getDeclaration().getName()); //$NON-NLS-1$
         }
 
         return eventDef;
@@ -500,32 +481,20 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
 
     @Override
     public Definition lookupDefinition(String lookupPath) {
-        if (lookupPath.equals(LexicalScope.STREAM_PACKET_CONTEXT.toString())) {
+        if (lookupPath.equals(ILexicalScope.STREAM_PACKET_CONTEXT.getPath())) {
             return (Definition) fCurrentStreamPacketContextDef;
         }
-        if (lookupPath.equals(LexicalScope.TRACE_PACKET_HEADER.toString())) {
+        if (lookupPath.equals(ILexicalScope.TRACE_PACKET_HEADER.getPath())) {
             return (Definition) fCurrentTracePacketHeaderDef;
         }
         return null;
     }
 
-    /**
-     * Get stream event header
-     *
-     * @return the stream event header
-     * @deprecated use
-     *             {@link CTFStreamInputPacketReader#getStreamEventHeaderDefinition()}
-     */
-    @Deprecated
-    public StructDefinition getCurrentStreamEventHeader() {
-        return (StructDefinition) ((fCurrentStreamEventHeaderDef instanceof StructDefinition) ? fCurrentStreamEventHeaderDef : null);
-    }
 
     /**
      * Get stream event header
      *
      * @return the stream event header
-     * @since 3.1
      */
     public ICompositeDefinition getStreamEventHeaderDefinition() {
         return fCurrentStreamEventHeaderDef;

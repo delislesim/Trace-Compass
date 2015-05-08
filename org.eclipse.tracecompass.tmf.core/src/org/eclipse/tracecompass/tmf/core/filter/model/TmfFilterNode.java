@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Ericsson
+ * Copyright (c) 2010, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -23,10 +23,11 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
  * @version 1.0
  * @author Patrick Tasse
  */
-@SuppressWarnings("javadoc")
 public class TmfFilterNode extends TmfFilterTreeNode {
 
+    /** filter node name */
     public static final String NODE_NAME = "FILTER"; //$NON-NLS-1$
+    /** name attribute name */
     public static final String NAME_ATTR = "name"; //$NON-NLS-1$
 
     String fFilterName;
@@ -87,14 +88,16 @@ public class TmfFilterNode extends TmfFilterTreeNode {
     }
 
     @Override
-    public String toString() {
+    public String toString(boolean explicit) {
         StringBuffer buf = new StringBuffer();
+        buf.append(fFilterName);
+        buf.append(": "); //$NON-NLS-1$
         if (getChildrenCount() > 1) {
             buf.append("( "); //$NON-NLS-1$
         }
         for (int i = 0; i < getChildrenCount(); i++) {
             ITmfFilterTreeNode node = getChildren()[i];
-            buf.append(node.toString());
+            buf.append(node.toString(explicit));
             if (i < (getChildrenCount() - 1)) {
                 buf.append(" and "); //$NON-NLS-1$
             }
@@ -103,35 +106,5 @@ public class TmfFilterNode extends TmfFilterTreeNode {
             buf.append(" )"); //$NON-NLS-1$
         }
         return buf.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((fFilterName == null) ? 0 : fFilterName.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!super.equals(obj)) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        TmfFilterNode other = (TmfFilterNode) obj;
-        if (fFilterName == null) {
-            if (other.fFilterName != null) {
-                return false;
-            }
-        } else if (!fFilterName.equals(other.fFilterName)) {
-            return false;
-        }
-        return true;
     }
 }

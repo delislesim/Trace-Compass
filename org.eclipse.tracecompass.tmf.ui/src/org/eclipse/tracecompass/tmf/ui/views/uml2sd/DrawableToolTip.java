@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.ui.views.uml2sd.util.Messages;
 
 /**
@@ -221,10 +222,17 @@ public class DrawableToolTip implements PaintListener {
      * @param value the current in the scale
      * @param min the scale min
      * @param max the scale max
-     * @since 2.0
      */
     public void showToolTip(ITmfTimestamp value, ITmfTimestamp min, ITmfTimestamp max) {
-        fMinMaxRange = new TmfTimeRange(min, max);
+        ITmfTimestamp minTime = min;
+        ITmfTimestamp maxTime = max;
+        if (minTime == null) {
+            minTime = TmfTimestamp.BIG_BANG;
+        }
+        if (maxTime == null) {
+            maxTime = TmfTimestamp.BIG_CRUNCH;
+        }
+        fMinMaxRange = new TmfTimeRange(minTime, maxTime);
         fCurrentValue = value;
 
         int w = fToolTipShell.getBounds().width;

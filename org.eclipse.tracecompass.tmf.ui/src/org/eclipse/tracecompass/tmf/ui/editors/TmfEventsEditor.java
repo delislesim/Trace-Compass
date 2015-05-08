@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Ericsson, École Polytechnique de Montréal
+ * Copyright (c) 2010, 2015 Ericsson, École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -41,6 +41,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.internal.tmf.ui.Activator;
+import org.eclipse.tracecompass.internal.tmf.ui.editors.ITmfEventsEditorConstants;
 import org.eclipse.tracecompass.tmf.core.TmfCommonConstants;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
@@ -50,7 +51,6 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
 import org.eclipse.tracecompass.tmf.ui.project.model.Messages;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfExperimentElement;
@@ -79,9 +79,7 @@ import com.google.common.collect.Iterables;
 /**
  * Editor for TMF events
  *
- * @version 1.0
  * @author Patrick Tasse
- * @since 2.0
  */
 public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReusableEditor, IPropertyListener, IResourceChangeListener, ISelectionProvider, ISelectionChangedListener, IPartListener, IGotoMarker {
 
@@ -123,7 +121,7 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
                 if (traceTypeId == null) {
                     throw new PartInitException(Messages.TmfOpenTraceHelper_NoTraceType);
                 }
-                if (traceTypeId.equals(TmfExperiment.class.getCanonicalName())) {
+                if (ITmfEventsEditorConstants.EXPERIMENT_INPUT_TYPE_CONSTANTS.contains(traceTypeId)) {
                     // Special case: experiment bookmark resource
                     final TmfProjectElement project = TmfProjectRegistry.getProject(fFile.getProject(), true);
                     if (project == null) {
@@ -138,12 +136,12 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
                             return;
                         }
                     }
-                } else if (traceTypeId.equals(TmfTrace.class.getCanonicalName())) {
+                } else if (ITmfEventsEditorConstants.TRACE_INPUT_TYPE_CONSTANTS.contains(traceTypeId)) {
                     // Special case: trace bookmark resource
                     final TmfProjectElement project = TmfProjectRegistry.getProject(fFile.getProject(), true);
                     for (final TmfTraceElement traceElement : project.getTracesFolder().getTraces()) {
                         if (traceElement.getResource().equals(fFile.getParent())) {
-                            setPartName(traceElement.getName());
+                            setPartName(traceElement.getElementPath());
                             super.setSite(site);
                             super.setInput(fileEditorInput);
                             TmfOpenTraceHelper.reopenTraceFromElement(traceElement, this);
@@ -154,7 +152,7 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
                     final TmfProjectElement project = TmfProjectRegistry.getProject(fFile.getProject(), true);
                     for (final TmfTraceElement traceElement : project.getTracesFolder().getTraces()) {
                         if (traceElement.getResource().equals(fFile)) {
-                            setPartName(traceElement.getName());
+                            setPartName(traceElement.getElementPath());
                             super.setSite(site);
                             super.setInput(fileEditorInput);
                             TmfOpenTraceHelper.reopenTraceFromElement(traceElement, this);
@@ -200,35 +198,15 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
         if (propId == IEditorPart.PROP_INPUT && getEditorInput() instanceof TmfEditorInput) {
             if (fTrace != null) {
                 broadcast(new TmfTraceClosedSignal(this, fTrace));
+                TmfTraceColumnManager.saveColumnOrder(fTrace.getTraceTypeId(), fEventsTable.getColumnOrder());
             }
+            fEventsTable.dispose();
             fTraceSelected = false;
             fFile = ((TmfEditorInput) getEditorInput()).getFile();
             fTrace = ((TmfEditorInput) getEditorInput()).getTrace();
             /* change the input to a FileEditorInput to allow open handlers to find this editor */
             super.setInput(new FileEditorInput(fFile));
-            fEventsTable.dispose();
-            if (fTrace != null) {
-                setPartName(fTrace.getName());
-                fEventsTable = createEventsTable(fParent, fTrace.getCacheSize());
-                fEventsTable.addSelectionChangedListener(this);
-                fEventsTable.setTrace(fTrace, true);
-                fEventsTable.refreshBookmarks(fFile);
-                if (fPendingGotoMarker != null) {
-                    fEventsTable.gotoMarker(fPendingGotoMarker);
-                    fPendingGotoMarker = null;
-                }
-
-                /* ensure start time is set */
-                final ITmfContext context = fTrace.seekEvent(0);
-                fTrace.getNext(context);
-                context.dispose();
-
-                broadcast(new TmfTraceOpenedSignal(this, fTrace, fFile));
-            } else {
-                setPartName(getEditorInput().getName());
-                fEventsTable = new TmfEventsTable(fParent, 0);
-                fEventsTable.addSelectionChangedListener(this);
-            }
+            createAndInitializeTable();
             fParent.layout();
         }
     }
@@ -236,12 +214,28 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
     @Override
     public void createPartControl(final Composite parent) {
         fParent = parent;
+        createAndInitializeTable();
+        addPropertyListener(this);
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
+        // we need to wrap the ISelectionProvider interface in the editor because
+        // the events table can be replaced later while the selection changed listener
+        // is only added once by the platform to the selection provider set here
+        getSite().setSelectionProvider(this);
+        getSite().getPage().addPartListener(this);
+    }
+
+    private void createAndInitializeTable() {
         if (fTrace != null) {
             setPartName(fTrace.getName());
-            fEventsTable = createEventsTable(parent, fTrace.getCacheSize());
+            fEventsTable = createEventsTable(fParent, fTrace.getCacheSize());
+            fEventsTable.setColumnOrder(TmfTraceColumnManager.loadColumnOrder(fTrace.getTraceTypeId()));
             fEventsTable.addSelectionChangedListener(this);
             fEventsTable.setTrace(fTrace, true);
             fEventsTable.refreshBookmarks(fFile);
+            if (fPendingGotoMarker != null) {
+                fEventsTable.gotoMarker(fPendingGotoMarker);
+                fPendingGotoMarker = null;
+            }
 
             /* ensure start time is set */
             final ITmfContext context = fTrace.seekEvent(0);
@@ -250,18 +244,11 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
 
             broadcast(new TmfTraceOpenedSignal(this, fTrace, fFile));
         } else {
-            fEventsTable = new TmfEventsTable(parent, 0);
+            fEventsTable = new TmfEventsTable(fParent, 0);
             fEventsTable.addSelectionChangedListener(this);
         }
         IStatusLineManager statusLineManager = getEditorSite().getActionBars().getStatusLineManager();
         fEventsTable.setStatusLineManager(statusLineManager);
-        addPropertyListener(this);
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
-        // we need to wrap the ISelectionProvider interface in the editor because
-        // the events table can be replaced later while the selection changed listener
-        // is only added once by the platform to the selection provider set here
-        getSite().setSelectionProvider(this);
-        getSite().getPage().addPartListener(this);
     }
 
     @Override
@@ -273,6 +260,9 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
         removePropertyListener(this);
         if (fTrace != null) {
             broadcast(new TmfTraceClosedSignal(this, fTrace));
+            if (fEventsTable != null) {
+                TmfTraceColumnManager.saveColumnOrder(fTrace.getTraceTypeId(), fEventsTable.getColumnOrder());
+            }
         }
         if (fEventsTable != null) {
             fEventsTable.dispose();
@@ -433,9 +423,6 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
         return super.getAdapter(adapter);
     }
 
-    /**
-     * @since 2.1
-     */
     @Override
     public void gotoMarker(IMarker marker) {
         if (fTrace == null || fEventsTable == null) {
@@ -473,17 +460,11 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
     // ISelectionProvider
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void addSelectionChangedListener(ISelectionChangedListener listener) {
         fSelectionChangedListeners.add(listener);
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public ISelection getSelection() {
         if (fEventsTable == null) {
@@ -492,17 +473,11 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
         return fEventsTable.getSelection();
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void removeSelectionChangedListener(ISelectionChangedListener listener) {
         fSelectionChangedListeners.remove(listener);
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void setSelection(ISelection selection) {
         // not implemented
@@ -515,7 +490,6 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
      * @param event a selection changed event
      *
      * @see ISelectionChangedListener#selectionChanged
-     * @since 2.0
      */
     protected void fireSelectionChanged(final SelectionChangedEvent event) {
         Object[] listeners = fSelectionChangedListeners.getListeners();
@@ -534,9 +508,6 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
     // ISelectionChangedListener
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void selectionChanged(SelectionChangedEvent event) {
         fireSelectionChanged(event);
@@ -546,9 +517,6 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
     // IPartListener
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void partActivated(IWorkbenchPart part) {
         if (part == this && fTrace != null) {
@@ -560,9 +528,6 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
         }
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void partBroughtToTop(IWorkbenchPart part) {
         if (part == this && fTrace != null) {
@@ -574,23 +539,14 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
         }
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void partClosed(IWorkbenchPart part) {
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void partDeactivated(IWorkbenchPart part) {
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void partOpened(IWorkbenchPart part) {
     }
@@ -631,7 +587,6 @@ public class TmfEventsEditor extends TmfEditor implements ITmfTraceEditor, IReus
      * Update the display to use the updated timestamp format
      *
      * @param signal the incoming signal
-     * @since 2.0
      */
     @TmfSignalHandler
     public void timestampFormatUpdated(TmfTimestampFormatUpdateSignal signal) {

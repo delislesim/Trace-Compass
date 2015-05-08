@@ -21,10 +21,13 @@ import java.math.BigDecimal;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
 import org.eclipse.tracecompass.internal.tmf.core.synchronization.TmfConstantTransform;
 import org.eclipse.tracecompass.internal.tmf.core.synchronization.TmfTimestampTransform;
-import org.eclipse.tracecompass.internal.tmf.core.synchronization.TmfTimestampTransformLinear;
+import org.eclipse.tracecompass.internal.tmf.core.synchronization.TmfTimestampTransformLinearFast;
 import org.eclipse.tracecompass.tmf.core.TmfCommonConstants;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 
@@ -32,8 +35,8 @@ import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
  * A factory to generate timestamp tranforms
  *
  * @author Matthew Khouzam
- * @since 3.1
  */
+@NonNullByDefault
 public final class TimestampTransformFactory {
 
     private static final String SYNCHRONIZATION_FORMULA_FILE = "sync_formula"; //$NON-NLS-1$
@@ -93,7 +96,7 @@ public final class TimestampTransformFactory {
         if (factor == 1.0) {
             return createWithOffset(offset);
         }
-        return new TmfTimestampTransformLinear(factor, offset.normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue());
+        return new TmfTimestampTransformLinearFast(factor, offset.normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue());
     }
 
     /**
@@ -111,7 +114,7 @@ public final class TimestampTransformFactory {
         if (factor == 1.0) {
             return createWithOffset(offset);
         }
-        return new TmfTimestampTransformLinear(factor, offset);
+        return new TmfTimestampTransformLinearFast(factor, offset);
     }
 
     /**
@@ -130,7 +133,7 @@ public final class TimestampTransformFactory {
         if (factor.equals(BigDecimal.ONE)) {
             return createWithOffset(offset.longValueExact());
         }
-        return new TmfTimestampTransformLinear(factor, offset);
+        return new TmfTimestampTransformLinearFast(factor, offset);
     }
 
     /**
@@ -141,7 +144,7 @@ public final class TimestampTransformFactory {
      *            the trace resource
      * @return the synchronization file
      */
-    private static File getSyncFormulaFile(IResource resource) {
+    private static @Nullable File getSyncFormulaFile(@Nullable IResource resource) {
         if (resource == null) {
             return null;
         }
@@ -160,15 +163,14 @@ public final class TimestampTransformFactory {
      * @param resource
      *            the trace resource
      * @return the timestamp transform
-     * @since 3.2
      */
-    public static ITmfTimestampTransform getTimestampTransform(IResource resource) {
+    public static ITmfTimestampTransform getTimestampTransform(@Nullable IResource resource) {
         File syncFile = getSyncFormulaFile(resource);
         if (syncFile != null && syncFile.exists()) {
             /* Read the serialized object from file */
             try (FileInputStream fis = new FileInputStream(syncFile);
                     ObjectInputStream ois = new ObjectInputStream(fis);) {
-                return (ITmfTimestampTransform) ois.readObject();
+                return NonNullUtils.checkNotNull((ITmfTimestampTransform) ois.readObject());
             } catch (ClassNotFoundException | IOException e) {
             }
         }
@@ -183,9 +185,8 @@ public final class TimestampTransformFactory {
      * @param tt
      *            The timestamp transform for all timestamps of this trace, or
      *            null to clear it
-     * @since 3.2
      */
-    public static void setTimestampTransform(IResource resource, ITmfTimestampTransform tt) {
+    public static void setTimestampTransform(@Nullable IResource resource, @Nullable ITmfTimestampTransform tt) {
         /* Save the timestamp transform to a file */
         File syncFile = getSyncFormulaFile(resource);
         if (syncFile != null) {

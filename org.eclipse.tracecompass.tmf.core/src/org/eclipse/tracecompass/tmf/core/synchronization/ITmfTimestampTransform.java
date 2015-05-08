@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -14,6 +14,7 @@ package org.eclipse.tracecompass.tmf.core.synchronization;
 
 import java.io.Serializable;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 
 /**
@@ -21,7 +22,6 @@ import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
  * example after trace synchronization
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public interface ITmfTimestampTransform extends Serializable {
 
@@ -32,7 +32,7 @@ public interface ITmfTimestampTransform extends Serializable {
      *            The timestamp to transform
      * @return the transformed timestamp
      */
-    ITmfTimestamp transform(ITmfTimestamp timestamp);
+    @NonNull ITmfTimestamp transform(@NonNull ITmfTimestamp timestamp);
 
     /**
      * Transforms a timestamp value
@@ -45,12 +45,14 @@ public interface ITmfTimestampTransform extends Serializable {
 
     /**
      * Returns a timestamp transform that is the composition of two timestamp
-     * transforms.
+     * transforms. Composed objects must be the same type.
      *
      * @param composeWith
      *            The transform to first apply on the timestamp before applying
      *            the current object
      * @return A new timestamp transform object with the resulting composition.
+     *
+     * TODO: allow composition of different transform types.
      */
     ITmfTimestampTransform composeWith(ITmfTimestampTransform composeWith);
 

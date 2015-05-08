@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Kalray
+ * Copyright (c) 2013, 2014 Kalray
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -24,8 +24,8 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Handler for paste command in filter view
+ *
  * @author Xavier Raynaud <xavier.raynaud@kalray.eu>
- * @since 3.0
  */
 public class PasteHandler extends AbstractHandler {
 
@@ -78,7 +78,8 @@ public class PasteHandler extends AbstractHandler {
             sel = v.getFilterRoot();
         }
         ITmfFilterTreeNode objectToPaste = FilterEditUtils.getTransferredTreeNode();
-        if (objectToPaste != null &&
+        if (v.isTreeInFocus() &&
+                objectToPaste != null &&
                 (sel.getValidChildren().contains(objectToPaste.getNodeName())
                 || TmfFilterNode.NODE_NAME.equals(objectToPaste.getNodeName()))) {
             return true;

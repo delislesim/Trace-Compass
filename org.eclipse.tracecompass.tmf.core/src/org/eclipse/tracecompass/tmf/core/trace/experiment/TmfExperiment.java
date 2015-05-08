@@ -50,7 +50,6 @@ import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfEventParser;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
@@ -66,7 +65,7 @@ import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
  * @version 1.0
  * @author Francois Chouinard
  */
-public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPersistentlyIndexable {
+public class TmfExperiment extends TmfTrace implements ITmfPersistentlyIndexable {
 
     // ------------------------------------------------------------------------
     // Constants
@@ -75,7 +74,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
     /**
      * The file name of the Synchronization
      *
-     * @since 3.0
      * @deprecated This file name shouldn't be used directly anymore. All
      *             synchronization files have been moved to a folder and you
      *             should use the {@link #getSynchronizationFolder(boolean)}
@@ -199,7 +197,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
      *            the experiment index page size
      * @param resource
      *            the resource associated to the experiment
-     * @since 3.0
      */
     public void initExperiment(final Class<? extends ITmfEvent> type,
             final String path,
@@ -209,7 +206,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
 
         setCacheSize(indexPageSize);
         setStreamingInterval(0);
-        setParser(this);
 
         // traces have to be set before super.initialize()
         if (traces != null) {
@@ -232,9 +228,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
         }
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public IStatus validate(final IProject project, final String path) {
         return Status.OK_STATUS;
@@ -260,7 +253,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
      * @param index
      *            the event index (rank)
      * @return the corresponding event timestamp
-     * @since 2.0
      */
     public ITmfTimestamp getTimestamp(final int index) {
         final ITmfContext context = seekEvent(index);
@@ -273,9 +265,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
     // Request management
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public synchronized ITmfContext armRequest(final ITmfEventRequest request) {
 
@@ -299,9 +288,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
     // ITmfTrace trace positioning
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 3.0
-     */
     @Override
     public synchronized ITmfContext seekEvent(final ITmfLocation location) {
         // Validate the location
@@ -353,9 +339,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
         return context;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public double getLocationRatio(final ITmfLocation location) {
         if (location instanceof TmfExperimentLocation) {
@@ -369,9 +352,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
         return 0.0;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public ITmfLocation getCurrentLocation() {
         // never used
@@ -421,7 +401,7 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
         for (int i = 0; i < length; i++) {
             final ITmfEvent event = expContext.getEvent(i);
 
-            if (event != null && event.getTimestamp() != null) {
+            if (event != null) {
                 final ITmfTimestamp otherTS = event.getTimestamp();
                 if (otherTS.compareTo(timestamp) < 0) {
                     trace = i;
@@ -447,17 +427,12 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
                         ((TmfExperimentLocation) expContext.getLocation()).getLocationInfo(),
                         trace, traceContext.getLocation(), traceContext.getRank());
                 expContext.setLocation(new TmfExperimentLocation(locationArray));
-
-                processEvent(event);
             }
         }
 
         return event;
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public ITmfTimestamp getInitialRangeOffset() {
 
@@ -495,7 +470,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
      * @return The path to the folder where synchronization-related
      *         supplementary files can be kept or <code>null</code> if not
      *         available.
-     * @since 3.2
      */
     public String getSynchronizationFolder(boolean absolute) {
         /* Set up the path to the synchronization file we'll use */
@@ -530,7 +504,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
      * read a synchronization file if it exists
      *
      * @return The synchronization object
-     * @since 3.0
      */
     public SynchronizationAlgorithm synchronizeTraces() {
         return synchronizeTraces(false);
@@ -543,7 +516,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
      *            Whether to actually synchronize or just try opening a sync
      *            file
      * @return The synchronization object
-     * @since 3.0
      */
     public SynchronizationAlgorithm synchronizeTraces(boolean doSync) {
         fSyncLock.lock();
@@ -628,9 +600,10 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
                                 endTimestamp = trace.getEndTime();
                             }
                         }
-                        if (safeTimestamp != null && (lastSafeTimestamp == null || safeTimestamp.compareTo(lastSafeTimestamp) > 0)) {
-                            timeRange = new TmfTimeRange(startTimestamp, safeTimestamp);
-                            lastSafeTimestamp = safeTimestamp;
+                        ITmfTimestamp safeTs = safeTimestamp;
+                        if (safeTs != null && (lastSafeTimestamp == null || safeTs.compareTo(lastSafeTimestamp) > 0)) {
+                            timeRange = new TmfTimeRange(startTimestamp, safeTs);
+                            lastSafeTimestamp = safeTs;
                         } else {
                             timeRange = null;
                         }
@@ -681,9 +654,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
         }
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public synchronized int getCheckpointSize() {
         int totalCheckpointSize = 0;
@@ -711,9 +681,6 @@ public class TmfExperiment extends TmfTrace implements ITmfEventParser, ITmfPers
         return totalCheckpointSize;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public ITmfLocation restoreLocation(ByteBuffer bufferIn) {
         List<ITmfTrace> children = getChildren(ITmfTrace.class);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -15,8 +15,6 @@ package org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model;
 /**
  * A null time event. Used to represent an event that should not be drawn,
  * for example as a zoomed event that overshadows an underlying event.
- *
- * @since 2.0
  */
 public class NullTimeEvent extends TimeEvent {
 

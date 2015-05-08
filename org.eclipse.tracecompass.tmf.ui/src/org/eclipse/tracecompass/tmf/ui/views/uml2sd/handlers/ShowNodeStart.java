@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,7 +26,6 @@ import org.eclipse.tracecompass.tmf.ui.views.uml2sd.core.GraphNode;
 /**
  * Action class implementation to show end of a graph node.
  *
- * @version 1.0
  * @author sveyrier
  */
 public class ShowNodeStart extends BaseSDAction {
@@ -47,7 +46,6 @@ public class ShowNodeStart extends BaseSDAction {
      *
      * @param view
      *            The sequence diagram view reference
-     * @since 2.0
      */
     public ShowNodeStart(SDView view) {
         super(view);

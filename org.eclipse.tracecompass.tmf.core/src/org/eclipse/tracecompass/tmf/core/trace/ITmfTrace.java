@@ -173,10 +173,12 @@ public interface ITmfTrace extends ITmfEventProvider {
      *            the trace event type
      * @param name
      *            the trace name
+     * @param traceTypeId
+     *            the trace type id
      * @throws TmfTraceException
      *             If we couldn't open the trace
      */
-    void initTrace(IResource resource, String path, Class<? extends ITmfEvent> type, String name) throws TmfTraceException;
+    void initTrace(IResource resource, String path, Class<? extends ITmfEvent> type, String name, String traceTypeId) throws TmfTraceException;
 
     /**
      * Validate that the trace is of the correct type. The implementation should
@@ -193,7 +195,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      * @return an IStatus object with validation result. Use severity OK to
      *         indicate success.
      * @see TraceValidationStatus
-     * @since 2.0
      */
     IStatus validate(IProject project, String path);
 
@@ -212,6 +213,13 @@ public interface ITmfTrace extends ITmfEventProvider {
     IResource getResource();
 
     /**
+     * Get the trace type id
+     *
+     * @return the trace type id
+     */
+    @Nullable String getTraceTypeId();
+
+    /**
      * @return the trace path
      */
     String getPath();
@@ -228,7 +236,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      *
      * @param waitForCompletion
      *            Should we block the caller until indexing is finished, or not.
-     * @since 2.0
      */
     void indexTrace(boolean waitForCompletion);
 
@@ -278,21 +285,18 @@ public interface ITmfTrace extends ITmfEventProvider {
 
     /**
      * @return the trace time range
-     * @since 2.0
      */
-    TmfTimeRange getTimeRange();
+    @NonNull TmfTimeRange getTimeRange();
 
     /**
      * @return the timestamp of the first trace event
-     * @since 2.0
      */
-    ITmfTimestamp getStartTime();
+    @NonNull ITmfTimestamp getStartTime();
 
     /**
      * @return the timestamp of the last trace event
-     * @since 2.0
      */
-    ITmfTimestamp getEndTime();
+    @NonNull ITmfTimestamp getEndTime();
 
     /**
      * @return the streaming interval in ms (0 if not a streaming trace)
@@ -305,7 +309,6 @@ public interface ITmfTrace extends ITmfEventProvider {
 
     /**
      * @return the current trace location
-     * @since 3.0
      */
     ITmfLocation getCurrentLocation();
 
@@ -315,7 +318,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      * @param location
      *            a trace specific location
      * @return a floating-point number between 0.0 (beginning) and 1.0 (end)
-     * @since 3.0
      */
     double getLocationRatio(ITmfLocation location);
 
@@ -336,7 +338,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      * @param location
      *            the trace specific location
      * @return a context which can later be used to read the corresponding event
-     * @since 3.0
      */
     ITmfContext seekEvent(ITmfLocation location);
 
@@ -368,7 +369,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      * @param timestamp
      *            the timestamp of desired event
      * @return a context which can later be used to read the corresponding event
-     * @since 2.0
      */
     ITmfContext seekEvent(ITmfTimestamp timestamp);
 
@@ -390,7 +390,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      * Returns the initial range offset
      *
      * @return the initial range offset
-     * @since 2.0
      */
     ITmfTimestamp getInitialRangeOffset();
 
@@ -403,7 +402,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      * time, etc).
      *
      * @return The host id of this trace
-     * @since 3.0
      */
     @NonNull String getHostId();
 
@@ -415,7 +413,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      * Returns the timestamp transformation for this trace
      *
      * @return the timestamp transform
-     * @since 3.0
      */
     ITmfTimestampTransform getTimestampTransform();
 
@@ -424,7 +421,6 @@ public interface ITmfTrace extends ITmfEventProvider {
      *
      * @param tt
      *            The timestamp transform for all timestamps of this trace
-     * @since 3.0
      */
     void setTimestampTransform(final ITmfTimestampTransform tt);
 
@@ -434,8 +430,7 @@ public interface ITmfTrace extends ITmfEventProvider {
      * @param ts
      *            The time in nanoseconds with which to create the timestamp
      * @return The new timestamp
-     * @since 3.0
      */
-    ITmfTimestamp createTimestamp(long ts);
+    @NonNull ITmfTimestamp createTimestamp(long ts);
 
 }

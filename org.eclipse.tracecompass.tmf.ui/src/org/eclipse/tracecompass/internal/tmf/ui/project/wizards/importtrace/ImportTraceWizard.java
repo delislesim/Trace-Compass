@@ -23,9 +23,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 /**
  * The import trace wizard implementation.
  * <p>
- * @version 1.0
  * @author Francois Chouinard
- * @since 2.0
  */
 public class ImportTraceWizard extends Wizard implements IImportWizard {
 
@@ -33,9 +31,9 @@ public class ImportTraceWizard extends Wizard implements IImportWizard {
     // Constants
     // ------------------------------------------------------------------------
 
-    static private final String PLUGIN_ID = Activator.PLUGIN_ID;
-    static private final String IMPORT_WIZARD = "ImportTraceWizard"; //$NON-NLS-1$
-    static private final String ICON_PATH = "icons/wizban/trace_import_wiz.png"; //$NON-NLS-1$
+    private static final String PLUGIN_ID = Activator.PLUGIN_ID;
+    private static final String IMPORT_WIZARD = "ImportTraceWizard"; //$NON-NLS-1$
+    private static final String ICON_PATH = "icons/wizban/trace_import_wiz.png"; //$NON-NLS-1$
 
     // ------------------------------------------------------------------------
     // Attributes

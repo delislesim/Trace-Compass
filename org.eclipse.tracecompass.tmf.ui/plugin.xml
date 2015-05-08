@@ -458,7 +458,30 @@
                mnemonic="%command.copy.mnemonic"
                style="push">
             <visibleWhen
-                  checkEnabled="true">
+                  checkEnabled="false">
+               <and>
+                  <with
+                        variable="activePart">
+                     <instanceof
+                           value="org.eclipse.ui.navigator.CommonNavigator">
+                     </instanceof>
+                  </with>
+                  <count
+                        value="1">
+                  </count>
+                  <iterate
+                        ifEmpty="false"
+                        operator="and">
+                     <or>
+                        <instanceof
+                              value="org.eclipse.tracecompass.tmf.ui.project.model.TmfTraceElement">
+                        </instanceof>
+                        <instanceof
+                              value="org.eclipse.tracecompass.tmf.ui.project.model.TmfExperimentElement">
+                        </instanceof>
+                     </or>
+                  </iterate>
+               </and>
             </visibleWhen>
          </command>
          <command
@@ -983,7 +1006,7 @@
             allPopups="false"
             locationURI="popup:org.eclipse.linuxtools.tmf.ui.views.filter?after=edit">
          <command
-               commandId="org.eclipse.ui.edit.cut"
+               commandId="org.eclipse.ui.edit.paste"
                style="push">
          </command>
       </menuContribution>
@@ -999,7 +1022,7 @@
             allPopups="false"
             locationURI="popup:org.eclipse.linuxtools.tmf.ui.views.filter?after=edit">
          <command
-               commandId="org.eclipse.ui.edit.paste"
+               commandId="org.eclipse.ui.edit.cut"
                style="push">
          </command>
       </menuContribution>
@@ -1807,5 +1830,33 @@
             tracetype="org.eclipse.linuxtools.tmf.core.experiment.generic"
             icon="icons/elcl16/experiment.gif">
       </experiment>
+   </extension>
+   <extension
+         point="org.eclipse.ui.themes">
+      <themeElementCategory
+            id="org.eclipse.tracecompass.tmf.ui.theme.category"
+            label="%themes.category.label">
+      </themeElementCategory>
+      <fontDefinition
+            categoryId="org.eclipse.tracecompass.tmf.ui.theme.category"
+            defaultsTo="org.eclipse.jface.dialogfont"
+            id="org.eclipse.tracecompass.tmf.ui.font.eventtable"
+            isEditable="true"
+            label="%font.eventtable.label">
+      </fontDefinition>
+      <fontDefinition
+            categoryId="org.eclipse.tracecompass.tmf.ui.theme.category"
+            defaultsTo="org.eclipse.jface.textfont"
+            id="org.eclipse.tracecompass.tmf.ui.font.eventraw"
+            isEditable="true"
+            label="%font.eventraw.label">
+      </fontDefinition>
+      <colorDefinition
+            categoryId="org.eclipse.tracecompass.tmf.ui.theme.category"
+            id="org.eclipse.tracecompass.tmf.ui.color.eventtable.highlight"
+            isEditable="true"
+            label="%color.eventtable.highlight.label"
+            value="COLOR_YELLOW">
+      </colorDefinition>
    </extension>
 </plugin>

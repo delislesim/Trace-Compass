@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -17,7 +17,6 @@ import java.nio.ByteBuffer;
  * The data object to go in a {@link CtfLocation}.
  *
  * @author Matthew Khouzam
- * @since 2.0
  */
 public class CtfLocationInfo implements Comparable<CtfLocationInfo> {
 
@@ -41,8 +40,6 @@ public class CtfLocationInfo implements Comparable<CtfLocationInfo> {
      *
      * @param bufferIn
      *            the buffer to read from
-     *
-     * @since 3.0
      */
     public CtfLocationInfo(ByteBuffer bufferIn) {
         fTimestamp = bufferIn.getLong();
@@ -128,8 +125,6 @@ public class CtfLocationInfo implements Comparable<CtfLocationInfo> {
      *
      * @param bufferOut
      *            the buffer to write to
-     *
-     * @since 3.0
      */
     public void serialize(ByteBuffer bufferOut) {
         bufferOut.putLong(fTimestamp);

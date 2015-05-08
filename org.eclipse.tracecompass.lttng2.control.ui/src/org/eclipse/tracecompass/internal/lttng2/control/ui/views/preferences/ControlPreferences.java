@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -54,10 +54,6 @@ public class ControlPreferences {
      * The verbose level preference
      */
     public static final String TRACE_CONTROL_VERBOSE_LEVEL_PREF = "trace.control.verbose.level"; //$NON-NLS-1$
-    /**
-     * The command time-out preference
-     */
-    public static final String TRACE_CONTROL_COMMAND_TIMEOUT_PREF = "trace.control.command.timeout"; //$NON-NLS-1$
     /**
      * The verbose level value for none
      */
@@ -179,14 +175,6 @@ public class ControlPreferences {
     public String getLogfilePath() {
         return fPreferenceStore.getString(TRACE_CONTROL_LOG_FILE_PATH_PREF);
     }
-
-    /**
-     * @return command timeout value
-     */
-    public int getCommandTimeout() {
-        return fPreferenceStore.getInt(TRACE_CONTROL_COMMAND_TIMEOUT_PREF);
-    }
-
 
     // ------------------------------------------------------------------------
     // Operations

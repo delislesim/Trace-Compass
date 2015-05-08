@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -28,7 +28,6 @@ import org.eclipse.tracecompass.tmf.core.trace.indexer.checkpoint.ITmfCheckpoint
  * Because of that, we use a separate structure FlatArray that is better suited for searching
  * by checkpoint rank (O(1)).
  *
- * @since 3.0
  * @author Marc-Andre Laperle
  */
 public class TmfBTreeTraceIndex implements ITmfCheckpointIndex {

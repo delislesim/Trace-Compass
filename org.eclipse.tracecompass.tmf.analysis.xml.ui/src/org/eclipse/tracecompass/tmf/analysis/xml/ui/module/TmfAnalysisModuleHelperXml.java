@@ -102,6 +102,14 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper {
         return false;
     }
 
+    /**
+     * @since 1.0
+     */
+    @Override
+    public boolean appliesToExperiment() {
+        return false;
+    }
+
     @Override
     public String getHelpText() {
         return new String();
@@ -139,6 +147,7 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper {
 
         for (Element element : elements) {
             String traceTypeId = element.getAttribute(TmfXmlStrings.ID);
+            traceTypeId = TmfTraceType.buildCompatibilityTraceTypeId(traceTypeId);
             TraceTypeHelper helper = TmfTraceType.getTraceType(traceTypeId);
             if ((helper != null) && helper.getTrace().getClass().isAssignableFrom(traceClass)) {
                 return true;
@@ -180,8 +189,13 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper {
 
         }
         if (module != null) {
-            module.setTrace(trace);
-            TmfAnalysisManager.analysisModuleCreated(module);
+            if (module.setTrace(trace)) {
+                TmfAnalysisManager.analysisModuleCreated(module);
+            } else {
+                /* The analysis does not apply to the trace, dispose of the module */
+                module.dispose();
+                module = null;
+            }
         }
 
         return module;

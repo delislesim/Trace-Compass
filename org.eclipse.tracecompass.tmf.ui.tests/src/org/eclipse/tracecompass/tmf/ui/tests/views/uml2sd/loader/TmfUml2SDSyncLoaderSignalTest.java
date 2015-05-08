@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson
+ * Copyright (c) 2011, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -18,8 +18,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.eclipse.tracecompass.tmf.core.signal.TmfRangeSynchSignal;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.ui.views.uml2sd.core.GraphNode;
@@ -39,7 +39,6 @@ public class TmfUml2SDSyncLoaderSignalTest {
 
     private static TmfTimeRange range;
     private static TmfTimestamp rangeWindow;
-    private static TmfTimestamp currentTime;
 
     /**
      * Initialization
@@ -52,10 +51,10 @@ public class TmfUml2SDSyncLoaderSignalTest {
         range = new TmfTimeRange(new Uml2SDTestTimestamp(9789689220871L), new Uml2SDTestTimestamp(9789773881426L));
         // Get range window for tests below
         rangeWindow = (TmfTimestamp) range.getEndTime().getDelta(range.getStartTime());
-        currentTime = new Uml2SDTestTimestamp(9789773782043L);
+        TmfTimestamp currentTime = new Uml2SDTestTimestamp(9789773782043L);
 
-        fFacility.getTrace().broadcast(new TmfRangeSynchSignal(fFacility, range));
-        fFacility.getTrace().broadcast(new TmfTimeSynchSignal(fFacility, currentTime));
+        fFacility.getTrace().broadcast(new TmfWindowRangeUpdatedSignal(fFacility, range));
+        fFacility.getTrace().broadcast(new TmfSelectionRangeUpdatedSignal(fFacility, currentTime));
         fFacility.delay(IUml2SDTestConstants.BROADCAST_DELAY);
 
         fTmfComponent = new Uml2SDSignalValidator();
@@ -78,7 +77,7 @@ public class TmfUml2SDSyncLoaderSignalTest {
      */
     @Test
     public void verifyFirstPageSignal() {
-        currentTime = new Uml2SDTestTimestamp(9788641608418L);
+        TmfTimestamp currentTime = new Uml2SDTestTimestamp(9788641608418L);
         range = new TmfTimeRange(currentTime, new Uml2SDTestTimestamp(currentTime.getValue() + rangeWindow.getValue()));
 
         fTmfComponent.setSignalError(false);

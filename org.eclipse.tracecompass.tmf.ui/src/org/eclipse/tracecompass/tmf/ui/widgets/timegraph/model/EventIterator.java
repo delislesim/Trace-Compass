@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -20,7 +20,6 @@ import java.util.NoSuchElementException;
 /**
  * An iterator for time events. Events from the zoomed event list override any
  * events from the underlying event list.
- * @since 2.0
  */
 public class EventIterator implements Iterator<ITimeEvent> {
 

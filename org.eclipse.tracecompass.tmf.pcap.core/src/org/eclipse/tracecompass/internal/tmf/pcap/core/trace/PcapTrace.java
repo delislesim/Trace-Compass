@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,8 @@
  *
  * Contributors:
  *   Vincent Perot - Initial API and implementation
+ *   Alexandre Montplaisir - Update to new ITmfEventAspect API
+ *   Patrick Tasse - Make pcap aspects singletons
  *******************************************************************************/
 
 package org.eclipse.tracecompass.internal.tmf.pcap.core.trace;
@@ -43,7 +45,6 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfEventParser;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceProperties;
 import org.eclipse.tracecompass.tmf.core.trace.TmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
@@ -62,15 +63,18 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Vincent Perot
  */
-public class PcapTrace extends TmfTrace implements ITmfEventParser, ITmfTraceProperties, AutoCloseable {
+public class PcapTrace extends TmfTrace implements ITmfTraceProperties, AutoCloseable {
+
+    /** pcap trace type id as defined in plugin.xml */
+    public static final String TRACE_TYPE_ID = "org.eclipse.linuxtools.tmf.pcap.core.pcaptrace"; //$NON-NLS-1$
 
     private static final Collection<ITmfEventAspect> PCAP_ASPECTS =
             checkNotNull(ImmutableList.of(
                     ITmfEventAspect.BaseAspects.TIMESTAMP,
-                    new PcapSourceAspect(),
-                    new PcapDestinationAspect(),
-                    new PcapReferenceAspect(),
-                    new PcapProtocolAspect(),
+                    PcapSourceAspect.INSTANCE,
+                    PcapDestinationAspect.INSTANCE,
+                    PcapReferenceAspect.INSTANCE,
+                    PcapProtocolAspect.INSTANCE,
                     ITmfEventAspect.BaseAspects.CONTENTS
                     ));
 

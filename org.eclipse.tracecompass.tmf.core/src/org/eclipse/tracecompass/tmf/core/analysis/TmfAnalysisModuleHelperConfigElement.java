@@ -22,13 +22,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.InvalidRegistryObjectException;
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
 import org.eclipse.tracecompass.internal.tmf.core.analysis.TmfAnalysisModuleSourceConfigElement;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.project.model.TmfTraceType;
 import org.eclipse.tracecompass.tmf.core.project.model.TraceTypeHelper;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
+import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
 import org.osgi.framework.Bundle;
 
 /**
@@ -36,7 +37,6 @@ import org.osgi.framework.Bundle;
  * elements.
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public class TmfAnalysisModuleHelperConfigElement implements IAnalysisModuleHelper {
 
@@ -79,6 +79,14 @@ public class TmfAnalysisModuleHelperConfigElement implements IAnalysisModuleHelp
         return Boolean.parseBoolean(fCe.getAttribute(TmfAnalysisModuleSourceConfigElement.AUTOMATIC_ATTR));
     }
 
+    /**
+     * @since 1.0
+     */
+    @Override
+    public boolean appliesToExperiment() {
+        return Boolean.parseBoolean(fCe.getAttribute(TmfAnalysisModuleSourceConfigElement.APPLIES_EXP_ATTR));
+    }
+
     @Override
     public String getHelpText() {
         /*
@@ -116,14 +124,15 @@ public class TmfAnalysisModuleHelperConfigElement implements IAnalysisModuleHelp
                 if (classApplies) {
                     applies |= applyclass.isAssignableFrom(traceclass);
                 } else {
-                    /* If the trace type does not apply, reset the applies variable to false */
+                    /*
+                     * If the trace type does not apply, reset the applies
+                     * variable to false
+                     */
                     if (applyclass.isAssignableFrom(traceclass)) {
                         applies = false;
                     }
                 }
-            } catch (ClassNotFoundException e) {
-                Activator.logError("Error in applies to trace", e); //$NON-NLS-1$
-            } catch (InvalidRegistryObjectException e) {
+            } catch (ClassNotFoundException | InvalidRegistryObjectException e) {
                 Activator.logError("Error in applies to trace", e); //$NON-NLS-1$
             }
         }
@@ -172,9 +181,23 @@ public class TmfAnalysisModuleHelperConfigElement implements IAnalysisModuleHelp
     @Override
     public IAnalysisModule newModule(ITmfTrace trace) throws TmfAnalysisException {
 
-        /* Check that analysis can be executed */
-        if (!appliesToTraceType(trace.getClass())) {
-            throw new TmfAnalysisException(NLS.bind(Messages.TmfAnalysisModuleHelper_AnalysisDoesNotApply, getName()));
+        /* Check if it applies to trace itself */
+        boolean applies = appliesToTraceType(trace.getClass());
+        /*
+         * If the trace is an experiment, check if this module would apply to an
+         * experiment should it apply to one of its traces.
+         */
+        if (!applies && (trace instanceof TmfExperiment) && appliesToExperiment()) {
+            for (ITmfTrace expTrace : TmfTraceManager.getTraceSet(trace)) {
+                if (appliesToTraceType(expTrace.getClass())) {
+                    applies = true;
+                    break;
+                }
+            }
+        }
+
+        if (!applies) {
+            return null;
         }
 
         IAnalysisModule module = createModule();
@@ -197,8 +220,12 @@ public class TmfAnalysisModuleHelperConfigElement implements IAnalysisModuleHelp
                 module.setParameter(paramName, defaultValue);
             }
         }
-        module.setTrace(trace);
-        TmfAnalysisManager.analysisModuleCreated(module);
+        if (module.setTrace(trace)) {
+            TmfAnalysisManager.analysisModuleCreated(module);
+        } else {
+            module.dispose();
+            module = null;
+        }
 
         return module;
 

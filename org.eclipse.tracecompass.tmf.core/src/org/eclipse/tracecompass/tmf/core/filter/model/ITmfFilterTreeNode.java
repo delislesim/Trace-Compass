@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2012 Ericsson
+ * Copyright (c) 2010, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -120,8 +120,19 @@ public interface ITmfFilterTreeNode extends ITmfFilter {
     public List<String> getValidChildren();
 
     /**
+     * <h4>Returns a string representation of the filter tree node object.</h4>
+     *
+     * @param explicit
+     *            true if ambiguous fields should explicitly include additional
+     *            information that can differentiate them from other fields with
+     *            the same name
+     *
+     * @return a string representation of the filter tree node object
+     */
+    public String toString(boolean explicit);
+
+    /**
      * @return a clone of the node
      */
     public ITmfFilterTreeNode clone();
-
 }

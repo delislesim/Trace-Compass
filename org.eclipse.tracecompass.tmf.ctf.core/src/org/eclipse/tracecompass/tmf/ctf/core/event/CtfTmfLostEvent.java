@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -16,15 +16,14 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfNanoTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
-import org.eclipse.tracecompass.tmf.ctf.core.timestamp.CtfTmfTimestamp;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 
 /**
  * An implementation of {@link ITmfLostEvent} for use in the CTF adaptor.
  *
  * @author Alexandre Montplaisir
- * @since 2.2
  */
 public class CtfTmfLostEvent extends CtfTmfEvent implements ITmfLostEvent {
 
@@ -63,7 +62,7 @@ public class CtfTmfLostEvent extends CtfTmfEvent implements ITmfLostEvent {
          * Only the factory should call this method, the case to
          * (CtfTmfTimestamp) should be safe.
          */
-        super(trace, rank, (CtfTmfTimestamp) timeRange.getStartTime(), fileName, cpu, declaration, def);
+        super(trace, rank, (TmfNanoTimestamp) timeRange.getStartTime(), fileName, cpu, declaration, def);
         fTimeRange = timeRange;
         fNbLost = nbLost;
     }

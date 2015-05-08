@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,14 +8,15 @@
  *
  * Contributors:
  *   Vincent Perot - Initial API and implementation
+ *   Patrick Tasse - Support aspect filters
  *******************************************************************************/
 
 package org.eclipse.tracecompass.internal.tmf.pcap.ui.stream;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
@@ -33,15 +34,18 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.tracecompass.internal.tmf.pcap.core.analysis.StreamListAnalysis;
-import org.eclipse.tracecompass.internal.tmf.pcap.core.event.PcapEvent;
 import org.eclipse.tracecompass.internal.tmf.pcap.core.event.TmfPacketStream;
 import org.eclipse.tracecompass.internal.tmf.pcap.core.event.TmfPacketStreamBuilder;
+import org.eclipse.tracecompass.internal.tmf.pcap.core.event.aspect.PcapDestinationAspect;
+import org.eclipse.tracecompass.internal.tmf.pcap.core.event.aspect.PcapSourceAspect;
 import org.eclipse.tracecompass.internal.tmf.pcap.core.protocol.TmfPcapProtocol;
 import org.eclipse.tracecompass.internal.tmf.pcap.core.signal.TmfPacketStreamSelectedSignal;
 import org.eclipse.tracecompass.internal.tmf.pcap.core.trace.PcapTrace;
 import org.eclipse.tracecompass.internal.tmf.pcap.ui.Activator;
+import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
 import org.eclipse.tracecompass.tmf.core.filter.model.ITmfFilterTreeNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterAndNode;
+import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterAspectNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterContainsNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterNode;
 import org.eclipse.tracecompass.tmf.core.filter.model.TmfFilterOrNode;
@@ -52,6 +56,7 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.project.model.TraceUtils;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
@@ -62,6 +67,8 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+
+import com.google.common.collect.Lists;
 
 /**
  * Class that represents the Stream List View. Such a view lists all the
@@ -239,9 +246,9 @@ public class StreamListView extends TmfView {
                 if (tableMap == null) {
                     return;
                 }
-                for (TmfPcapProtocol protocol : tableMap.keySet()) {
-                    if (!(tableMap.get(protocol).isDisposed())) {
-                        tableMap.get(protocol).removeAll();
+                for (Table table : tableMap.values()) {
+                    if (!table.isDisposed()) {
+                        table.removeAll();
                     }
                 }
             }
@@ -274,19 +281,21 @@ public class StreamListView extends TmfView {
                 if (tables == null) {
                     return;
                 }
-                for (TmfPcapProtocol protocol : tables.keySet()) {
+                for (Entry<TmfPcapProtocol, Table> protocolEntry : tables.entrySet()) {
+                    TmfPcapProtocol protocol = protocolEntry.getKey();
                     if (protocol == null) {
                         throw new IllegalStateException();
                     }
                     TmfPacketStreamBuilder builder = analysis.getBuilder(protocol);
-                    if (builder != null && !(tables.get(protocol).isDisposed())) {
+                    Table table = protocolEntry.getValue();
+                    if (builder != null && !(table.isDisposed())) {
                         for (TmfPacketStream stream : builder.getStreams()) {
 
                             TableItem item;
-                            if (stream.getID() < tables.get(protocol).getItemCount()) {
-                                item = tables.get(protocol).getItem(stream.getID());
+                            if (stream.getID() < table.getItemCount()) {
+                                item = table.getItem(stream.getID());
                             } else {
-                                item = new TableItem(tables.get(protocol), SWT.NONE);
+                                item = new TableItem(table, SWT.NONE);
                             }
                             item.setText(0, String.valueOf(stream.getID()));
                             item.setText(1, stream.getFirstEndpoint().toString());
@@ -315,7 +324,7 @@ public class StreamListView extends TmfView {
     public void createPartControl(@Nullable Composite parent) {
         // Initialize
         fTableMap = new HashMap<>();
-        fCurrentTrace = getActiveTrace();
+        fCurrentTrace = TmfTraceManager.getInstance().getActiveTrace();
         fCurrentStream = null;
 
         // Add a tab folder
@@ -414,14 +423,18 @@ public class StreamListView extends TmfView {
                         }
 
                         // Update XML
-                        List<ITmfFilterTreeNode> newFilters = new ArrayList<>();
-                        ITmfFilterTreeNode[] oldFilters = FilterManager.getSavedFilters();
-                        for (int i = 0; i < oldFilters.length; i++) {
-                            newFilters.add(oldFilters[i]);
+                        List<ITmfFilterTreeNode> filters = Lists.newArrayList(FilterManager.getSavedFilters());
+                        boolean newFilter = true;
+                        for (ITmfFilterTreeNode savedFilter : filters) {
+                            // Use toString(explicit) equality because equals() is not implemented
+                            if (savedFilter.toString(true).equals(filter.toString(true))) {
+                                newFilter = false;
+                                break;
+                            }
                         }
-                        if (!(newFilters.contains(filter))) {
-                            newFilters.add(filter);
-                            FilterManager.setSavedFilters(newFilters.toArray(new ITmfFilterTreeNode[newFilters.size()]));
+                        if (newFilter) {
+                            filters.add(filter);
+                            FilterManager.setSavedFilters(filters.toArray(new ITmfFilterTreeNode[filters.size()]));
                         }
 
                         // Update Filter View
@@ -455,7 +468,8 @@ public class StreamListView extends TmfView {
 
                         // Third stage - protocol + or
                         TmfFilterContainsNode protocolFilter = new TmfFilterContainsNode(and);
-                        protocolFilter.setField(stream.getProtocol().getName());
+                        protocolFilter.setEventAspect(ITmfEventAspect.BaseAspects.CONTENTS.forField(stream.getProtocol().getName()));
+                        protocolFilter.setTraceTypeId(TmfFilterAspectNode.BASE_ASPECT_ID);
                         protocolFilter.setValue(EMPTY_STRING);
                         TmfFilterOrNode or = new TmfFilterOrNode(and);
 
@@ -465,16 +479,20 @@ public class StreamListView extends TmfView {
 
                         // Fourth stage - endpoints
                         TmfFilterContainsNode endpointAAndA = new TmfFilterContainsNode(andA);
-                        endpointAAndA.setField(PcapEvent.EVENT_FIELD_PACKET_SOURCE);
+                        endpointAAndA.setEventAspect(PcapSourceAspect.INSTANCE);
+                        endpointAAndA.setTraceTypeId(PcapTrace.TRACE_TYPE_ID);
                         endpointAAndA.setValue(stream.getFirstEndpoint());
                         TmfFilterContainsNode endpointBAndA = new TmfFilterContainsNode(andA);
-                        endpointBAndA.setField(PcapEvent.EVENT_FIELD_PACKET_DESTINATION);
+                        endpointBAndA.setEventAspect(PcapDestinationAspect.INSTANCE);
+                        endpointBAndA.setTraceTypeId(PcapTrace.TRACE_TYPE_ID);
                         endpointBAndA.setValue(stream.getSecondEndpoint());
                         TmfFilterContainsNode endpointAAndB = new TmfFilterContainsNode(andB);
-                        endpointAAndB.setField(PcapEvent.EVENT_FIELD_PACKET_SOURCE);
+                        endpointAAndB.setEventAspect(PcapSourceAspect.INSTANCE);
+                        endpointAAndB.setTraceTypeId(PcapTrace.TRACE_TYPE_ID);
                         endpointAAndB.setValue(stream.getSecondEndpoint());
                         TmfFilterContainsNode endpointBAndB = new TmfFilterContainsNode(andB);
-                        endpointBAndB.setField(PcapEvent.EVENT_FIELD_PACKET_DESTINATION);
+                        endpointBAndB.setEventAspect(PcapDestinationAspect.INSTANCE);
+                        endpointBAndB.setTraceTypeId(PcapTrace.TRACE_TYPE_ID);
                         endpointBAndB.setValue(stream.getFirstEndpoint());
 
                         return root;

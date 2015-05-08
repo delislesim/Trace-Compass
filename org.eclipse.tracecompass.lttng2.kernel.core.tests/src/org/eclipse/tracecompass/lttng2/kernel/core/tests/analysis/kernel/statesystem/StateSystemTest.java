@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  * Copyright (c) 2010, 2011 École Polytechnique de Montréal
  * Copyright (c) 2010, 2011 Alexandre Montplaisir <alexandre.montplaisir@gmail.com>
  *
@@ -19,7 +19,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.util.List;
 
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.Attributes;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.Attributes;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
@@ -358,8 +358,8 @@ public abstract class StateSystemTest {
     public void testGetQuarks_end() {
         List<Integer> list = fixture.getQuarks(Attributes.THREADS, "1577", "*");
 
-        /* There should be 4 sub-attributes for each Thread node */
-        assertEquals(4, list.size());
+        /* There should be 5 sub-attributes for each Thread node */
+        assertEquals(5, list.size());
     }
 
     // ------------------------------------------------------------------------
@@ -400,14 +400,15 @@ public abstract class StateSystemTest {
     @Test
     public void testFirstIntervalIsConsidered() {
         try {
+            int quark = fixture.getQuarkAbsolute(Attributes.THREADS, "1397", Attributes.STATUS);
             List<ITmfStateInterval> list = fixture.queryFullState(1331668248014135800L);
-            ITmfStateInterval interval = list.get(233);
+            ITmfStateInterval interval = list.get(quark);
             assertEquals(1331668247516664825L, interval.getStartTime());
 
             int valueInt = interval.getStateValue().unboxInt();
             assertEquals(1, valueInt);
 
-        } catch (StateSystemDisposedException e) {
+        } catch (StateSystemDisposedException | AttributeNotFoundException e) {
             fail();
         }
     }

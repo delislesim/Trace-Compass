@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,24 +12,27 @@
 
 package org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.module;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelAnalysisModule;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelThreadInformationProvider;
+import org.eclipse.tracecompass.analysis.os.linux.core.model.HostThread;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.Activator;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.VcpuStateValues;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.VmAttributes;
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.model.HostThread;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.model.IVirtualMachineModel;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.model.VirtualCPU;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.model.VirtualMachine;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.model.qemukvm.QemuKvmVmModel;
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
-import org.eclipse.tracecompass.lttng2.kernel.core.analysis.kernel.LttngKernelAnalysis;
-import org.eclipse.tracecompass.lttng2.kernel.core.analysis.kernel.LttngKernelThreadInformationProvider;
 import org.eclipse.tracecompass.lttng2.kernel.core.trace.LttngKernelTrace;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
@@ -94,7 +97,7 @@ public class VirtualMachineStateProvider extends AbstractTmfStateProvider {
      *            The virtual machine experiment
      */
     public VirtualMachineStateProvider(TmfExperiment experiment) {
-        super(experiment, ITmfEvent.class, "Virtual Machine State Provider"); //$NON-NLS-1$
+        super(experiment, "Virtual Machine State Provider"); //$NON-NLS-1$
 
         fModel = new QemuKvmVmModel(experiment);
         Table<ITmfTrace, String, Integer> table = NonNullUtils.checkNotNull(HashBasedTable.<ITmfTrace, String, Integer> create());
@@ -109,7 +112,7 @@ public class VirtualMachineStateProvider extends AbstractTmfStateProvider {
     private void buildEventNames(ITmfTrace trace) {
         IKernelAnalysisEventLayout layout;
         if (trace instanceof LttngKernelTrace) {
-            layout = ((LttngKernelTrace) trace).getEventLayout();
+            layout = ((LttngKernelTrace) trace).getKernelEventLayout();
         } else {
             /* Fall-back to the base LttngEventLayout */
             layout = LttngEventLayout.getInstance();
@@ -149,7 +152,7 @@ public class VirtualMachineStateProvider extends AbstractTmfStateProvider {
         }
 
         /* Is the event managed by this analysis */
-        final String eventName = event.getType().getName();
+        final String eventName = event.getName();
 
         /* TODO When requirements work again, don't hardcode this */
         if (!eventName.equals("sched_switch") && //$NON-NLS-1$
@@ -157,6 +160,7 @@ public class VirtualMachineStateProvider extends AbstractTmfStateProvider {
             return;
         }
 
+        ITmfStateSystemBuilder ss = checkNotNull(getStateSystemBuilder());
         ITmfStateValue value;
 
         final ITmfEventField content = event.getContent();
@@ -206,30 +210,17 @@ public class VirtualMachineStateProvider extends AbstractTmfStateProvider {
              * prev_state, string next_comm, int32 next_tid, int32 next_prio
              */
             {
-                Integer prevTid = ((Long) content.getField(fLayouts.get(event.getTrace()).fieldPrevTid()).getValue()).intValue();
-                Integer nextTid = ((Long) content.getField(fLayouts.get(event.getTrace()).fieldNextTid()).getValue()).intValue();
-
-                if (prevTid == null || nextTid == null) {
-                    break;
-                }
+                int prevTid = ((Long) content.getField(fLayouts.get(event.getTrace()).fieldPrevTid()).getValue()).intValue();
+                int nextTid = ((Long) content.getField(fLayouts.get(event.getTrace()).fieldNextTid()).getValue()).intValue();
 
                 if (host.isGuest()) {
                     /* Get the event's CPU */
-                    Integer cpu = null;
-                    Iterable<TmfCpuAspect> aspects = TmfTraceUtils.getEventAspectsOfClass(event.getTrace(), TmfCpuAspect.class);
-                    for (TmfCpuAspect aspect : aspects) {
-                        if (!aspect.resolve(event).equals(TmfCpuAspect.CPU_UNAVAILABLE)) {
-                            cpu = aspect.resolve(event);
-                            break;
-                        }
-                    }
-                    if (cpu == null) {
-                        /*
-                         * We couldn't find any CPU information, ignore this
-                         * event
-                         */
+                    Object cpuObj = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), TmfCpuAspect.class, event);
+                    if (cpuObj == null) {
+                        /* We couldn't find any CPU information, ignore this event */
                         break;
                     }
+                    Integer cpu = (Integer) cpuObj;
 
                     /*
                      * If sched switch is from a guest, just update the status
@@ -345,32 +336,26 @@ public class VirtualMachineStateProvider extends AbstractTmfStateProvider {
     // ------------------------------------------------------------------------
 
     private int getNodeVirtualMachines() {
-        return ss.getQuarkAbsoluteAndAdd(VmAttributes.VIRTUAL_MACHINES);
+        return checkNotNull(getStateSystemBuilder()).getQuarkAbsoluteAndAdd(VmAttributes.VIRTUAL_MACHINES);
     }
 
     private @Nullable HostThread getCurrentHostThread(ITmfEvent event, long ts) {
         /* Get the LTTng kernel analysis for the host */
         String hostId = event.getTrace().getHostId();
-        LttngKernelAnalysis module = TmfExperimentUtils.getAnalysisModuleOfClassForHost(getTrace(), hostId, LttngKernelAnalysis.class);
+        KernelAnalysisModule module = TmfExperimentUtils.getAnalysisModuleOfClassForHost(getTrace(), hostId, KernelAnalysisModule.class);
         if (module == null) {
             return null;
         }
 
         /* Get the CPU the event is running on */
-        Integer cpu = null;
-        Iterable<TmfCpuAspect> aspects = TmfTraceUtils.getEventAspectsOfClass(event.getTrace(), TmfCpuAspect.class);
-        for (TmfCpuAspect aspect : aspects) {
-            if (!aspect.resolve(event).equals(TmfCpuAspect.CPU_UNAVAILABLE)) {
-                cpu = aspect.resolve(event);
-                break;
-            }
-        }
-        if (cpu == null) {
+        Object cpuObj = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), TmfCpuAspect.class, event);
+        if (cpuObj == null) {
             /* We couldn't find any CPU information, ignore this event */
             return null;
         }
+        Integer cpu = (Integer) cpuObj;
 
-        Integer currentTid = LttngKernelThreadInformationProvider.getThreadOnCpu(module, cpu, ts);
+        Integer currentTid = KernelThreadInformationProvider.getThreadOnCpu(module, cpu, ts);
         if (currentTid == null) {
             return null;
         }

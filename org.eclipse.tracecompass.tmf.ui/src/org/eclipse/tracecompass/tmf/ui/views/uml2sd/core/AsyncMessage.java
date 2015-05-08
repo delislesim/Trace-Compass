@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,7 +49,6 @@ import org.eclipse.tracecompass.tmf.ui.views.uml2sd.util.SortAsyncMessageCompara
  * @see Lifeline Lifeline for more event occurence details
  * @version 1.0
  * @author sveyrier
- * @since 2.0
  */
 public class AsyncMessage extends BaseMessage implements ITimeRange {
 
@@ -372,7 +371,6 @@ public class AsyncMessage extends BaseMessage implements ITimeRange {
      * Set the time when the message end
      *
      * @param time the time when the message end
-     * @since 2.0
      */
     public void setEndTime(ITmfTimestamp time) {
         fEndTime = time;
@@ -388,7 +386,6 @@ public class AsyncMessage extends BaseMessage implements ITimeRange {
      * Set the time when the message start
      *
      * @param time the time when the message start
-     * @since 2.0
      */
     public void setStartTime(ITmfTimestamp time) {
         fStartTime = time;
@@ -400,17 +397,11 @@ public class AsyncMessage extends BaseMessage implements ITimeRange {
         }
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public ITmfTimestamp getEndTime() {
         return fEndTime;
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public ITmfTimestamp getStartTime() {
         return fStartTime;
@@ -423,7 +414,6 @@ public class AsyncMessage extends BaseMessage implements ITimeRange {
 
     /**
      *  @return message return instance or null
-     *  @since 2.0
      */
     public AsyncMessageReturn getMessageReturn() {
         return fMessageReturn;

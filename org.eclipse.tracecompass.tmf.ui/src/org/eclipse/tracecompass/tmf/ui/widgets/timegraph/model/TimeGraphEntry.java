@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson, École Polytechnique de Montréal
+ * Copyright (c) 2012, 2015 Ericsson, École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -20,10 +20,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.eclipse.swt.SWT;
+
 /**
  * An entry for use in the time graph views
- *
- * @since 2.1
  */
 public class TimeGraphEntry implements ITimeGraphEntry {
 
@@ -35,8 +35,8 @@ public class TimeGraphEntry implements ITimeGraphEntry {
 
     /** Name of this entry (text to show) */
     private String fName;
-    private long fStartTime = -1;
-    private long fEndTime = -1;
+    private long fStartTime = SWT.DEFAULT;
+    private long fEndTime = SWT.DEFAULT;
     private List<ITimeEvent> fEventList = new ArrayList<>();
     private List<ITimeEvent> fZoomedEventList = new ArrayList<>();
     private Comparator<ITimeGraphEntry> fComparator;
@@ -82,7 +82,6 @@ public class TimeGraphEntry implements ITimeGraphEntry {
      * Sets the entry's parent
      *
      * @param entry The new parent entry
-     * @since 3.1
      */
     /*
      * TODO: This method should be added to the interface in the next major API version.
@@ -131,8 +130,6 @@ public class TimeGraphEntry implements ITimeGraphEntry {
      *
      * @param endTime
      *            the end time
-     *
-     * @since 3.0
      */
     public void updateEndTime(long endTime) {
         fEndTime = Math.max(endTime, fEndTime);
@@ -177,10 +174,10 @@ public class TimeGraphEntry implements ITimeGraphEntry {
             } else {
                 fEventList.add(event);
             }
-            if (fStartTime == -1 || start < fStartTime) {
+            if (fStartTime == SWT.DEFAULT || start < fStartTime) {
                 fStartTime = start;
             }
-            if (fEndTime == -1 || end > fEndTime) {
+            if (fEndTime == SWT.DEFAULT || end > fEndTime) {
                 fEndTime = end;
             }
         }
@@ -234,7 +231,6 @@ public class TimeGraphEntry implements ITimeGraphEntry {
      *
      * @param child
      *            The child entry
-     * @since 3.1
      */
     public synchronized void addChild(ITimeGraphEntry child) {
         /*
@@ -264,7 +260,6 @@ public class TimeGraphEntry implements ITimeGraphEntry {
      *            Index at which the specified entry is to be inserted
      * @param child
      *            The child entry
-     * @since 3.1
      */
     public synchronized void addChild(int index, ITimeGraphEntry child) {
         /*
@@ -283,7 +278,6 @@ public class TimeGraphEntry implements ITimeGraphEntry {
      *
      * @param comparator
      *            The entry comparator
-     * @since 3.1
      */
     public synchronized void sortChildren(Comparator<ITimeGraphEntry> comparator) {
         fComparator = comparator;

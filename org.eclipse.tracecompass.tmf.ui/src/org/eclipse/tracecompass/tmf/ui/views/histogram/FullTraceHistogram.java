@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson
+ * Copyright (c) 2011, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -216,7 +216,6 @@ public class FullTraceHistogram extends Histogram {
     /**
      * Get the histogram zoom
      * @return the histogram zoom
-     * @since 2.0
      */
     public HistogramZoom getZoom() {
         return fZoom;

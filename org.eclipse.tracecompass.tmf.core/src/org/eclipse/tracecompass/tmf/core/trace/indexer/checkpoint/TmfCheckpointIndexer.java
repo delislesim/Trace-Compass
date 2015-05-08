@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.internal.tmf.core.Messages;
 import org.eclipse.tracecompass.internal.tmf.core.trace.indexer.TmfMemoryIndex;
 import org.eclipse.tracecompass.tmf.core.component.TmfEventProvider;
@@ -49,7 +50,6 @@ import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
  * @see ITmfEvent
  *
  * @author Francois Chouinard
- * @since 3.0
  */
 public class TmfCheckpointIndexer implements ITmfTraceIndexer {
 
@@ -110,7 +110,6 @@ public class TmfCheckpointIndexer implements ITmfTraceIndexer {
      *
      * @param trace the trace to index
      * @return the index
-     * @since 3.0
      */
     protected ITmfCheckpointIndex createIndex(final ITmfTrace trace) {
         return new TmfMemoryIndex(trace);
@@ -138,9 +137,6 @@ public class TmfCheckpointIndexer implements ITmfTraceIndexer {
     // ITmfTraceIndexer - buildIndex
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public void buildIndex(final long offset, final TmfTimeRange range, final boolean waitForCompletion) {
 
@@ -244,7 +240,7 @@ public class TmfCheckpointIndexer implements ITmfTraceIndexer {
      * @param startTime the new start time
      * @param endTime the new end time
      */
-    private void signalNewTimeRange(final ITmfTimestamp startTime, final ITmfTimestamp endTime) {
+    private void signalNewTimeRange(final @NonNull ITmfTimestamp startTime, final @NonNull ITmfTimestamp endTime) {
         fTrace.broadcast(new TmfTraceUpdatedSignal(fTrace, fTrace, new TmfTimeRange(startTime, endTime), fTrace.getNbEvents()));
     }
 
@@ -252,9 +248,6 @@ public class TmfCheckpointIndexer implements ITmfTraceIndexer {
     // ITmfTraceIndexer - updateIndex
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public synchronized void updateIndex(final ITmfContext context, final ITmfTimestamp timestamp) {
         if ((context.getRank() % fCheckpointInterval) == 0) {
@@ -271,9 +264,6 @@ public class TmfCheckpointIndexer implements ITmfTraceIndexer {
     // ITmfTraceIndexer - seekIndex
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 2.0
-     */
     @Override
     public synchronized ITmfContext seekIndex(final ITmfTimestamp timestamp) {
 
@@ -343,7 +333,6 @@ public class TmfCheckpointIndexer implements ITmfTraceIndexer {
 
     /**
      * @return the trace index
-     * @since 3.0
      */
     protected ITmfCheckpointIndex getTraceIndex() {
         return fTraceIndex;

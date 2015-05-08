@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Ericsson
+ * Copyright (c) 2009, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -19,7 +19,6 @@ import java.util.List;
 /**
  * Interface for an entry (row) in the time graph view
  *
- * @version 1.0
  * @author Alvaro Sanchez-Leon
  * @author Patrick Tasse
  */
@@ -44,7 +43,6 @@ public interface ITimeGraphEntry {
      * Returns the child elements of this entry.
      *
      * @return an array of child elements
-     * @since 2.0
      */
     List<? extends ITimeGraphEntry> getChildren();
 

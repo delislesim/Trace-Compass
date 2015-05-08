@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,14 +17,12 @@ import java.util.EventObject;
 /**
  * Notifier for the time graph that the time range has been updated.
  *
- * @version 1.0
  * @author Patrick Tasse
  */
 public class TimeGraphRangeUpdateEvent extends EventObject {
 
     /**
      * Default serial version UID for this class.
-     * @since 1.0
      */
     private static final long serialVersionUID = 1L;
 

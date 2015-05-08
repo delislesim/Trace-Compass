@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -24,28 +24,26 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.tracecompass.ctf.core.trace.CTFTrace;
 import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.ILttngRelaydConnector;
 import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.LttngRelaydConnectorFactory;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.AttachReturnCode;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.AttachSessionResponse;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.CreateSessionResponse;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.CreateSessionReturnCode;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.IndexResponse;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.NextIndexReturnCode;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.SessionResponse;
-import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.lttngviewerCommands.StreamResponse;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.AttachReturnCode;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.AttachSessionResponse;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.CreateSessionResponse;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.CreateSessionReturnCode;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.IndexResponse;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.NextIndexReturnCode;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.SessionResponse;
+import org.eclipse.tracecompass.internal.lttng2.control.core.relayd.commands.StreamResponse;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.Activator;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceRangeUpdatedSignal;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfNanoTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
-import org.eclipse.tracecompass.tmf.ctf.core.timestamp.CtfTmfTimestamp;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 
 /**
  * Consumer of the relay d.
  *
  * @author Matthew Khouzam
- * @since 3.1
  */
 public final class LttngRelaydConsumer {
 
@@ -55,7 +53,6 @@ public final class LttngRelaydConsumer {
 
     private Job fConsumerJob;
     private CtfTmfTrace fCtfTmfTrace;
-    private CTFTrace fCtfTrace;
     private long fTimestampEnd;
     private AttachSessionResponse fSession;
     private Socket fConnection;
@@ -174,7 +171,6 @@ public final class LttngRelaydConsumer {
         }
 
         fCtfTmfTrace = trace;
-        fCtfTrace = trace.getCTFTrace();
         fConsumerJob = new Job("RelayD consumer") { //$NON-NLS-1$
 
             @Override
@@ -186,9 +182,9 @@ public final class LttngRelaydConsumer {
                             if (stream.getMetadataFlag() != 1) {
                                 IndexResponse indexReply = fRelayd.getNextIndex(stream);
                                 if (indexReply.getStatus() == NextIndexReturnCode.VIEWER_INDEX_OK) {
-                                    long nanoTimeStamp = fCtfTrace.timestampCyclesToNanos(indexReply.getTimestampEnd());
+                                    long nanoTimeStamp = fCtfTmfTrace.timestampCyclesToNanos(indexReply.getTimestampEnd());
                                     if (nanoTimeStamp > fTimestampEnd) {
-                                        CtfTmfTimestamp endTime = new CtfTmfTimestamp(nanoTimeStamp);
+                                        TmfNanoTimestamp endTime = new TmfNanoTimestamp(nanoTimeStamp);
                                         TmfTimeRange range = new TmfTimeRange(fCtfTmfTrace.getStartTime(), endTime);
 
                                         long currentTime = System.nanoTime();
@@ -202,7 +198,7 @@ public final class LttngRelaydConsumer {
                                 } else if (indexReply.getStatus() == NextIndexReturnCode.VIEWER_INDEX_HUP) {
                                     // The trace is now complete because the trace session was destroyed
                                     fCtfTmfTrace.setComplete(true);
-                                    TmfTraceRangeUpdatedSignal signal = new TmfTraceRangeUpdatedSignal(LttngRelaydConsumer.this, fCtfTmfTrace, new TmfTimeRange(fCtfTmfTrace.getStartTime(), new CtfTmfTimestamp(fTimestampEnd)));
+                                    TmfTraceRangeUpdatedSignal signal = new TmfTraceRangeUpdatedSignal(LttngRelaydConsumer.this, fCtfTmfTrace, new TmfTimeRange(fCtfTmfTrace.getStartTime(), new TmfNanoTimestamp(fTimestampEnd)));
                                     fCtfTmfTrace.broadcastAsync(signal);
                                     return Status.OK_STATUS;
                                 }

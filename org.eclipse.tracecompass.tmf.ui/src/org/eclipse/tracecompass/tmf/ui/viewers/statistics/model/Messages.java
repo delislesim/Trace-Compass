@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson
+ * Copyright (c) 2011, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,9 +17,7 @@ import org.eclipse.osgi.util.NLS;
 /**
  * Message strings for the statistics framework.
  *
- * @version 2.0
  * @author Mathieu Denis
- * @since 2.0
  */
 public class Messages extends NLS {
 
@@ -57,13 +55,11 @@ public class Messages extends NLS {
 
     /**
      * Partial number of events column.
-     * @since 2.0
      */
     public static String TmfStatisticsView_NbEventsTimeRangeColumn;
 
     /**
      * Partial number of events column tool tip.
-     * @since 2.0
      */
     public static String TmfStatisticsView_NbEventsTimeRangeTip;
 

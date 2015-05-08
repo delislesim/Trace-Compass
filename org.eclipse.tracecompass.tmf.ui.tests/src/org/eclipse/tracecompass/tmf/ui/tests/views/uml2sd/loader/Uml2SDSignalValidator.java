@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson
+ * Copyright (c) 2011, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -14,10 +14,10 @@ package org.eclipse.tracecompass.tmf.ui.tests.views.uml2sd.loader;
 
 import org.eclipse.tracecompass.tmf.core.component.TmfComponent;
 import org.eclipse.tracecompass.tmf.core.signal.TmfEndSynchSignal;
-import org.eclipse.tracecompass.tmf.core.signal.TmfRangeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfStartSynchSignal;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 
@@ -59,7 +59,7 @@ public class Uml2SDSignalValidator extends TmfComponent implements IUml2SdSignal
      * @param signal the signal to handle.
      */
     @TmfSignalHandler
-    public void synchToTime(TmfTimeSynchSignal signal) {
+    public void synchToTime(TmfSelectionRangeUpdatedSignal signal) {
         // Set results so that it can be validated in the test case
         setSignalReceived(true);
         setSourceError(getSource() != signal.getSource());
@@ -67,11 +67,11 @@ public class Uml2SDSignalValidator extends TmfComponent implements IUml2SdSignal
     }
 
     /**
-     * Signal handler for time range synch signal.
+     * Signal handler for window range signal.
      * @param signal the signal to handle.
      */
     @TmfSignalHandler
-    public void synchToTimeRange(TmfRangeSynchSignal signal) {
+    public void synchToTimeRange(TmfWindowRangeUpdatedSignal signal) {
         // Set results so that it can be validated in the test case
         setSignalReceived(true);
         if (getSource() != null) {
@@ -182,7 +182,7 @@ public class Uml2SDSignalValidator extends TmfComponent implements IUml2SdSignal
 
     @Override
     public void setCurrentRange(TmfTimeRange currentRange) {
-        fCurrentTimeRange = currentRange == null ? null : new TmfTimeRange(currentRange);
+        fCurrentTimeRange = currentRange == null ? null : currentRange;
     }
 }
 

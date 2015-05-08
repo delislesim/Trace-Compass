@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -23,9 +23,8 @@ import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.remote.core.IRemoteConnection;
-import org.eclipse.remote.core.IRemoteConnectionManager;
-import org.eclipse.remote.core.RemoteServices;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.TargetNodeState;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.TraceSessionState;
 import org.eclipse.tracecompass.internal.lttng2.control.stubs.dialogs.CreateSessionDialogStub;
@@ -36,6 +35,7 @@ import org.eclipse.tracecompass.internal.lttng2.control.ui.views.model.ITraceCon
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.model.impl.TargetNodeComponent;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.model.impl.TraceSessionComponent;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.service.ILttngControlService;
+import org.eclipse.tracecompass.tmf.remote.core.proxy.TmfRemoteConnectionFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +62,8 @@ public class TraceControlCreateSessionTests {
     // Test data
     // ------------------------------------------------------------------------
     private TraceControlTestFacility fFacility;
-    private TestRemoteSystemProxy fProxy;
+    private IRemoteConnection fHost = TmfRemoteConnectionFactory.getLocalConnection();
+    private @NonNull TestRemoteSystemProxy fProxy = new TestRemoteSystemProxy(fHost);
     private String fTestFile;
 
     // ------------------------------------------------------------------------
@@ -79,7 +80,6 @@ public class TraceControlCreateSessionTests {
     public void setUp() throws Exception {
         fFacility = TraceControlTestFacility.getInstance();
         fFacility.init();
-        fProxy = new TestRemoteSystemProxy();
         URL location = FileLocator.find(FrameworkUtil.getBundle(this.getClass()), new Path(TraceControlTestFacility.DIRECTORY + File.separator + getTestStream()), null);
         File testfile = new File(FileLocator.toFileURL(location).toURI());
         fTestFile = testfile.getAbsolutePath();
@@ -116,10 +116,7 @@ public class TraceControlCreateSessionTests {
 
         ITraceControlComponent root = TraceControlTestFacility.getInstance().getControlView().getTraceControlRoot();
 
-        IRemoteConnectionManager cm = RemoteServices.getLocalServices().getConnectionManager();
-        IRemoteConnection host = cm.getConnection(IRemoteConnectionManager.LOCAL_CONNECTION_NAME);
-
-        TargetNodeComponent node = new TargetNodeComponent("myNode", root, host, fProxy);
+        TargetNodeComponent node = new TargetNodeComponent("myNode", root, fProxy);
 
         root.addChild(node);
         fFacility.waitForJobs();

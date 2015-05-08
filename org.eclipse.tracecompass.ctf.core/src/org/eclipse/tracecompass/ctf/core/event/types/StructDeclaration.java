@@ -23,10 +23,10 @@ import java.util.Map.Entry;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
-import org.eclipse.tracecompass.ctf.core.event.scope.LexicalScope;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
+import org.eclipse.tracecompass.ctf.core.event.scope.ILexicalScope;
 
 /**
  * A CTF structure declaration.
@@ -74,7 +74,6 @@ public class StructDeclaration extends Declaration {
      *            the names of all the fields
      * @param declarations
      *            all the fields
-     * @since 3.0
      */
     public StructDeclaration(String[] names, Declaration[] declarations) {
         fMaxAlign = 1;
@@ -112,7 +111,6 @@ public class StructDeclaration extends Declaration {
      * Get the fields of the struct as a map.
      *
      * @return a Map of the fields (key is the name)
-     * @since 2.0
      */
     public Map<String, IDeclaration> getFields() {
         return fFieldMap;
@@ -124,7 +122,6 @@ public class StructDeclaration extends Declaration {
      * @param fieldName
      *            The field name
      * @return The declaration of the field, or null if there is no such field.
-     * @since 3.1
      */
     @Nullable
     public IDeclaration getField(String fieldName) {
@@ -136,7 +133,6 @@ public class StructDeclaration extends Declaration {
      * retain the order of the fields.
      *
      * @return the field list.
-     * @since 3.0
      */
     public Iterable<String> getFieldsList() {
         return fFieldMap.keySet();
@@ -147,9 +143,6 @@ public class StructDeclaration extends Declaration {
         return this.fMaxAlign;
     }
 
-    /**
-     * @since 3.0
-     */
     @Override
     public int getMaximumSize() {
         int maxSize = 0;
@@ -163,12 +156,9 @@ public class StructDeclaration extends Declaration {
     // Operations
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 3.0
-     */
     @Override
     public StructDefinition createDefinition(IDefinitionScope definitionScope,
-            String fieldName, BitBuffer input) throws CTFReaderException {
+            String fieldName, BitBuffer input) throws CTFException {
         alignRead(input);
         final Definition[] myFields = new Definition[fFieldMap.size()];
         StructDefinition structDefinition = new StructDefinition(this, definitionScope, fieldName, fFieldMap.keySet(), myFields);
@@ -188,12 +178,12 @@ public class StructDeclaration extends Declaration {
      * @param input
      *            a bitbuffer to read from
      * @return a reference to the definition
-     * @throws CTFReaderException
+     * @throws CTFException
      *             error in reading
-     * @since 3.1
+     * @since 1.0
      */
     public StructDefinition createDefinition(IDefinitionScope definitionScope,
-            LexicalScope fieldScope, @NonNull BitBuffer input) throws CTFReaderException {
+            ILexicalScope fieldScope, @NonNull BitBuffer input) throws CTFException {
         alignRead(input);
         final Definition[] myFields = new Definition[fFieldMap.size()];
 
@@ -216,7 +206,7 @@ public class StructDeclaration extends Declaration {
         fMaxAlign = Math.max(fMaxAlign, declaration.getAlignment());
     }
 
-    private void fillStruct(@NonNull BitBuffer input, final Definition[] myFields, StructDefinition structDefinition) throws CTFReaderException {
+    private void fillStruct(@NonNull BitBuffer input, final Definition[] myFields, StructDefinition structDefinition) throws CTFException {
         Iterator<Map.Entry<String, IDeclaration>> iter = fFieldMap.entrySet().iterator();
         for (int i = 0; i < fFieldMap.size(); i++) {
             Map.Entry<String, IDeclaration> entry = iter.next();

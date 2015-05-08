@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Ericsson
+ * Copyright (c) 2011, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,7 @@
  *
  * Contributors:
  *   Mathieu Denis <mathieu.denis@polymtl.ca> - Intial API and Implementation
+ *   Bernd Hufmann - Allow zero value in setValue()
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.ui.viewers.statistics.model;
@@ -22,8 +23,6 @@ package org.eclipse.tracecompass.tmf.ui.viewers.statistics.model;
  * another for the number of events in the selected time range.
  *
  * @author Mathieu Denis
- * @version 2.0
- * @since 2.0
  */
 public class TmfStatisticsValues {
 
@@ -60,7 +59,7 @@ public class TmfStatisticsValues {
      *            The new value to set
      */
     public void setValue(boolean global, long nb) {
-        if (nb > 0) {
+        if (nb >= 0) {
             if (global) {
                 fNbEvents = nb;
             } else {

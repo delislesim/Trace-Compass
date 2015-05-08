@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2007, 2013 Intel Corporation, Ericsson
+ * Copyright (c) 2007, 2014 Intel Corporation, Ericsson
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -95,8 +95,6 @@ public abstract class TimeGraphBaseControl extends Canvas implements PaintListen
      * Retrieve the color scheme
      *
      * @return The color scheme
-     *
-     * @since 2.0
      */
     public TimeGraphColorScheme getColorScheme() {
         return fColorScheme;

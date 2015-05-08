@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2015 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -12,18 +12,20 @@
 
 package org.eclipse.tracecompass.ctf.core.event.types;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.equalsNullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
 
 /**
- * A CTFC variant declaration.
+ * A CTF C variant declaration.
  *
  * A variant is similar to a C union, only taking the minimum size of the types,
  * it is a compound data type that contains other datatypes in fields. they are
@@ -42,9 +44,7 @@ public class VariantDeclaration extends Declaration {
     private String fTag = null;
     private static final long ALIGNMENT = 1;
     private final Map<String, IDeclaration> fFields = Collections.synchronizedMap(new HashMap<String, IDeclaration>());
-    private EnumDefinition fTagDef;
     private IDeclaration fDeclarationToPopulate;
-    private IDefinitionScope fPrevDefinitionScope;
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -86,7 +86,6 @@ public class VariantDeclaration extends Declaration {
      */
     public void setTag(String tag) {
         fTag = tag;
-        fTagDef = null;
     }
 
     /**
@@ -102,7 +101,6 @@ public class VariantDeclaration extends Declaration {
      * Gets the fields of the variant
      *
      * @return the fields of the variant
-     * @since 2.0
      */
     public Map<String, IDeclaration> getFields() {
         return this.fFields;
@@ -117,30 +115,20 @@ public class VariantDeclaration extends Declaration {
     // Operations
     // ------------------------------------------------------------------------
 
-    /**
-     * @since 3.0
-     */
     @Override
     public VariantDefinition createDefinition(IDefinitionScope definitionScope,
-            String fieldName, BitBuffer input) throws CTFReaderException {
+            String fieldName, BitBuffer input) throws CTFException {
         alignRead(input);
-        if (fPrevDefinitionScope != definitionScope) {
-            fTagDef = null;
-            fPrevDefinitionScope = definitionScope;
-        }
-        EnumDefinition tagDef = fTagDef;
+        Definition def = definitionScope.lookupDefinition(fTag);
+        EnumDefinition tagDef = (EnumDefinition) ((def instanceof EnumDefinition) ? def : null);
         if (tagDef == null) {
-            Definition def = definitionScope.lookupDefinition(fTag);
-            tagDef = (EnumDefinition) ((def instanceof EnumDefinition) ? def : null);
-        }
-        if (tagDef == null) {
-            throw new CTFReaderException("Tag is not defined " + fTag); //$NON-NLS-1$
+            throw new CTFException("Tag is not defined " + fTag); //$NON-NLS-1$
         }
         String varFieldName = tagDef.getStringValue();
         fDeclarationToPopulate = fFields.get(varFieldName);
         if (fDeclarationToPopulate == null) {
-            throw new CTFReaderException("Unknown enum selector for variant " + //$NON-NLS-1$
-                    definitionScope.getScopePath().toString());
+            throw new CTFException("Unknown enum selector for variant " + //$NON-NLS-1$
+                    definitionScope.getScopePath().getPath());
         }
         Definition fieldValue = fDeclarationToPopulate.createDefinition(definitionScope, fieldName, input);
         return new VariantDefinition(this, definitionScope, varFieldName, fieldName, fieldValue);
@@ -158,19 +146,6 @@ public class VariantDeclaration extends Declaration {
         fFields.put(fieldTag, declaration);
     }
 
-    /**
-     * gets the tag definition
-     *
-     * @return the fTagDef
-     * @since 3.0
-     */
-    public EnumDefinition getTagDef() {
-        return fTagDef;
-    }
-
-    /**
-     * @since 3.0
-     */
     @Override
     public int getMaximumSize() {
         Collection<IDeclaration> values = fFields.values();
@@ -205,9 +180,7 @@ public class VariantDeclaration extends Declaration {
                 result = prime * result + field.getValue().hashCode();
             }
         }
-        result = prime * result + ((fPrevDefinitionScope == null) ? 0 : fPrevDefinitionScope.hashCode());
         result = prime * result + ((fTag == null) ? 0 : fTag.hashCode());
-        result = prime * result + ((fTagDef == null) ? 0 : fTagDef.hashCode());
         return result;
     }
 
@@ -223,43 +196,15 @@ public class VariantDeclaration extends Declaration {
             return false;
         }
         VariantDeclaration other = (VariantDeclaration) obj;
-        if (fDeclarationToPopulate == null) {
-            if (other.fDeclarationToPopulate != null) {
-                return false;
-            }
-        } else if (!fDeclarationToPopulate.equals(other.fDeclarationToPopulate)) {
+
+        if (!equalsNullable(fDeclarationToPopulate, other.fDeclarationToPopulate)) {
             return false;
         }
         // do not check the order of the fields
-
-        if (fFields == null) {
-            if (other.fFields != null) {
-                return false;
-            }
-        } else {
-            if( !fFields.equals(other.fFields)) {
-                return false;
-            }
-        }
-        if (fPrevDefinitionScope == null) {
-            if (other.fPrevDefinitionScope != null) {
-                return false;
-            }
-        } else if (!fPrevDefinitionScope.equals(other.fPrevDefinitionScope)) {
+        if (!equalsNullable(fFields, other.fFields)) {
             return false;
         }
-        if (fTag == null) {
-            if (other.fTag != null) {
-                return false;
-            }
-        } else if (!fTag.equals(other.fTag)) {
-            return false;
-        }
-        if (fTagDef == null) {
-            if (other.fTagDef != null) {
-                return false;
-            }
-        } else if (!fTagDef.equals(other.fTagDef)) {
+        if (!equalsNullable(fTag, other.fTag)) {
             return false;
         }
         return true;

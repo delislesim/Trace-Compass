@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -26,7 +26,6 @@ import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
  * @see ITmfLocation
  *
  * @author Francois Chouinard
- * @since 3.0
  */
 public interface ITmfCheckpoint extends Comparable<ITmfCheckpoint> {
 
@@ -42,7 +41,6 @@ public interface ITmfCheckpoint extends Comparable<ITmfCheckpoint> {
 
     /**
      * @return the timestamp of the event referred to by the context
-     * @since 2.0
      */
     ITmfTimestamp getTimestamp();
 
@@ -63,7 +61,6 @@ public interface ITmfCheckpoint extends Comparable<ITmfCheckpoint> {
      * be seen as the index of the checkpoint in the order it was added.
      *
      * @return the checkpoint rank for this checkpoint
-     * @since 3.0
      */
     long getCheckpointRank();
 
@@ -72,8 +69,6 @@ public interface ITmfCheckpoint extends Comparable<ITmfCheckpoint> {
      *
      * @param bufferOut
      *            the buffer to write to
-     *
-     * @since 3.0
      */
     void serialize(ByteBuffer bufferOut);
 }

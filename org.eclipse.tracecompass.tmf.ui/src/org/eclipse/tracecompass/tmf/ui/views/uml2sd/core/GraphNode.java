@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation, Ericsson
+ * Copyright (c) 2005, 2014 IBM Corporation, Ericsson
  * All rights reserved.   This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -250,42 +250,42 @@ public abstract class GraphNode {
      *            the y coordinate of the point to test containment
      * @return true if contained, false otherwise
      */
-    abstract public boolean contains(int x, int y);
+    public abstract boolean contains(int x, int y);
 
     /**
      * Returns the x coordinate of the graph node
      *
      * @return the x coordinate
      */
-    abstract public int getX();
+    public abstract int getX();
 
     /**
      * Returns the y coordinate of the graph node
      *
      * @return the y coordinate
      */
-    abstract public int getY();
+    public abstract int getY();
 
     /**
      * Returns the graph node height
      *
      * @return the graph node height
      */
-    abstract public int getHeight();
+    public abstract int getHeight();
 
     /**
      * Returns the graph node width
      *
      * @return the graph node width
      */
-    abstract public int getWidth();
+    public abstract int getWidth();
 
     /**
      * Draws the graph node in the given context
      *
      * @param context the graphical context to draw in
      */
-    abstract protected void draw(IGC context);
+    protected abstract void draw(IGC context);
 
     /**
      * Returns the GraphNode visibility for the given visible area. Wrong
@@ -343,7 +343,7 @@ public abstract class GraphNode {
      *
      * @return the node type identifier
      */
-    abstract public String getArrayId();
+    public abstract String getArrayId();
 
     /**
      * Return true if the distance from the GraphNode to the given point is positive
@@ -716,7 +716,7 @@ public abstract class GraphNode {
 
         GraphNode last = null;
         int nodesCount = 0;
-        if (list.size() < 0) {
+        if (list.isEmpty()) {
             return 0;
         }
 
@@ -797,7 +797,6 @@ public abstract class GraphNode {
      *
      * @param occurence
      *          the start event occurrence attached to the graphNode
-     * @since 2.0
      */
     protected void setStartOccurrence(int occurence) {
         fStartEventOccurrence = occurence;
@@ -808,7 +807,6 @@ public abstract class GraphNode {
      *
      * @param occurence
      *          the start event occurrence attached to the graphNode
-     * @since 2.0
      */
     protected void setEndOccurrence(int occurence) {
         fEndEventOccurrence = occurence;
@@ -818,7 +816,6 @@ public abstract class GraphNode {
      * Sets the color preference id
      * @param id
      *          The color preference id
-     * @since 2.0
      */
     protected void setColorPrefId(String id) {
         fPrefId = id;
@@ -827,7 +824,6 @@ public abstract class GraphNode {
     /**
      * Gets the color preference id
      * @return the color preference id
-     * @since 2.0
      */
     protected String getColorPrefId() {
         return fPrefId;
@@ -835,7 +831,6 @@ public abstract class GraphNode {
 
     /**
      * @return if node has children or not
-     * @since 2.0
      */
     protected boolean hasChildren() {
         return fHasChilden;
@@ -845,7 +840,6 @@ public abstract class GraphNode {
      * Sets the flag indicating where the node has children or not.
      * @param hasChildren
      *          if node has children or not
-     * @since 2.0
      */
     protected void hasChildren(boolean hasChildren) {
         fHasChilden = hasChildren;
@@ -854,7 +848,6 @@ public abstract class GraphNode {
      * Returns a map from node name to graph node.
      *
      * @return map with children graph bodes
-     * @since 2.0
      */
     protected Map<String, List<GraphNode>> getNodeMap() {
         return fNodes;
@@ -863,7 +856,6 @@ public abstract class GraphNode {
      * Returns a map from node name to graph node for forward sorting
      *
      * @return forward sorting map
-     * @since 2.0
      */
     protected Map<String, List<GraphNode>> getForwardNodes() {
         return fForwardNodes;
@@ -872,7 +864,6 @@ public abstract class GraphNode {
      * Returns a map from node name to graph node for backwards sorting.
      *
      * @return backwards sorting map
-     * @since 2.0
      */
     protected Map<String, List<GraphNode>> getBackwardNodes() {
         return fBackwardNodes;
@@ -881,7 +872,6 @@ public abstract class GraphNode {
      * Returns a map from node name to index.
      *
      * @return map with node name to index
-     * @since 2.0
      */
     protected Map<String, Integer> getIndexes() {
         return fIndexes;
@@ -890,7 +880,6 @@ public abstract class GraphNode {
     /**
      * Returns a map from node name to sort flag for forwards sorting.
      * @return a map from node name to sort flag
-     * @since 2.0
      */
     protected Map<String, Boolean> getForwardSortMap() {
         return fForwardSort;
@@ -898,7 +887,6 @@ public abstract class GraphNode {
     /**
      * Returns a map from node name to flag for backwards sorting.
      * @return map from node name to flag for backwards sorting.
-     * @since 2.0
      */
     protected Map<String, Boolean> getBackwardSortMap() {
         return fBackwardSort;

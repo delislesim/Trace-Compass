@@ -26,7 +26,6 @@ import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
  * instantiate new ones.
  *
  * @author Alexandre Montplaisir
- * @since 3.0
  */
 @NonNullByDefault
 public final class StateSystemFactory {
@@ -37,23 +36,19 @@ public final class StateSystemFactory {
      * New-file factory method. For when you build a state system with a new
      * file, or if the back-end does not require a file on disk.
      *
-     * @param id
-     *            The ID of this statesystem. It should be unique.
      * @param backend
      *            Back-end plugin to use
      * @return The new state system
+     * @since 1.0
      */
-   public static ITmfStateSystemBuilder newStateSystem(String id,
-           IStateHistoryBackend backend) {
-       return new StateSystem(id, backend);
+   public static ITmfStateSystemBuilder newStateSystem(IStateHistoryBackend backend) {
+       return new StateSystem(backend);
    }
 
     /**
      * General factory method. The backend may try to open or create a file on
      * disk (the file contents and location are defined by the backend).
      *
-     * @param id
-     *            The ID of this statesystem. It should be unique.
      * @param backend
      *            The "state history storage" back-end to use.
      * @param newFile
@@ -62,10 +57,11 @@ public final class StateSystemFactory {
      * @return The new state system
      * @throws IOException
      *             If there was a problem creating the new history file
+     * @since 1.0
      */
-    public static ITmfStateSystemBuilder newStateSystem(String id,
-            IStateHistoryBackend backend, boolean newFile) throws IOException {
-        return new StateSystem(id, backend, newFile);
+    public static ITmfStateSystemBuilder newStateSystem(IStateHistoryBackend backend,
+            boolean newFile) throws IOException {
+        return new StateSystem(backend, newFile);
     }
 
 }

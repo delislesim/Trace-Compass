@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -26,8 +26,6 @@ import java.net.URL;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.remote.core.IRemoteConnection;
-import org.eclipse.remote.core.IRemoteConnectionManager;
-import org.eclipse.remote.core.RemoteServices;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.IChannelInfo;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.TargetNodeState;
 import org.eclipse.tracecompass.internal.lttng2.control.core.model.TraceEnablement;
@@ -55,6 +53,7 @@ import org.eclipse.tracecompass.internal.lttng2.control.ui.views.property.TraceE
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.property.TraceProbeEventPropertySource;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.property.TraceSessionPropertySource;
 import org.eclipse.tracecompass.internal.lttng2.control.ui.views.property.UstProviderPropertySource;
+import org.eclipse.tracecompass.tmf.remote.core.proxy.TmfRemoteConnectionFactory;
 import org.eclipse.ui.views.properties.IPropertySource;
 import org.junit.After;
 import org.junit.Test;
@@ -94,8 +93,8 @@ public class TraceControlPropertiesTest {
      */
     @Test
     public void testComponentProperties() throws Exception {
-
-        TestRemoteSystemProxy proxy = new TestRemoteSystemProxy();
+        IRemoteConnection host = TmfRemoteConnectionFactory.getLocalConnection();
+        TestRemoteSystemProxy proxy = new TestRemoteSystemProxy(host);
 
         URL location = FileLocator.find(FrameworkUtil.getBundle(this.getClass()), new Path(DIRECTORY + File.separator + TEST_STREAM), null);
         File testfile = new File(FileLocator.toFileURL(location).toURI());
@@ -104,10 +103,7 @@ public class TraceControlPropertiesTest {
 
         ITraceControlComponent root = TraceControlTestFacility.getInstance().getControlView().getTraceControlRoot();
 
-        IRemoteConnectionManager cm = RemoteServices.getLocalServices().getConnectionManager();
-        IRemoteConnection host = cm.getConnection(IRemoteConnectionManager.LOCAL_CONNECTION_NAME);
-
-        TargetNodeComponent node = new TargetNodeComponent("myNode", root, host, proxy);
+        TargetNodeComponent node = new TargetNodeComponent("myNode", root, proxy);
 
         root.addChild(node);
         node.connect();
@@ -131,7 +127,7 @@ public class TraceControlPropertiesTest {
         assertEquals("myNode", source.getPropertyValue(TargetNodePropertySource.TARGET_NODE_NAME_PROPERTY_ID));
         assertEquals("localhost",  source.getPropertyValue(TargetNodePropertySource.TARGET_NODE_ADDRESS_PROPERTY_ID));
         assertEquals(TargetNodeState.CONNECTED.name(), source.getPropertyValue(TargetNodePropertySource.TARGET_NODE_STATE_PROPERTY_ID));
-        assertEquals("2.1.0", source.getPropertyValue(TargetNodePropertySource.TARGET_NODE_VERSION_PROPERTY_ID));
+        assertEquals("2.5.0", source.getPropertyValue(TargetNodePropertySource.TARGET_NODE_VERSION_PROPERTY_ID));
         assertNull(source.getPropertyValue("test"));
 
         adapter = node.getAdapter(IChannelInfo.class);
@@ -269,6 +265,8 @@ public class TraceControlPropertiesTest {
         assertEquals(String.valueOf(200), channelSource.getPropertyValue(TraceChannelPropertySource.TRACE_CHANNEL_READ_TIMER_PROPERTY_ID));
         assertEquals(String.valueOf(262144), channelSource.getPropertyValue(TraceChannelPropertySource.TRACE_CHANNEL_SUBBUFFER_SIZE_PROPERTY_ID));
         assertEquals(String.valueOf(0), channelSource.getPropertyValue(TraceChannelPropertySource.TRACE_CHANNEL_SWITCH_TIMER_PROPERTY_ID));
+        assertEquals(Integer.valueOf(2), channelSource.getPropertyValue(TraceChannelPropertySource.TRACE_CHANNEL_TRACE_FILE_COUNT_PROPERTY_ID));
+        assertEquals(Long.valueOf(262144), channelSource.getPropertyValue(TraceChannelPropertySource.TRACE_CHANNEL_TRACE_FILE_SIZE_PROPERTY_ID));
 
         // ------------------------------------------------------------------------
         // Verify Event Properties (adapter)

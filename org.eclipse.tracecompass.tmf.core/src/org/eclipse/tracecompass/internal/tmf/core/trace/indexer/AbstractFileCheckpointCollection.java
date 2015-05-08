@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson
+ * Copyright (c) 2013, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -39,7 +39,7 @@ public abstract class AbstractFileCheckpointCollection implements ICheckpointCol
      * The base file header, can be extended
      */
     protected class CheckpointCollectionFileHeader {
-        private final static int SIZE = INT_SIZE +
+        private static final int SIZE = INT_SIZE +
                 INT_SIZE +
                 LONG_SIZE +
                 LONG_SIZE;

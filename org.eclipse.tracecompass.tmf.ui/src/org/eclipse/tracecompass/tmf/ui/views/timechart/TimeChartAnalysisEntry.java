@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Ericsson
+ * Copyright (c) 2010, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -42,9 +42,6 @@ public class TimeChartAnalysisEntry implements ITimeGraphEntry {
         fTraceEvents = new Vector<>(modelSize);
     }
 
-    /**
-     * @since 2.0
-     */
     @Override
     public List<ITimeGraphEntry> getChildren() {
         return null;

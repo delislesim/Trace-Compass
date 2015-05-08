@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Ericsson
+ * Copyright (c) 2010, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,7 @@
  *
  * Contributors:
  *   Patrick Tasse - Initial API and implementation
+ *   Bernd Hufmann - Add trace type id handling
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.core.parsers.custom;
@@ -26,6 +27,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
 import org.eclipse.tracecompass.internal.tmf.core.parsers.custom.CustomEventAspects;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -35,7 +37,6 @@ import org.eclipse.tracecompass.tmf.core.io.BufferedRandomAccessFile;
 import org.eclipse.tracecompass.tmf.core.parsers.custom.CustomTxtTraceDefinition.InputLine;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfEventParser;
 import org.eclipse.tracecompass.tmf.core.trace.TmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TraceValidationStatus;
@@ -51,9 +52,8 @@ import org.eclipse.tracecompass.tmf.core.trace.location.TmfLongLocation;
  * Base class for custom plain text traces.
  *
  * @author Patrick Tassé
- * @since 3.0
  */
-public class CustomTxtTrace extends TmfTrace implements ITmfEventParser, ITmfPersistentlyIndexable {
+public class CustomTxtTrace extends TmfTrace implements ITmfPersistentlyIndexable {
 
     private static final TmfLongLocation NULL_LOCATION = new TmfLongLocation(-1L);
     private static final int DEFAULT_CACHE_SIZE = 100;
@@ -63,6 +63,12 @@ public class CustomTxtTrace extends TmfTrace implements ITmfEventParser, ITmfPer
     private final CustomTxtTraceDefinition fDefinition;
     private final CustomTxtEventType fEventType;
     private BufferedRandomAccessFile fFile;
+    private final String fTraceTypeId;
+
+    private static final char SEPARATOR = ':';
+    private static final String CUSTOM_TXT_TRACE_TYPE_PREFIX = "custom.txt.trace" + SEPARATOR; //$NON-NLS-1$
+    private static final String LINUX_TOOLS_CUSTOM_TXT_TRACE_TYPE_PREFIX = "org.eclipse.linuxtools.tmf.core.parsers.custom.CustomTxtTrace" + SEPARATOR; //$NON-NLS-1$
+    private static final String EARLY_TRACE_COMPASS_CUSTOM_TXT_TRACE_TYPE_PREFIX = "org.eclipse.tracecompass.tmf.core.parsers.custom.CustomTxtTrace" + SEPARATOR; //$NON-NLS-1$
 
     /**
      * Basic constructor.
@@ -73,6 +79,7 @@ public class CustomTxtTrace extends TmfTrace implements ITmfEventParser, ITmfPer
     public CustomTxtTrace(final CustomTxtTraceDefinition definition) {
         fDefinition = definition;
         fEventType = new CustomTxtEventType(fDefinition);
+        fTraceTypeId = buildTraceTypeId(definition.categoryName, definition.definitionName);
         setCacheSize(DEFAULT_CACHE_SIZE);
     }
 
@@ -466,5 +473,70 @@ public class CustomTxtTrace extends TmfTrace implements ITmfEventParser, ITmfPer
     @Override
     protected ITmfTraceIndexer createIndexer(int interval) {
         return new TmfBTreeTraceIndexer(this, interval);
+    }
+
+    @Override
+    public String getTraceTypeId() {
+        return fTraceTypeId;
+    }
+
+    /**
+     * Build the trace type id for a custom text trace
+     *
+     * @param category
+     *            the category
+     * @param definitionName
+     *            the definition name
+     * @return the trace type id
+     */
+    public static @NonNull String buildTraceTypeId(String category, String definitionName) {
+        return CUSTOM_TXT_TRACE_TYPE_PREFIX + category + SEPARATOR + definitionName;
+    }
+
+    /**
+     * Checks whether the given trace type ID is a custom text trace type ID
+     *
+     * @param traceTypeId
+     *                the trace type ID to check
+     * @return <code>true</code> if it's a custom text trace type ID else <code>false</code>
+     */
+    public static boolean isCustomTraceTypeId(@NonNull String traceTypeId) {
+        return traceTypeId.startsWith(CUSTOM_TXT_TRACE_TYPE_PREFIX);
+    }
+
+    /**
+     * This methods builds a trace type ID from a given ID taking into
+     * consideration any format changes that were done for the IDs of custom
+     * text traces. For example, such format change took place when moving to
+     * Trace Compass. Trace type IDs that are part of the plug-in extension for
+     * trace types won't be changed.
+     *
+     * This method is useful for IDs that were persisted in the workspace before
+     * the format changes (e.g. in the persistent properties of a trace
+     * resource).
+     *
+     * It ensures backwards compatibility of the workspace for custom text
+     * traces.
+     *
+     * @param traceTypeId
+     *            the legacy trace type ID
+     * @return the trace type id in Trace Compass format
+     */
+    public static @NonNull String buildCompatibilityTraceTypeId(@NonNull String traceTypeId) {
+        // Handle early Trace Compass custom text trace type IDs
+        if (traceTypeId.startsWith(EARLY_TRACE_COMPASS_CUSTOM_TXT_TRACE_TYPE_PREFIX)) {
+            return CUSTOM_TXT_TRACE_TYPE_PREFIX + traceTypeId.substring(EARLY_TRACE_COMPASS_CUSTOM_TXT_TRACE_TYPE_PREFIX.length());
+        }
+
+        // Handle Linux Tools custom text trace type IDs (with and without category)
+        int index = traceTypeId.lastIndexOf(SEPARATOR);
+        if ((index != -1) && (traceTypeId.startsWith(LINUX_TOOLS_CUSTOM_TXT_TRACE_TYPE_PREFIX))) {
+            String definitionName = index < traceTypeId.length() ? traceTypeId.substring(index + 1) : ""; //$NON-NLS-1$
+            if (traceTypeId.contains(CustomTxtTrace.class.getSimpleName() + SEPARATOR) && traceTypeId.indexOf(SEPARATOR) == index) {
+                return buildTraceTypeId(CustomTxtTraceDefinition.CUSTOM_TXT_CATEGORY, definitionName);
+            }
+            return CUSTOM_TXT_TRACE_TYPE_PREFIX + traceTypeId.substring(LINUX_TOOLS_CUSTOM_TXT_TRACE_TYPE_PREFIX.length());
+        }
+        return traceTypeId;
     }
 }

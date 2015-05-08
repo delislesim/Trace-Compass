@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -27,7 +27,7 @@ import org.eclipse.tracecompass.internal.tmf.core.statesystem.mipmap.TmfStateSys
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.StateSystemFactory;
 import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.InMemoryBackend;
+import org.eclipse.tracecompass.statesystem.core.backend.StateHistoryBackendFactory;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
@@ -62,9 +62,10 @@ public class TmfMipmapStateProviderTest {
     @BeforeClass
     public static void init() {
         TmfMipmapStateProviderStub mmp = new TmfMipmapStateProviderStub(RESOLUTION, Type.LONG);
-        IStateHistoryBackend be = new InMemoryBackend(0);
-        ssq = StateSystemFactory.newStateSystem(SSID, be);
-        mmp.assignTargetStateSystem(ssq);
+        IStateHistoryBackend be = StateHistoryBackendFactory.createInMemoryBackend(SSID, 0);
+        ITmfStateSystemBuilder ssb = StateSystemFactory.newStateSystem(be);
+        mmp.assignTargetStateSystem(ssb);
+        ssq = ssb;
 
         for (long time = START_TIME; time <= END_TIME; time += INTERVAL) {
             long value = time / INTERVAL;

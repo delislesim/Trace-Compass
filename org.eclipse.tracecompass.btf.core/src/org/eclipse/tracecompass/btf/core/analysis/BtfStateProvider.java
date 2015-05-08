@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -13,6 +13,8 @@
 
 package org.eclipse.tracecompass.btf.core.analysis;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import org.eclipse.tracecompass.btf.core.event.BtfEvent;
 import org.eclipse.tracecompass.btf.core.trace.BtfColumnNames;
 import org.eclipse.tracecompass.btf.core.trace.BtfTrace;
@@ -21,7 +23,6 @@ import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundExc
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 
@@ -110,7 +111,7 @@ public class BtfStateProvider extends AbstractTmfStateProvider {
      *            The trace for which we will be building this state system
      */
     public BtfStateProvider(BtfTrace trace) {
-        super(trace, TmfEvent.class, "Btf State Provider"); //$NON-NLS-1$
+        super(trace, "Btf State Provider"); //$NON-NLS-1$
     }
 
     @Override
@@ -130,13 +131,17 @@ public class BtfStateProvider extends AbstractTmfStateProvider {
 
     @Override
     protected void eventHandle(ITmfEvent ev) {
+        if (!(ev instanceof BtfEvent)) {
+            return;
+        }
+
         BtfEvent event = (BtfEvent) ev;
-        final ITmfStateSystemBuilder ssb = this.ss;
+        final ITmfStateSystemBuilder ssb = checkNotNull(getStateSystemBuilder());
 
         final long ts = event.getTimestamp().getValue();
         final String eventType = (String) event.getContent().getField(BtfColumnNames.EVENT.toString()).getValue();
         final String source = event.getSource();
-        final String target = event.getReference();
+        final String target = event.getTarget();
         String task;
         int quark;
         try {
@@ -189,7 +194,7 @@ public class BtfStateProvider extends AbstractTmfStateProvider {
                     quark = ssb.getQuarkAbsoluteAndAdd(ATTRIBUTE_TASKS, task, core);
                     ssb.modifyAttribute(ts, STATE_SUSPENDED.getValue(), quark);
                     quark = ssb.getQuarkRelativeAndAdd(quark, runnable);
-                    ss.modifyAttribute(ts, STATE_SUSPENDED.getValue(), quark);
+                    ssb.modifyAttribute(ts, STATE_SUSPENDED.getValue(), quark);
                 }
                 break;
 
@@ -255,9 +260,9 @@ public class BtfStateProvider extends AbstractTmfStateProvider {
             final long ts, BtfEvent event,
             TmfNamedStateValue stateValue)
             throws AttributeNotFoundException {
-        String name = event.getType().getName();
+        String name = event.getName();
         if (name.equals("Task")) { //$NON-NLS-1$
-            String task = event.getReference();
+            String task = event.getTarget();
             int quark = ssb.getQuarkAbsoluteAndAdd(ATTRIBUTE_TASKS, task);
             ssb.modifyAttribute(ts, stateValue.getValue(), quark);
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -10,10 +10,14 @@
  *   Mathieu Denis <mathieu.denis@polymtl.ca> - Initial API and implementation
  *   Alexandre Montplaisir - Port to ITmfStatistics provider
  *   Patrick Tasse - Support selection range
+ *   Bernd Hufmann - Fix range selection updates
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.ui.viewers.statistics;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +44,7 @@ import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.core.component.TmfComponent;
 import org.eclipse.tracecompass.tmf.core.request.ITmfEventRequest;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.statistics.ITmfStatistics;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsEventTypesModule;
@@ -48,6 +52,7 @@ import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsModule;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
@@ -67,7 +72,6 @@ import org.eclipse.tracecompass.tmf.ui.viewers.statistics.model.TmfTreeContentPr
  * It is linked to a single ITmfTrace until its disposal.
  *
  * @author Mathieu Denis
- * @since 2.0
  */
 public class TmfStatisticsViewer extends TmfViewer {
 
@@ -111,9 +115,6 @@ public class TmfStatisticsViewer extends TmfViewer {
     /** Tells to send a time range request when the trace gets updated. */
     private boolean fSendRangeRequest = true;
 
-    /** Reference to the trace manager */
-    private final TmfTraceManager fTraceManager;
-
     private final Map<ITmfTrace, Job> fUpdateJobsPartial = new HashMap<>();
     private final Map<ITmfTrace, Job> fUpdateJobsGlobal = new HashMap<>();
 
@@ -135,7 +136,6 @@ public class TmfStatisticsViewer extends TmfViewer {
      */
     public TmfStatisticsViewer(Composite parent, String viewerName, ITmfTrace trace) {
         init(parent, viewerName, trace);
-        fTraceManager = TmfTraceManager.getInstance();
     }
 
     /**
@@ -203,9 +203,9 @@ public class TmfStatisticsViewer extends TmfViewer {
             // Sends the time range request only once from this method.
             if (fSendRangeRequest) {
                 fSendRangeRequest = false;
-                ITmfTimestamp begin = fTraceManager.getSelectionBeginTime();
-                ITmfTimestamp end = fTraceManager.getSelectionEndTime();
-                TmfTimeRange timeRange = new TmfTimeRange(begin, end);
+
+                TmfTraceContext ctx = TmfTraceManager.getInstance().getCurrentTraceContext();
+                TmfTimeRange timeRange = ctx.getSelectionRange();
                 requestTimeRangeData(trace, timeRange);
             }
         }
@@ -218,10 +218,10 @@ public class TmfStatisticsViewer extends TmfViewer {
      *
      * @param signal
      *            Contains the information about the new selected time range.
-     * @since 2.1
+     * @since 1.0
      */
     @TmfSignalHandler
-    public void timeSynchUpdated(TmfTimeSynchSignal signal) {
+    public void timeSynchUpdated(TmfSelectionRangeUpdatedSignal signal) {
         if (fTrace == null) {
             return;
         }
@@ -316,7 +316,6 @@ public class TmfStatisticsViewer extends TmfViewer {
      *
      * @param request
      *            The request to be canceled
-     * @since 3.0
      */
     protected void cancelOngoingRequest(ITmfEventRequest request) {
         if (request != null && !request.isCompleted()) {
@@ -329,7 +328,6 @@ public class TmfStatisticsViewer extends TmfViewer {
      * the columns.
      *
      * @return An object of type {@link TmfBaseColumnDataProvider}.
-     * @since 3.0
      */
     protected TmfBaseColumnDataProvider getColumnDataProvider() {
         return new TmfBaseColumnDataProvider();
@@ -502,8 +500,8 @@ public class TmfStatisticsViewer extends TmfViewer {
             // Checks if the trace is already in the statistics tree.
             int numNodeTraces = statisticsTreeNode.getNbChildren();
 
-            ITmfTrace[] traces = TmfTraceManager.getTraceSet(fTrace);
-            int numTraces = traces.length;
+            Collection<ITmfTrace> traces = TmfTraceManager.getTraceSet(fTrace);
+            int numTraces = traces.size();
 
             if (numTraces == numNodeTraces) {
                 boolean same = true;
@@ -511,8 +509,8 @@ public class TmfStatisticsViewer extends TmfViewer {
                  * Checks if the experiment contains the same traces as when
                  * previously selected.
                  */
-                for (int i = 0; i < numTraces; i++) {
-                    String traceName = traces[i].getName();
+                for (ITmfTrace trace : traces) {
+                    String traceName = trace.getName();
                     if (!statisticsTreeNode.containsChild(traceName)) {
                         same = false;
                         break;
@@ -637,7 +635,8 @@ public class TmfStatisticsViewer extends TmfViewer {
             fTimeRangePartial = timeRange;
         }
 
-        for (final ITmfTrace aTrace : TmfTraceManager.getTraceSet(trace)) {
+        for (ITmfTrace aTrace : TmfTraceManager.getTraceSet(trace)) {
+            aTrace = checkNotNull(aTrace);
             if (!isListeningTo(aTrace)) {
                 continue;
             }
@@ -725,6 +724,17 @@ public class TmfStatisticsViewer extends TmfViewer {
             Map<String, Long> map = stats.getEventTypesInRange(start, end);
             updateStats(map);
 
+            /*
+             * Remove job from map so that new range selection updates can
+             * be processed.
+             */
+            Map<ITmfTrace, Job> updateJobs;
+            if (fIsGlobal) {
+                updateJobs = fUpdateJobsGlobal;
+            } else {
+                updateJobs = fUpdateJobsPartial;
+            }
+            updateJobs.remove(fJobTrace);
             return Status.OK_STATUS;
         }
 

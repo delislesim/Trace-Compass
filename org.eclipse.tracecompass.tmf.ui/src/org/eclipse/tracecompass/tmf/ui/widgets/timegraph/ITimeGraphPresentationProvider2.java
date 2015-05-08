@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -18,7 +18,6 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.ITmfTimeGraphDr
  * Extension of the ITimeGraphPresentationProvider interface to avoid API breakage
  *
  * @author Geneviève Bastien
- * @since 2.1
  * TODO: Add me to ITimeGraphPresentationProvider before the 3.0 release
  */
 public interface ITimeGraphPresentationProvider2 extends ITimeGraphPresentationProvider {
@@ -46,7 +45,6 @@ public interface ITimeGraphPresentationProvider2 extends ITimeGraphPresentationP
      *
      * @param listener
      *            The new listener for color settings changes
-     * @since 3.0
      */
     public void addColorListener(ITimeGraphColorListener listener);
 
@@ -55,7 +53,6 @@ public interface ITimeGraphPresentationProvider2 extends ITimeGraphPresentationP
      *
      * @param listener
      *            The color settings listener to remove
-     * @since 3.0
      */
     public void removeColorListener(ITimeGraphColorListener listener);
 

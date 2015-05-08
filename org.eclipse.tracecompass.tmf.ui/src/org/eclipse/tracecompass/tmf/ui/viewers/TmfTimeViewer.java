@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 École Polytechnique de Montréal
+ * Copyright (c) 2014, 2015 École Polytechnique de Montréal and others.
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -14,10 +14,10 @@
 package org.eclipse.tracecompass.tmf.ui.viewers;
 
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tracecompass.tmf.core.signal.TmfRangeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalThrottler;
-import org.eclipse.tracecompass.tmf.core.signal.TmfTimeSynchSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceRangeUpdatedSignal;
@@ -27,6 +27,7 @@ import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 
 /**
@@ -45,7 +46,6 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
  *
  * @author Bernd Hufmann
  * @author Geneviève Bastien
- * @since 3.0
  */
 public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvider {
 
@@ -57,8 +57,6 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     private long fWindowStartTime;
     /** End time of current time range */
     private long fWindowEndTime;
-    /** Duration of current time range */
-    private long fWindowDuration;
     /** Current begin time of selection range */
     private long fSelectionBeginTime;
     /** Current end of selection range */
@@ -143,16 +141,6 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     }
 
     /**
-     * Sets the duration of the current time range window (visible range)
-     *
-     * @param windowDuration
-     *            The window duration
-     */
-    protected void setWindowDuration(long windowDuration) {
-        fWindowDuration = windowDuration;
-    }
-
-    /**
      * Sets the begin time of the selected range.
      *
      * @param selectionBeginTime
@@ -217,7 +205,7 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
 
     @Override
     public long getWindowDuration() {
-        return fWindowDuration;
+        return getWindowEndTime() - getWindowStartTime();
     }
 
     @Override
@@ -239,7 +227,7 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
             final ITmfTimestamp startTimestamp = new TmfTimestamp(getSelectionBeginTime(), ITmfTimestamp.NANOSECOND_SCALE);
             final ITmfTimestamp endTimestamp = new TmfTimestamp(getSelectionEndTime(), ITmfTimestamp.NANOSECOND_SCALE);
 
-            TmfTimeSynchSignal signal = new TmfTimeSynchSignal(this, startTimestamp, endTimestamp);
+            TmfSelectionRangeUpdatedSignal signal = new TmfSelectionRangeUpdatedSignal(this, startTimestamp, endTimestamp);
             broadcast(signal);
         }
     }
@@ -249,7 +237,6 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
 
         setWindowStartTime(windowStartTime);
         setWindowEndTime(windowEndTime);
-        setWindowDuration(windowEndTime - windowStartTime);
 
         // Build the new time range; keep the current time
         TmfTimeRange timeRange = new TmfTimeRange(
@@ -257,7 +244,7 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
                 new TmfTimestamp(getWindowEndTime(), ITmfTimestamp.NANOSECOND_SCALE));
 
         // Send the signal
-        TmfRangeSynchSignal signal = new TmfRangeSynchSignal(this, timeRange);
+        TmfWindowRangeUpdatedSignal signal = new TmfWindowRangeUpdatedSignal(this, timeRange);
         fTimeRangeSyncThrottle.queue(signal);
     }
 
@@ -273,11 +260,12 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     public void loadTrace(ITmfTrace trace) {
         fTrace = trace;
 
-        long timestamp = TmfTraceManager.getInstance().getSelectionBeginTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-        TmfTimeRange currentRange = TmfTraceManager.getInstance().getCurrentRange();
-        long windowStartTime = currentRange.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-        long windowEndTime = currentRange.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-        long windowDuration = windowEndTime - windowStartTime;
+        TmfTraceContext ctx = TmfTraceManager.getInstance().getCurrentTraceContext();
+        long timestamp = ctx.getSelectionRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        TmfTimeRange windowRange = ctx.getWindowRange();
+
+        long windowStartTime = windowRange.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        long windowEndTime = windowRange.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
         long startTime = fTrace.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
         long endTime = fTrace.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
 
@@ -286,7 +274,6 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
         setStartTime(startTime);
         setWindowStartTime(windowStartTime);
         setWindowEndTime(windowEndTime);
-        setWindowDuration(windowDuration);
         setEndTime(endTime);
     }
 
@@ -299,7 +286,6 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
         setSelectionEndTime(0);
         setStartTime(0);
         setWindowStartTime(0);
-        setWindowDuration(0);
         setEndTime(0);
         setWindowEndTime(0);
         setTrace(null);
@@ -354,13 +340,14 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     }
 
     /**
-     * Signal handler for handling of the time synch signal, ie the selected range.
+     * Signal handler for handling of the selected range signal.
      *
      * @param signal
-     *            The time synch signal {@link TmfTimeSynchSignal}
+     *            The {@link TmfSelectionRangeUpdatedSignal}
+     * @since 1.0
      */
     @TmfSignalHandler
-    public void selectionRangeUpdated(TmfTimeSynchSignal signal) {
+    public void selectionRangeUpdated(TmfSelectionRangeUpdatedSignal signal) {
         if ((signal.getSource() != this) && (fTrace != null)) {
             ITmfTimestamp selectedTime = signal.getBeginTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE);
             ITmfTimestamp selectedEndTime = signal.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE);
@@ -370,13 +357,14 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     }
 
     /**
-     * Signal handler for handling of the time range synch signal, ie the visible range.
+     * Signal handler for handling of the window range signal.
      *
      * @param signal
-     *            The time range synch signal {@link TmfRangeSynchSignal}
+     *            The {@link TmfWindowRangeUpdatedSignal}
+     * @since 1.0
      */
     @TmfSignalHandler
-    public void timeRangeUpdated(TmfRangeSynchSignal signal) {
+    public void windowRangeUpdated(TmfWindowRangeUpdatedSignal signal) {
 
         if (fTrace != null) {
             // Validate the time range
@@ -389,11 +377,9 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
                 // Update the time range
                 long windowStartTime = range.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
                 long windowEndTime = range.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
-                long windowDuration = windowEndTime - windowStartTime;
 
                 setWindowStartTime(windowStartTime);
                 setWindowEndTime(windowEndTime);
-                setWindowDuration(windowDuration);
             }
         }
     }

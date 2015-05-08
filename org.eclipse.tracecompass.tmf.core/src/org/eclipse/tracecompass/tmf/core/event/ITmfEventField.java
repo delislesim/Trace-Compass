@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Ericsson
+ * Copyright (c) 2012, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -9,6 +9,7 @@
  * Contributors:
  *   Francois Chouinard - Initial API and implementation
  *   Alexandre Montplaisir - Removed arrays from the API
+ *   Patrick Tasse - Use ellipsis for getField and remove getSubField
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.core.event;
@@ -54,7 +55,6 @@ public interface ITmfEventField {
 
     /**
      * @return the value formatted as string
-     * @since 2.0
      */
     String getFormattedValue();
 
@@ -63,34 +63,23 @@ public interface ITmfEventField {
      * {@link #getFields()}. The returned Collection is immutable.
      *
      * @return The subfield names (empty Collection if none)
-     * @since 3.0
      */
     Collection<String> getFieldNames();
 
     /**
-     * Return the subfield. The iteration order is the same as
+     * Return the subfields. The iteration order is the same as
      * {@link #getFieldNames()}. The returned Collection is immutable.
      *
      * @return The subfields (empty Collection if none)
-     * @since 3.0
      */
     Collection<? extends ITmfEventField> getFields();
 
     /**
-     * @param name The name of the field
-     * @return a specific subfield by name (null if absent or inexistent)
+     * Return a subfield by its path relative to this field.
+     * If the path is empty, this field is returned.
+     * @param path The path to the subfield
+     * @return a specific subfield by path (null if inexistent)
      */
-    ITmfEventField getField(String name);
-
-    /**
-     * Gets the a sub-field of this field, which may be multiple levels down.
-     *
-     * @param path
-     *            Array of field names to recursively go through
-     * @return The field at the end, or null if a field in the path cannot be
-     *         found
-     * @since 3.0
-     */
-    ITmfEventField getSubField(String... path);
+    ITmfEventField getField(@NonNull String... path);
 
 }

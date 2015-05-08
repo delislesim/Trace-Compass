@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2014 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -19,7 +19,7 @@ import java.util.Collection;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
 import org.eclipse.tracecompass.tmf.core.component.TmfComponent;
 import org.eclipse.tracecompass.tmf.core.event.matching.ITmfEventMatching;
-import org.eclipse.tracecompass.tmf.core.event.matching.TmfNetworkEventMatching;
+import org.eclipse.tracecompass.tmf.core.event.matching.TmfEventMatching;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
 /**
@@ -27,7 +27,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * otherwise their calculation.
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
 public abstract class SynchronizationManager extends TmfComponent {
 
@@ -118,7 +117,7 @@ public abstract class SynchronizationManager extends TmfComponent {
     }
 
     private static SynchronizationAlgorithm synchronize(final File syncFile, final Collection<ITmfTrace> traces, SynchronizationAlgorithm syncAlgo) {
-        ITmfEventMatching matching = new TmfNetworkEventMatching(traces, syncAlgo);
+        ITmfEventMatching matching = new TmfEventMatching(traces, syncAlgo);
         matching.matchEvents();
 
         SynchronizationBackend syncBackend;

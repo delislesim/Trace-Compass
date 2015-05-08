@@ -75,6 +75,11 @@ public class AnalysisModuleTestHelper implements IAnalysisModuleHelper {
     }
 
     @Override
+    public boolean appliesToExperiment() {
+        return false;
+    }
+
+    @Override
     public String getHelpText() {
         return "";
     }
@@ -91,7 +96,7 @@ public class AnalysisModuleTestHelper implements IAnalysisModuleHelper {
 
     @Override
     public Bundle getBundle() {
-        return Platform.getBundle("org.eclipse.linuxtools.tmf.core.tests");
+        return Platform.getBundle("org.eclipse.tracecompass.tmf.core.tests");
     }
 
     @Override
@@ -115,14 +120,20 @@ public class AnalysisModuleTestHelper implements IAnalysisModuleHelper {
             module.setName(getName());
             module.setId(getId());
             module.setAutomatic(isAutomatic());
-            module.setTrace(trace);
+            if (!module.setTrace(trace)) {
+                module.dispose();
+                module = null;
+            }
             break;
         case TEST2:
             module = new TestAnalysis2();
             module.setName(getName());
             module.setId(getId());
             module.setAutomatic(isAutomatic());
-            module.setTrace(trace);
+            if (!module.setTrace(trace)) {
+                module.dispose();
+                module = null;
+            }
             break;
         default:
             break;
@@ -153,4 +164,5 @@ public class AnalysisModuleTestHelper implements IAnalysisModuleHelper {
             return Collections.EMPTY_SET;
         }
     }
+
 }

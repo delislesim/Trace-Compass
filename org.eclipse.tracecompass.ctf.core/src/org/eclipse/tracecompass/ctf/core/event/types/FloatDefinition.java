@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -46,7 +46,6 @@ public final class FloatDefinition extends Definition {
      *            the field name
      * @param value
      *            field value
-     * @since 3.0
      */
     public FloatDefinition(@NonNull FloatDeclaration declaration,
             IDefinitionScope definitionScope, @NonNull String fieldName, double value) {

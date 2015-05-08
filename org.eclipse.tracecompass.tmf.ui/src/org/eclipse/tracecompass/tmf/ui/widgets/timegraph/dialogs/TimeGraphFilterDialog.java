@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@
  *      François Rajotte - Support for multiple columns + selection control
  *      Patrick Tasse - Fix Sonar warnings
  *      Generoso Pagano - Add tree filter
+ *      Christian Mansky - Add check active / uncheck inactive buttons
  *******************************************************************************/
 
 package org.eclipse.tracecompass.tmf.ui.widgets.timegraph.dialogs;
@@ -59,8 +60,6 @@ import org.eclipse.ui.dialogs.SelectionStatusDialog;
  * CheckedTreeSelectionDialog It was necessary to develop this similar dialog to
  * allow multiple columns
  *
- * @version 1.0
- * @since 2.0
  * @author François Rajotte
  */
 public class TimeGraphFilterDialog extends SelectionStatusDialog {
@@ -68,6 +67,8 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
     private static final int BUTTON_UNCHECK_SELECTED_ID = IDialogConstants.CLIENT_ID + 1;
     private static final int BUTTON_CHECK_SUBTREE_ID = IDialogConstants.CLIENT_ID + 2;
     private static final int BUTTON_UNCHECK_SUBTREE_ID = IDialogConstants.CLIENT_ID + 3;
+    private static final int BUTTON_CHECK_ACTIVE_ID = IDialogConstants.CLIENT_ID + 4;
+    private static final int BUTTON_UNCHECK_INACTIVE_ID = IDialogConstants.CLIENT_ID + 5;
 
     private static final int DEFAULT_WIDTH = 60;
     private static final int DEFAULT_HEIGHT = 18;
@@ -75,6 +76,9 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
     private FilteredCheckboxTree fTree;
 
     private IBaseLabelProvider fLabelProvider;
+
+    private ITimeGraphEntryActiveProvider fCheckActiveProvider;
+    private ITimeGraphEntryActiveProvider fUncheckInactiveProvider;
 
     private ITreeContentProvider fContentProvider;
 
@@ -113,6 +117,8 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
         setStatusLineAboveButtons(true);
         setHelpAvailable(false);
         fExpandedElements = null;
+        fCheckActiveProvider = null;
+        fUncheckInactiveProvider = null;
     }
 
     /**
@@ -220,6 +226,24 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
      */
     public void setLabelProvider(IBaseLabelProvider labelProvider) {
         fLabelProvider = labelProvider;
+    }
+
+    /**
+     * @param activeProvider
+     *            Information about an additional view specific Button
+     * @since 1.0
+     */
+    public void addTimeGraphFilterCheckActiveButton(ITimeGraphEntryActiveProvider activeProvider) {
+        fCheckActiveProvider = activeProvider;
+    }
+
+    /**
+     * @param inactiveProvider
+     *            Information about an additional view specific Button
+     * @since 1.0
+     */
+    public void addTimeGraphFilterUncheckInactiveButton(ITimeGraphEntryActiveProvider inactiveProvider) {
+        fUncheckInactiveProvider = inactiveProvider;
     }
 
     /**
@@ -385,6 +409,17 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
         Button checkAllButton = createButton(buttonComposite,
                 IDialogConstants.SELECT_ALL_ID, Messages.TmfTimeFilterDialog_CHECK_ALL,
                 false);
+        Button checkActiveButton = null;
+        if (fCheckActiveProvider != null) {
+            checkActiveButton = createButton(buttonComposite,
+                    BUTTON_CHECK_ACTIVE_ID, fCheckActiveProvider.getLabel(),
+                    false);
+            checkActiveButton.setToolTipText(fCheckActiveProvider.getTooltip());
+        } else if (fUncheckInactiveProvider != null) {
+            // Filler label to ensure correct layout.
+            Label filler = new Label(buttonComposite, 0);
+            filler.setText(""); //$NON-NLS-1$
+        }
 
         Button uncheckSelectedButton = createButton(buttonComposite,
                 BUTTON_UNCHECK_SELECTED_ID, Messages.TmfTimeFilterDialog_UNCHECK_SELECTED,
@@ -395,12 +430,22 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
         Button uncheckAllButton = createButton(buttonComposite,
                 IDialogConstants.DESELECT_ALL_ID, Messages.TmfTimeFilterDialog_UNCHECK_ALL,
                 false);
+        Button uncheckInactiveButton = null;
+        if (fUncheckInactiveProvider != null) {
+            uncheckInactiveButton = createButton(buttonComposite,
+                    BUTTON_UNCHECK_INACTIVE_ID, fUncheckInactiveProvider.getLabel(),
+                    false);
+            uncheckInactiveButton.setToolTipText(fUncheckInactiveProvider.getTooltip());
+        }
 
         /*
          * Apply the layout again after creating the buttons to override
          * createButton messing with the columns
          */
         layout.numColumns = 3;
+        if (fCheckActiveProvider != null || fUncheckInactiveProvider != null) {
+            layout.numColumns++;
+        }
         buttonComposite.setLayout(layout);
 
         /* Add a listener to each button */
@@ -441,6 +486,10 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
             }
         });
 
+        if (checkActiveButton != null) {
+            checkActiveButton.addSelectionListener(new CheckActiveSelectionAdapter(true));
+        }
+
         uncheckSelectedButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -480,6 +529,10 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
                 updateOKStatus();
             }
         });
+
+        if (uncheckInactiveButton != null) {
+            uncheckInactiveButton.addSelectionListener(new CheckActiveSelectionAdapter(false));
+        }
 
         return buttonComposite;
     }
@@ -565,5 +618,84 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
             }
         }
 
+    }
+
+    private class CheckActiveSelectionAdapter extends SelectionAdapter {
+
+        boolean fIsCheckActive;
+        ITimeGraphEntryActiveProvider fActiveProvider;
+
+        CheckActiveSelectionAdapter(boolean isActive) {
+            super();
+            fIsCheckActive = isActive;
+            if (fIsCheckActive) {
+                fActiveProvider = fCheckActiveProvider;
+            } else {
+                fActiveProvider = fUncheckInactiveProvider;
+            }
+        }
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            /* Uncheck all elements that are not in this list */
+            Object[] viewerElements = fContentProvider.getElements(fInput);
+            for (int j = 0; j < viewerElements.length; j++) {
+                if (fIsCheckActive) {
+                    checkActive(viewerElements[j]);
+                } else {
+                    uncheckInactive(viewerElements[j]);
+                }
+            }
+
+            updateOKStatus();
+        }
+
+        private boolean checkActive(Object element) {
+            boolean wasChildChecked = false;
+            boolean isActive = false;
+
+            for (Object child : fContentProvider.getChildren(element)) {
+                wasChildChecked |= checkActive(child);
+            }
+
+            if (!fTree.getChecked(element)) {
+                /* Call isActive if none of this elements children are checked. */
+                if (!wasChildChecked) {
+                    isActive = element instanceof ITimeGraphEntry &&
+                            fActiveProvider.isActive((ITimeGraphEntry) element);
+                }
+                /*
+                 * Check this element if its either active or if any of its
+                 * children are checked.
+                 */
+                if (isActive || wasChildChecked) {
+                    fTree.setChecked(element, true);
+                }
+            }
+
+            return fTree.getChecked(element);
+        }
+
+        private boolean uncheckInactive(Object element) {
+            boolean wasChildChecked = false;
+
+            for (Object child : fContentProvider.getChildren(element)) {
+                wasChildChecked |= uncheckInactive(child);
+            }
+
+            /*
+             * Call isActive if this element is checked and none of its children
+             * are checked.
+             */
+            if (fTree.getChecked(element) && !wasChildChecked) {
+                /* Uncheck this element if its inactive. */
+                if (element instanceof ITimeGraphEntry &&
+                        !fActiveProvider.isActive((ITimeGraphEntry) element)) {
+                    fTree.setChecked(element, false);
+                }
+            }
+
+            return fTree.getChecked(element);
+        }
     }
 }

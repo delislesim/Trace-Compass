@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Ericsson
+ * Copyright (c) 2014, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -8,6 +8,7 @@
  *
  * Contributors:
  *   Vincent Perot - Initial API and implementation
+ *   Patrick Tasse - Remove getSubField
  *******************************************************************************/
 
 package org.eclipse.tracecompass.internal.tmf.pcap.core.event;
@@ -32,8 +33,6 @@ public class PcapRootEventField extends TmfEventField {
     /**
      * Full constructor
      *
-     * @param value
-     *            The event field value.
      * @param fields
      *            The list of subfields.
      * @param packet
@@ -41,8 +40,8 @@ public class PcapRootEventField extends TmfEventField {
      * @throws IllegalArgumentException
      *             If 'name' is null, or if 'fields' has duplicate field names.
      */
-    public PcapRootEventField(Object value, @Nullable ITmfEventField[] fields, Packet packet) {
-        super(ITmfEventField.ROOT_FIELD_ID, value, fields);
+    public PcapRootEventField(@Nullable ITmfEventField[] fields, Packet packet) {
+        super(ITmfEventField.ROOT_FIELD_ID, null, fields);
         fPacketSourceField = new TmfEventField(PcapEvent.EVENT_FIELD_PACKET_SOURCE,
                 packet.getMostEcapsulatedPacket().getSourceEndpoint().toString(), null);
         fPacketDestinationField = new TmfEventField(PcapEvent.EVENT_FIELD_PACKET_DESTINATION,
@@ -72,11 +71,11 @@ public class PcapRootEventField extends TmfEventField {
     }
 
     @Override
-    public @Nullable ITmfEventField getField(@Nullable String name) {
-        if (name == null) {
-            return null;
+    public @Nullable ITmfEventField getField(String... path) {
+        if (path.length != 1) {
+            return super.getField(path);
         }
-        switch (name) {
+        switch (path[0]) {
         case PcapEvent.EVENT_FIELD_PACKET_SOURCE:
             return fPacketSourceField;
         case PcapEvent.EVENT_FIELD_PACKET_DESTINATION:
@@ -84,7 +83,7 @@ public class PcapRootEventField extends TmfEventField {
         case PcapEvent.EVENT_FIELD_PACKET_PROTOCOL:
             return fProtocolField;
         default:
-            return super.getField(name);
+            return super.getField(path);
         }
     }
 }

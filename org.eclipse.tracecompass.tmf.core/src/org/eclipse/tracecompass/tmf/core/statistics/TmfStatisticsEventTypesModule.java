@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -12,7 +12,10 @@
 
 package org.eclipse.tracecompass.tmf.core.statistics;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
@@ -33,7 +36,6 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
  * TmfAnalysisManager), as it is being handled by the TmfStatisticsModule.
  *
  * @author Alexandre Montplaisir
- * @since 3.0
  */
 public class TmfStatisticsEventTypesModule extends TmfStateSystemAnalysisModule {
 
@@ -55,7 +57,7 @@ public class TmfStatisticsEventTypesModule extends TmfStateSystemAnalysisModule 
 
     @Override
     protected ITmfStateProvider createStateProvider() {
-        return new StatsProviderEventTypes(getTrace());
+        return new StatsProviderEventTypes(checkNotNull(getTrace()));
     }
 
     @Override
@@ -100,8 +102,8 @@ public class TmfStatisticsEventTypesModule extends TmfStateSystemAnalysisModule 
          * @param trace
          *            The trace for which we build this state system
          */
-        public StatsProviderEventTypes(ITmfTrace trace) {
-            super(trace, ITmfEvent.class ,"TMF Statistics, events per type"); //$NON-NLS-1$
+        public StatsProviderEventTypes(@NonNull ITmfTrace trace) {
+            super(trace ,"TMF Statistics, events per type"); //$NON-NLS-1$
         }
 
         @Override
@@ -116,13 +118,14 @@ public class TmfStatisticsEventTypesModule extends TmfStateSystemAnalysisModule 
 
         @Override
         protected void eventHandle(ITmfEvent event) {
+            ITmfStateSystemBuilder ss = checkNotNull(getStateSystemBuilder());
             int quark;
 
             /* Since this can be used for any trace types, normalize all the
              * timestamp values to nanoseconds. */
             final long ts = event.getTimestamp().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
 
-            final String eventName = event.getType().getName();
+            final String eventName = event.getName();
 
             try {
                 /* Special handling for lost events */

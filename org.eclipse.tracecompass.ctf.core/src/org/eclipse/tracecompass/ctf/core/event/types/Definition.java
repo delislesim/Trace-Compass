@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Ericsson, Ecole Polytechnique de Montreal and others
+ * Copyright (c) 2011, 2014 Ericsson, Ecole Polytechnique de Montreal and others
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -14,7 +14,7 @@ package org.eclipse.tracecompass.ctf.core.event.types;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
-import org.eclipse.tracecompass.ctf.core.event.scope.LexicalScope;
+import org.eclipse.tracecompass.ctf.core.event.scope.ILexicalScope;
 
 /**
  * A CTF definition
@@ -40,7 +40,7 @@ public abstract class Definition implements IDefinition {
     private final String fFieldName;
 
     /** The complete path of this field */
-    private final @NonNull LexicalScope fPath;
+    private final @NonNull ILexicalScope fPath;
 
     private final IDefinitionScope fDefinitionScope;
 
@@ -61,7 +61,6 @@ public abstract class Definition implements IDefinition {
      * @param fieldName
      *            the name of the definition. (it is a field in the parent
      *            scope)
-     * @since 3.0
      */
     public Definition(@NonNull IDeclaration declaration, IDefinitionScope definitionScope, @NonNull String fieldName) {
         this(declaration, definitionScope, fieldName, declaration.getPath(definitionScope, fieldName));
@@ -83,9 +82,9 @@ public abstract class Definition implements IDefinition {
      *
      * @param scope
      *            the scope
-     * @since 3.1
+     * @since 1.0
      */
-    public Definition(@NonNull IDeclaration declaration, IDefinitionScope definitionScope, @NonNull String fieldName, @NonNull LexicalScope scope) {
+    public Definition(@NonNull IDeclaration declaration, IDefinitionScope definitionScope, @NonNull String fieldName, @NonNull ILexicalScope scope) {
         fDeclaration = declaration;
         fDefinitionScope = definitionScope;
         fFieldName = fieldName;
@@ -100,14 +99,16 @@ public abstract class Definition implements IDefinition {
      * Get the field name in its container.
      *
      * @return The field name
-     * @since 2.0
      */
     protected String getFieldName() {
         return fFieldName;
     }
 
+    /**
+     * @since 1.0
+     */
     @Override
-    public LexicalScope getScopePath() {
+    public ILexicalScope getScopePath() {
         return fPath;
     }
 
@@ -118,7 +119,6 @@ public abstract class Definition implements IDefinition {
      * scope DOT the name of the definition (name of the field in its container)
      *
      * @return The definition scope
-     * @since 3.0
      */
     protected IDefinitionScope getDefinitionScope() {
         return fDefinitionScope;
@@ -135,6 +135,6 @@ public abstract class Definition implements IDefinition {
 
     @Override
     public String toString() {
-        return fPath.toString() + '[' + Integer.toHexString(hashCode()) + ']';
+        return fPath.getPath() + '[' + Integer.toHexString(hashCode()) + ']';
     }
 }

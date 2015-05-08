@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Ericsson, École Polytechnique de Montréal
+ * Copyright (c) 2010, 2015 Ericsson, École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -40,6 +40,7 @@ import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.internal.tmf.ui.Activator;
+import org.eclipse.tracecompass.internal.tmf.ui.editors.ITmfEventsEditorConstants;
 import org.eclipse.tracecompass.tmf.core.TmfCommonConstants;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.parsers.custom.CustomTxtEvent;
@@ -54,7 +55,6 @@ import org.eclipse.tracecompass.tmf.core.synchronization.TimestampTransformFacto
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestampFormat;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceProperties;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.editors.TmfEventsEditor;
 import org.eclipse.tracecompass.tmf.ui.properties.ReadOnlyTextPropertyDescriptor;
@@ -241,22 +241,25 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
             // make sure that supplementary folder exists
             refreshSupplementaryFolder();
 
-            if (getTraceType() != null) {
-                if (getTraceType().startsWith(CustomTxtTrace.class.getCanonicalName())) {
+            String traceTypeId = getTraceType();
+            if (traceTypeId != null) {
+                if (CustomTxtTrace.isCustomTraceTypeId(traceTypeId)) {
                     for (CustomTxtTraceDefinition def : CustomTxtTraceDefinition.loadAll()) {
-                        if (getTraceType().equals(CustomTxtTrace.class.getCanonicalName() + ':' + def.categoryName+ ':' + def.definitionName)) {
+                        String id = CustomTxtTrace.buildTraceTypeId(def.categoryName, def.definitionName);
+                        if (traceTypeId.equals(id)) {
                             return new CustomTxtTrace(def);
                         }
                     }
                 }
-                if (getTraceType().startsWith(CustomXmlTrace.class.getCanonicalName())) {
+                if (CustomXmlTrace.isCustomTraceTypeId(traceTypeId)) {
                     for (CustomXmlTraceDefinition def : CustomXmlTraceDefinition.loadAll()) {
-                        if (getTraceType().equals(CustomXmlTrace.class.getCanonicalName() + ':' + def.categoryName+ ':' + def.definitionName)) {
+                        String id = CustomXmlTrace.buildTraceTypeId(def.categoryName, def.definitionName);
+                        if (traceTypeId.equals(id)) {
                             return new CustomXmlTrace(def);
                         }
                     }
                 }
-                IConfigurationElement ce = sfTraceTypeAttributes.get(getTraceType());
+                IConfigurationElement ce = sfTraceTypeAttributes.get(traceTypeId);
                 if (ce == null) {
                     return null;
                 }
@@ -277,22 +280,25 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
      */
     public ITmfEvent instantiateEvent() {
         try {
-            if (getTraceType() != null) {
-                if (getTraceType().startsWith(CustomTxtTrace.class.getCanonicalName())) {
+            String traceTypeId = getTraceType();
+            if (traceTypeId != null) {
+                if (CustomTxtTrace.isCustomTraceTypeId(traceTypeId)) {
                     for (CustomTxtTraceDefinition def : CustomTxtTraceDefinition.loadAll()) {
-                        if (getTraceType().equals(CustomTxtTrace.class.getCanonicalName() + ':' + def.categoryName+ ':' + def.definitionName)) {
+                        String id = CustomTxtTrace.buildTraceTypeId(def.categoryName, def.definitionName);
+                        if (traceTypeId.equals(id)) {
                             return new CustomTxtEvent(def);
                         }
                     }
                 }
-                if (getTraceType().startsWith(CustomXmlTrace.class.getCanonicalName())) {
+                if (CustomXmlTrace.isCustomTraceTypeId(traceTypeId)) {
                     for (CustomXmlTraceDefinition def : CustomXmlTraceDefinition.loadAll()) {
-                        if (getTraceType().equals(CustomXmlTrace.class.getCanonicalName() + ':' + def.categoryName+ ':' + def.definitionName)) {
+                        String id = CustomXmlTrace.buildTraceTypeId(def.categoryName, def.definitionName);
+                        if (traceTypeId.equals(id)) {
                             return new CustomXmlEvent(def);
                         }
                     }
                 }
-                IConfigurationElement ce = sfTraceTypeAttributes.get(getTraceType());
+                IConfigurationElement ce = sfTraceTypeAttributes.get(traceTypeId);
                 if (ce == null) {
                     return null;
                 }
@@ -307,13 +313,12 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
 
     @Override
     public String getEditorId() {
-        if (getTraceType() != null) {
-            if (getTraceType().startsWith(CustomTxtTrace.class.getCanonicalName())) {
+        String traceTypeId = getTraceType();
+        if (traceTypeId != null) {
+            if (CustomTxtTrace.isCustomTraceTypeId(traceTypeId) || CustomXmlTrace.isCustomTraceTypeId(traceTypeId)) {
                 return TmfEventsEditor.ID;
             }
-            if (getTraceType().startsWith(CustomXmlTrace.class.getCanonicalName())) {
-                return TmfEventsEditor.ID;
-            }
+
             IConfigurationElement ce = sfTraceTypeUIAttributes.get(getTraceType());
             if (ce == null) {
                 /* This trace type does not define UI attributes */
@@ -336,13 +341,12 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
      * @return the bookmarks file
      * @throws CoreException
      *             if the bookmarks file cannot be created
-     * @since 2.0
      */
     @Override
     public IFile createBookmarksFile() throws CoreException {
         IFile file = getBookmarksFile();
         if (fResource instanceof IFolder) {
-            return createBookmarksFile(getProject().getTracesFolder().getResource(), TmfTrace.class.getCanonicalName());
+            return createBookmarksFile(getProject().getTracesFolder().getResource(), ITmfEventsEditorConstants.TRACE_EDITOR_INPUT_TYPE);
         }
         return file;
     }
@@ -352,7 +356,6 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
      * exist.
      *
      * @return the bookmarks file
-     * @since 2.0
      */
     @Override
     public IFile getBookmarksFile() {
@@ -518,7 +521,7 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
             if (getTraceType() != null) {
                 TraceTypeHelper helper = TmfTraceType.getTraceType(getTraceType());
                 if (helper != null) {
-                    return helper.getCategoryName() + " : " + helper.getName(); //$NON-NLS-1$
+                    return helper.getLabel();
                 }
             }
             return ""; //$NON-NLS-1$
@@ -606,7 +609,6 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
      * @param newName
      *            The new trace name
      * @return the new Resource object
-     * @since 2.0
      */
     public TmfTraceElement copy(String newName) {
         TmfTraceFolder folder = (TmfTraceFolder) getParent();
@@ -621,8 +623,6 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
 
     /**
      * Close opened editors associated with this trace.
-     *
-     * @since 2.0
      */
     @Override
     public void closeEditors() {
@@ -655,7 +655,6 @@ public class TmfTraceElement extends TmfCommonProjectElement implements IActionF
      *
      * @throws CoreException
      *             thrown when IResource.delete fails
-     * @since 2.2
      */
     public void delete(IProgressMonitor progressMonitor) throws CoreException {
         // Close editors in UI Thread

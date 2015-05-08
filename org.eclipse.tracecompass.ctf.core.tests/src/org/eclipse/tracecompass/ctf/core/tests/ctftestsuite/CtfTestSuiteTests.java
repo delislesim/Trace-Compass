@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.eclipse.tracecompass.ctf.core.trace.CTFReaderException;
+import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.trace.CTFTrace;
 import org.eclipse.tracecompass.ctf.core.trace.CTFTraceReader;
 import org.junit.Rule;
@@ -59,7 +59,8 @@ public class CtfTestSuiteTests {
     private static final Path[] IGNORED_TESTS = {
             BASE_PATH.resolve(Paths.get("regression", "metadata", "pass", "sequence-typedef-length")),
             BASE_PATH.resolve(Paths.get("regression", "metadata", "pass", "array-of-struct")),
-            BASE_PATH.resolve(Paths.get("regression", "stream", "pass", "integer-large-size"))
+            BASE_PATH.resolve(Paths.get("regression", "stream", "pass", "integer-large-size")),
+            BASE_PATH.resolve(Paths.get("regression", "metadata", "fail", "metadata-packetized-endianness-mismatch"))
     };
 
     private final String fTracePath;
@@ -191,7 +192,7 @@ public class CtfTestSuiteTests {
 
                 checkIfWeShoudlSucceed();
             }
-        } catch (CTFReaderException e) {
+        } catch (CTFException e) {
             checkIfWeShouldFail(e);
         } catch (OutOfMemoryError e) {
             checkIfWeShouldFail(e);

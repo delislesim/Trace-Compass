@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Ericsson
+ * Copyright (c) 2012, 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -21,8 +21,6 @@ import org.eclipse.tracecompass.tmf.core.component.TmfComponent;
  * It allows the access to the control and the parent of a viewer.
  *
  * @author Mathieu Denis
- * @version 2.0
- * @since 2.0
  */
 public abstract class TmfViewer extends TmfComponent implements ITmfViewer {
 

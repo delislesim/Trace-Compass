@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 École Polytechnique de Montréal
+ * Copyright (c) 2013, 2015 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License v1.0 which
@@ -12,11 +12,17 @@
 
 package org.eclipse.tracecompass.tmf.core.event.matching;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.request.ITmfEventRequest;
@@ -26,32 +32,20 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 
 /**
  * Abstract class to extend to match certain type of events in a trace
  *
  * @author Geneviève Bastien
- * @since 3.0
  */
-public abstract class TmfEventMatching implements ITmfEventMatching {
+public class TmfEventMatching implements ITmfEventMatching {
 
-    /**
-     * The matching type
-     *
-     * FIXME Not the best place to put this. Have an array of match types as a
-     * parameter of each trace?
-     */
-    public enum MatchingType {
-        /**
-         * NETWORK, match network events
-         */
-        NETWORK
-    }
-
-    private static final Multimap<MatchingType, ITmfMatchEventDefinition> MATCH_DEFINITIONS = HashMultimap.create();
+    private static final Set<ITmfMatchEventDefinition> MATCH_DEFINITIONS = new HashSet<>();
 
     /**
      * The array of traces to match
@@ -64,6 +58,42 @@ public abstract class TmfEventMatching implements ITmfEventMatching {
     private final IMatchProcessingUnit fMatches;
 
     private final Multimap<ITmfTrace, ITmfMatchEventDefinition> fMatchMap = HashMultimap.create();
+
+    /**
+     * Hashtables for unmatches incoming events
+     */
+    private final Table<ITmfTrace, IEventMatchingKey, ITmfEvent> fUnmatchedIn = HashBasedTable.create();
+
+    /**
+     * Hashtables for unmatches outgoing events
+     */
+    private final Table<ITmfTrace, IEventMatchingKey, ITmfEvent> fUnmatchedOut = HashBasedTable.create();
+
+    /**
+     * Enum for cause and effect types of event
+     * @since 1.0
+     */
+    public enum Direction {
+        /**
+         * The event is the first event of the match
+         */
+        CAUSE,
+        /**
+         * The event is the second event, the one that matches with the cause
+         */
+        EFFECT,
+    }
+
+    /**
+     * Constructor with multiple traces
+     *
+     * @param traces
+     *            The set of traces for which to match events
+     * @since 1.0
+     */
+    public TmfEventMatching(Collection<ITmfTrace> traces) {
+        this(traces, new TmfEventMatches());
+    }
 
     /**
      * Constructor with multiple traces and a match processing object
@@ -103,7 +133,7 @@ public abstract class TmfEventMatching implements ITmfEventMatching {
     protected Collection<ITmfTrace> getIndividualTraces() {
         Set<ITmfTrace> traces = new HashSet<>();
         for (ITmfTrace trace : fTraces) {
-            traces.addAll(Arrays.asList(TmfTraceManager.getTraceSet(trace)));
+            traces.addAll(TmfTraceManager.getTraceSet(trace));
         }
         return traces;
     }
@@ -132,15 +162,17 @@ public abstract class TmfEventMatching implements ITmfEventMatching {
      * Method that initializes any data structure for the event matching. It
      * also assigns to each trace an event matching definition instance that
      * applies to the trace
+     *
+     * @since 1.0
      */
-    protected void initMatching() {
+    public void initMatching() {
+        // Initialize the matching infrastructure (unmatched event lists)
+        fUnmatchedIn.clear();
+        fUnmatchedOut.clear();
+
         fMatches.init(fTraces);
-        Collection<ITmfMatchEventDefinition> deflist = MATCH_DEFINITIONS.get(getMatchingType());
-        if (deflist == null) {
-            return;
-        }
         for (ITmfTrace trace : getIndividualTraces()) {
-            for (ITmfMatchEventDefinition def : deflist) {
+            for (ITmfMatchEventDefinition def : MATCH_DEFINITIONS) {
                 if (def.canMatchTrace(trace)) {
                     fMatchMap.put(trace, def);
                 }
@@ -160,10 +192,19 @@ public abstract class TmfEventMatching implements ITmfEventMatching {
      *
      * @return string of statistics
      */
-    @SuppressWarnings("nls")
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " [ " + fMatches + " ]";
+        final String cr = System.getProperty("line.separator"); //$NON-NLS-1$
+        StringBuilder b = new StringBuilder();
+        b.append(getProcessingUnit());
+        int i = 0;
+        for (ITmfTrace trace : getIndividualTraces()) {
+            b.append("Trace " + i++ + ":" + cr + //$NON-NLS-1$ //$NON-NLS-2$
+                    "  " + fUnmatchedIn.row(trace).size() + " unmatched incoming events" + cr + //$NON-NLS-1$ //$NON-NLS-2$
+                    "  " + fUnmatchedOut.row(trace).size() + " unmatched outgoing events" + cr); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+
+        return b.toString();
     }
 
     /**
@@ -173,15 +214,98 @@ public abstract class TmfEventMatching implements ITmfEventMatching {
      *            The event to match
      * @param trace
      *            The trace to which this event belongs
+     * @param monitor
+     *            The monitor for the synchronization job
+     * @since 1.0
      */
-    protected abstract void matchEvent(ITmfEvent event, ITmfTrace trace);
+    public void matchEvent(ITmfEvent event, ITmfTrace trace, @NonNull IProgressMonitor monitor) {
+        ITmfMatchEventDefinition def = null;
+        Direction evType = null;
+        for (ITmfMatchEventDefinition oneDef : getEventDefinitions(event.getTrace())) {
+            def = oneDef;
+            evType = def.getDirection(event);
+            if (evType != null) {
+                break;
+            }
 
-    /**
-     * Returns the matching type this class implements
-     *
-     * @return A matching type
-     */
-    protected abstract MatchingType getMatchingType();
+        }
+
+        if (def == null || evType == null) {
+            return;
+        }
+
+        /* Get the event's unique fields */
+        IEventMatchingKey eventKey = def.getEventKey(event);
+
+        if (eventKey == null) {
+            return;
+        }
+        Table<ITmfTrace, IEventMatchingKey, ITmfEvent> unmatchedTbl, companionTbl;
+
+        /* Point to the appropriate table */
+        switch (evType) {
+        case CAUSE:
+            unmatchedTbl = fUnmatchedIn;
+            companionTbl = fUnmatchedOut;
+            break;
+        case EFFECT:
+            unmatchedTbl = fUnmatchedOut;
+            companionTbl = fUnmatchedIn;
+            break;
+        default:
+            return;
+        }
+
+        boolean found = false;
+        TmfEventDependency dep = null;
+        /* Search for the event in the companion table */
+        for (ITmfTrace mTrace : getIndividualTraces()) {
+            if (companionTbl.contains(mTrace, eventKey)) {
+                found = true;
+                ITmfEvent companionEvent = companionTbl.get(mTrace, eventKey);
+
+                /* Remove the element from the companion table */
+                companionTbl.remove(mTrace, eventKey);
+
+                /* Create the dependency object */
+                switch (evType) {
+                case CAUSE:
+                    dep = new TmfEventDependency(companionEvent, event);
+                    break;
+                case EFFECT:
+                    dep = new TmfEventDependency(event, companionEvent);
+                    break;
+                default:
+                    break;
+
+                }
+            }
+        }
+
+        /*
+         * If no companion was found, add the event to the appropriate unMatched
+         * lists
+         */
+        if (found) {
+            getProcessingUnit().addMatch(dep);
+            monitor.subTask(NLS.bind(Messages.TmfEventMatching_MatchesFound, getProcessingUnit().countMatches()));
+        } else {
+            /*
+             * If an event is already associated with this key, do not add it
+             * again, we keep the first event chronologically, so if its match
+             * is eventually found, it is associated with the first send or
+             * receive event. At best, it is a good guess, at worst, the match
+             * will be too far off to be accurate. Too bad!
+             *
+             * TODO: maybe instead of just one event, we could have a list of
+             * events as value for the unmatched table. Not necessary right now
+             * though
+             */
+            if (!unmatchedTbl.contains(event.getTrace(), eventKey)) {
+                unmatchedTbl.put(event.getTrace(), eventKey, event);
+            }
+        }
+    }
 
     /**
      * Method that start the process of matching events
@@ -196,41 +320,55 @@ public abstract class TmfEventMatching implements ITmfEventMatching {
             return false;
         }
 
-        // TODO Start a new thread here?
         initMatching();
 
-        /**
-         * For each trace, get the events and for each event, call the
-         * MatchEvent method
-         *
-         * FIXME This would use a lot of memory if the traces are big, because
-         * all involved events from first trace will have to be kept before a
-         * first match is possible with second trace.
-         *
-         * <pre>
-         * Other possible matching strategy:
-         * Incremental:
-         * Sliding window:
-         * Other strategy: start with the shortest trace, take a few events
-         * at the beginning and at the end
-         * Experiment strategy: have the experiment do the request, then events will
-         * come from both traces chronologically, but then instead of ITmfTrace[], it
-         * would be preferable to have experiment
-         * </pre>
+        /*
+         * Actual analysis will be run on a separate thread
          */
-        for (ITmfTrace trace : fTraces) {
-            EventMatchingBuildRequest request = new EventMatchingBuildRequest(this, trace);
+        Job job = new Job(Messages.TmfEventMatching_MatchingEvents) {
+            @Override
+            protected IStatus run(final IProgressMonitor monitor) {
+                /**
+                 * FIXME For now, we use the experiment strategy: the trace that
+                 * is asked to be matched is actually an experiment and the
+                 * experiment does the request. But depending on how divergent
+                 * the traces' times are and how long it takes to get the first
+                 * match, it can use a lot of memory.
+                 *
+                 * Some strategies can help limit the memory usage of this
+                 * algorithm:
+                 *
+                 * <pre>
+                 * Other possible matching strategy:
+                 * * start with the shortest trace
+                 * * take a few events at the beginning and at the end and try
+                 *   to match them
+                 * </pre>
+                 */
+                for (ITmfTrace trace : fTraces) {
+                    monitor.beginTask(NLS.bind(Messages.TmfEventMatching_LookingEventsFrom, trace.getName()), IProgressMonitor.UNKNOWN);
+                    setName(NLS.bind(Messages.TmfEventMatching_RequestingEventsFrom, trace.getName()));
 
-            /*
-             * Send the request to the trace here, since there is probably no
-             * experiment.
-             */
-            trace.sendRequest(request);
-            try {
-                request.waitForCompletion();
-            } catch (InterruptedException e) {
-                Activator.logInfo(e.getMessage());
+                    /* Send the request to the trace */
+                    EventMatchingBuildRequest request = new EventMatchingBuildRequest(TmfEventMatching.this, trace, monitor);
+                    trace.sendRequest(request);
+                    try {
+                        request.waitForCompletion();
+                    } catch (InterruptedException e) {
+                        Activator.logInfo(e.getMessage());
+                    }
+                    if (monitor.isCanceled()) {
+                        return Status.CANCEL_STATUS;
+                    }
+                }
+                return Status.OK_STATUS;
             }
+        };
+        job.schedule();
+        try {
+            job.join();
+        } catch (InterruptedException e) {
+
         }
 
         finalizeMatching();
@@ -239,15 +377,13 @@ public abstract class TmfEventMatching implements ITmfEventMatching {
     }
 
     /**
-     * Registers an event match definition to be used for a certain match type
+     * Registers an event match definition
      *
      * @param match
      *            The event matching definition
      */
     public static void registerMatchObject(ITmfMatchEventDefinition match) {
-        for (MatchingType type : match.getApplicableMatchingTypes()) {
-            MATCH_DEFINITIONS.put(type, match);
-        }
+        MATCH_DEFINITIONS.add(match);
     }
 
 }
@@ -256,8 +392,9 @@ class EventMatchingBuildRequest extends TmfEventRequest {
 
     private final TmfEventMatching matching;
     private final ITmfTrace trace;
+    private final @NonNull IProgressMonitor fMonitor;
 
-    EventMatchingBuildRequest(TmfEventMatching matching, ITmfTrace trace) {
+    EventMatchingBuildRequest(TmfEventMatching matching, ITmfTrace trace, IProgressMonitor monitor) {
         super(ITmfEvent.class,
                 TmfTimeRange.ETERNITY,
                 0,
@@ -265,12 +402,20 @@ class EventMatchingBuildRequest extends TmfEventRequest {
                 ITmfEventRequest.ExecutionType.FOREGROUND);
         this.matching = matching;
         this.trace = trace;
+        if (monitor == null) {
+            fMonitor = new NullProgressMonitor();
+        } else {
+            fMonitor = monitor;
+        }
     }
 
     @Override
     public void handleData(final ITmfEvent event) {
         super.handleData(event);
-        matching.matchEvent(event, trace);
+        if (fMonitor.isCanceled()) {
+            this.cancel();
+        }
+        matching.matchEvent(event, trace, fMonitor);
     }
 
     @Override

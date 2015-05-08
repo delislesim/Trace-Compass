@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.tracecompass.tmf.pcap"
       label="%featureName"
-      version="0.1.0.qualifier"
+      version="1.0.0.qualifier"
       provider-name="%featureProvider"
       license-feature="org.eclipse.license"
       license-feature-version="0.0.0">
@@ -19,10 +19,6 @@
       %license
    </license>
 
-   <url>
-      <update label="Linux Tools Update Site" url="http://download.eclipse.org/linuxtools/update"/>
-   </url>
-
    <includes
          id="org.eclipse.tracecompass.tmf"
          version="0.0.0"/>
@@ -33,10 +29,10 @@
       <import plugin="com.google.guava"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.eclipse.tracecompass.tmf.core" version="0.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tracecompass.tmf.ui" version="0.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tracecompass.tmf.pcap.core" version="0.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tracecompass.pcap.core" version="0.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.tmf.core" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.tmf.ui" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.tmf.pcap.core" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tracecompass.pcap.core" version="1.0.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -60,7 +56,7 @@
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.tracecompass.tmf.pcap.help"
+         id="org.eclipse.tracecompass.tmf.pcap.doc.user"
          download-size="0"
          install-size="0"
          version="0.0.0"/>

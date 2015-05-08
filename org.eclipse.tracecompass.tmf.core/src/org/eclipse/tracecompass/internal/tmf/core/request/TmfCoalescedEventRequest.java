@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2014 Ericsson
+ * Copyright (c) 2009, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -32,7 +32,6 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
  * The TMF coalesced event request
  *
  * @author Francois Chouinard
- * @since 3.0
  */
 public class TmfCoalescedEventRequest extends TmfEventRequest {
 
@@ -218,7 +217,7 @@ public class TmfCoalescedEventRequest extends TmfEventRequest {
             // Populate requests cache
             requests = new HashSet<>();
             for (ITmfEventRequest myRequest : fRequests) {
-                if (myRequest.getEventProvider().providesEvent(data)) {
+                if (myRequest.getProviderFilter().matches(data)) {
                     requests.add(myRequest);
                 }
             }
@@ -327,24 +326,6 @@ public class TmfCoalescedEventRequest extends TmfEventRequest {
     // ------------------------------------------------------------------------
     // Object
     // ------------------------------------------------------------------------
-
-    @Override
-    // All requests have a unique id
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other instanceof TmfCoalescedEventRequest) {
-            TmfCoalescedEventRequest request = (TmfCoalescedEventRequest) other;
-            return (request.getDataType() == getDataType()) &&
-                    (request.getIndex() == getIndex()) &&
-                    (request.getNbRequested() == getNbRequested()) &&
-                    (request.getRange().equals(fRange));
-        }
-        return false;
-    }
 
     @Override
     @SuppressWarnings("nls")

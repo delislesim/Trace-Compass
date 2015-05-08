@@ -20,8 +20,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
-import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeXmlUtils;
-import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTree;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeUtils;
 import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTreeComposite;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
@@ -34,6 +33,8 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 	private Text statemachineNameText;
 	private Text associatedTreeText;
 	private Text attributePathText;
+	
+	private AttributeTreeComposite attributeTree;
 	
 	private AttributeTreePath selectedPath;
 
@@ -62,6 +63,7 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 		gridData.horizontalAlignment = SWT.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		associatedTreeText.setLayoutData(gridData);
+		associatedTreeText.setEnabled(false);
 		
 		// TODO Temporaire
 		Label attributeTreePath = factory.createLabel(composite, "Attribute path");
@@ -73,8 +75,7 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 		attributePathText.setLayoutData(gridData);
 		attributePathText.setEnabled(false);
 		
-        final AttributeTreeComposite attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
-        attributeTree.setTreeViewerInput(AttributeTreeXmlUtils.getAttributeTreeXmlFilesPath().append(AttributeTreeXmlUtils.FILE_NAME).toFile());
+        attributeTree = new AttributeTreeComposite(composite, SWT.NONE);
         attributeTree.getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override
@@ -110,27 +111,27 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
         	}
 		});
 		
-		associatedTreeText.addModifyListener(new ModifyListener() {
-
-        	@Override
-        	public void modifyText(ModifyEvent e) {
-        		String newTreeName = associatedTreeText.getText();
-        		PictogramElement pe = getSelectedPictogramElement();
-        		if (pe != null) {
-        			Object bo = Graphiti.getLinkService().getBusinessObjectForLinkedPictogramElement(pe);
-        			if (bo == null)
-        				return;
-        			String actualTreeName = null;
-        			if(bo instanceof Statemachine) {
-        				actualTreeName = ((Statemachine) bo).getAssociatedTree();
-        			}
-        			if (newTreeName.equals(actualTreeName)) {
-        				return;
-        			}
-        		}
-        		saveAssociatedTree(newTreeName);
-        	}
-		});
+//		associatedTreeText.addModifyListener(new ModifyListener() {
+//
+//        	@Override
+//        	public void modifyText(ModifyEvent e) {
+//        		String newTreeName = associatedTreeText.getText();
+//        		PictogramElement pe = getSelectedPictogramElement();
+//        		if (pe != null) {
+//        			Object bo = Graphiti.getLinkService().getBusinessObjectForLinkedPictogramElement(pe);
+//        			if (bo == null)
+//        				return;
+//        			String actualTreeName = null;
+//        			if(bo instanceof Statemachine) {
+//        				actualTreeName = ((Statemachine) bo).getAssociatedTree();
+//        			}
+//        			if (newTreeName.equals(actualTreeName)) {
+//        				return;
+//        			}
+//        		}
+//        		saveAssociatedTree(newTreeName);
+//        	}
+//		});
 	}
 	
 	private void saveStatemachineName(final String name) {
@@ -158,30 +159,30 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
 		execute(feature, context);
 	}
 	
-	private void saveAssociatedTree(final String treeName) {
-		IFeature feature = new AbstractFeature(getDiagramTypeProvider().getFeatureProvider()) {
-			
-			@Override
-			public void execute(IContext context) {
-				PictogramElement pe = getSelectedPictogramElement();
-				if (pe != null) {
-					Object bo = Graphiti.getLinkService().getBusinessObjectForLinkedPictogramElement(pe);
-					if (bo == null)
-						return;
-        			if(bo instanceof Statemachine) {
-        				((Statemachine) bo).setAssociatedTree(treeName);
-        			}        					
-				}
-			}
-			
-			@Override
-			public boolean canExecute(IContext context) {
-				return true;
-			}
-		};
-		CustomContext context = new CustomContext();
-		execute(feature, context);
-	}
+//	private void saveAssociatedTree(final String treeName) {
+//		IFeature feature = new AbstractFeature(getDiagramTypeProvider().getFeatureProvider()) {
+//			
+//			@Override
+//			public void execute(IContext context) {
+//				PictogramElement pe = getSelectedPictogramElement();
+//				if (pe != null) {
+//					Object bo = Graphiti.getLinkService().getBusinessObjectForLinkedPictogramElement(pe);
+//					if (bo == null)
+//						return;
+//        			if(bo instanceof Statemachine) {
+//        				((Statemachine) bo).setAssociatedTree(treeName);
+//        			}        					
+//				}
+//			}
+//			
+//			@Override
+//			public boolean canExecute(IContext context) {
+//				return true;
+//			}
+//		};
+//		CustomContext context = new CustomContext();
+//		execute(feature, context);
+//	}
 	
 	private void saveAssociatedAttribute() {
 		if(selectedPath != null) {
@@ -227,6 +228,8 @@ public class StatemachineSection extends GFPropertySection implements ITabbedPro
         		
         		String attributePath = ((Statemachine)bo).getAssociatedAttribute();
         		attributePathText.setText((attributePath != null) ? attributePath : "");
+        		
+        		attributeTree.setTreeViewerInput(AttributeTreeUtils.getAttributeTreeFile(getDiagram().getName()));
         	}
         }
 	}

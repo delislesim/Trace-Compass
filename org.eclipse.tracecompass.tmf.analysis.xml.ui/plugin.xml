@@ -15,6 +15,12 @@
             name="%command.xml.import"
             description="%command.xml.import.description">
       </command>
+      <command
+            categoryId="org.eclipse.linuxtools.tmf.ui.commands.category"
+            id="org.eclipse.linuxtools.tmf.analysis.xml.ui.managexml"
+            name="%command.xml.manage"
+            description="%command.xml.manage.description">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -52,6 +58,39 @@
             </visibleWhen>
          </command>
       </menuContribution>
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any?before=org.eclipse.linuxtools.tmf.analysis.xml.ui.importxml">
+         <command
+               commandId="org.eclipse.linuxtools.tmf.analysis.xml.ui.managexml"
+               label="%command.xml.manage"
+               style="push"
+               tooltip="%command.xml.manage.description">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate
+                        ifEmpty="false"
+                        operator="and">
+                     <or>
+                        <instanceof
+                           value="org.eclipse.tracecompass.tmf.ui.project.model.TmfTraceFolder">
+                        </instanceof>
+                        <instanceof
+                           value="org.eclipse.tracecompass.tmf.ui.project.model.TmfExperimentFolder">
+                        </instanceof>
+                        <instanceof
+                           value="org.eclipse.tracecompass.tmf.ui.project.model.TmfProjectElement">
+                        </instanceof>
+                     </or>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -59,6 +98,32 @@
             class="org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.handler.ImportXmlHandler"
             commandId="org.eclipse.linuxtools.tmf.analysis.xml.ui.importxml">
          <activeWhen>
+            <and>
+               <count
+                     value="1">
+               </count>
+               <iterate
+                     ifEmpty="false"
+                     operator="and">
+                  <or>
+                     <instanceof
+                        value="org.eclipse.tracecompass.tmf.ui.project.model.TmfTraceFolder">
+                     </instanceof>
+                     <instanceof
+                        value="org.eclipse.tracecompass.tmf.ui.project.model.TmfExperimentFolder">
+                     </instanceof>
+                     <instanceof
+                        value="org.eclipse.tracecompass.tmf.ui.project.model.TmfProjectElement">
+                     </instanceof>
+                  </or>
+               </iterate>
+            </and>
+         </activeWhen>
+      </handler>
+      <handler
+    		class="org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.handler.ManageXmlAnalysisHandler"
+    		commandId="org.eclipse.linuxtools.tmf.analysis.xml.ui.managexml">
+    	 <activeWhen>
             <and>
                <count
                      value="1">

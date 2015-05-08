@@ -6,8 +6,10 @@ import org.eclipse.graphiti.features.context.impl.AddConnectionContext;
 import org.eclipse.graphiti.features.impl.AbstractCreateConnectionFeature;
 import org.eclipse.graphiti.mm.pictograms.Connection;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTree;
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
-import org.eclipse.tracecompass.tmf.attributetree.ui.widgets.AttributeTree;
+import org.eclipse.tracecompass.tmf.attributetree.core.utils.AttributeTreeUtils;
 
 import statemachine.AbstractState;
 import statemachine.ConditionalState;
@@ -83,8 +85,8 @@ public class TransitionCreateConnectionFeature extends AbstractCreateConnectionF
 		}
 		
 		StateChange stateChange = StatemachineFactory.eINSTANCE.createStateChange();
-		
-		AttributeTreePath attributeTreePath = new AttributeTreePath(AttributeTree.getInstance().getNodeFromPath(attributePath));
+		AbstractAttributeNode leafNode = AttributeTree.getInstance().getNodeFromPath(AttributeTreeUtils.getAttributeTreeFile(getDiagram().getName()), attributePath);
+		AttributeTreePath attributeTreePath = new AttributeTreePath(leafNode);
 		stateChange.getStateAttribute().addAll(attributeTreePath.getAllStateAttribute());
 		
 		StateValue stateValue = StatemachineFactory.eINSTANCE.createStateValue();

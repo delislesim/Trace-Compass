@@ -27,6 +27,9 @@
     <next_tid name="next_tid" type="VariableAttributeNode">
       <System_call name="System_call" type="ConstantAttributeNode"/>
     </next_tid>
+    <prev_tid name="prev_tid" type="VariableAttributeNode">
+      <Status name="Status" type="ConstantAttributeNode"/>
+    </prev_tid>
   </Threads>
   <Ressources name="Ressources" type="ConstantAttributeNode">
     <IRQs name="IRQs" type="ConstantAttributeNode">

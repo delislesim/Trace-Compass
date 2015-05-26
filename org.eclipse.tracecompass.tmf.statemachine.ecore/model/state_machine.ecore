@@ -23,7 +23,9 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="InitialState" eSuperTypes="#//AbstractState"/>
   <eClassifiers xsi:type="ecore:EClass" name="FinalState" eSuperTypes="#//AbstractState"/>
-  <eClassifiers xsi:type="ecore:EClass" name="State" eSuperTypes="#//AbstractState"/>
+  <eClassifiers xsi:type="ecore:EClass" name="State" eSuperTypes="#//AbstractState">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="stateColor" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Transition" eSuperTypes="#//AbstractTransition"/>
   <eClassifiers xsi:type="ecore:EClass" name="ConditionalTransition" eSuperTypes="#//AbstractTransition"/>
   <eClassifiers xsi:type="ecore:EEnum" name="StateValueType">

@@ -54,7 +54,7 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 
 	@Override
 	public ICreateFeature[] getCreateFeatures() {
-		return new ICreateFeature[] {new StateCreateFeature(this), new InitialStateCreateFeature(this), new FinalStateCreateFeature(this), new ConditionalStateCreateFeature(this), new StatemachineCreateFeature(this)};
+		return new ICreateFeature[] {new StateCreateFeature(this), new InitialStateCreateFeature(this), /*new FinalStateCreateFeature(this),*/ new ConditionalStateCreateFeature(this), new StatemachineCreateFeature(this)};
 	}
 	
 	@Override
@@ -73,8 +73,8 @@ public class StateMachineFeatureProvider extends DefaultFeatureProvider {
 				return new StateAddFeature(this);
 			} else if (context.getNewObject() instanceof InitialState) {
 				return new InitialStateAddFeature(this);
-			} else if (context.getNewObject() instanceof FinalState) {
-				return new FinalStateAddFeature(this);
+			/*} else if (context.getNewObject() instanceof FinalState) {
+				return new FinalStateAddFeature(this);*/
 			} else if (context.getNewObject() instanceof ConditionalState) {
 				return new ConditionalStateAddFeature(this);
 			} else if (context.getNewObject() instanceof Statemachine) {

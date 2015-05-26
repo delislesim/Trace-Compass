@@ -3,7 +3,9 @@ package org.eclipse.tracecompass.tmf.xmlconverter.core;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -23,15 +25,19 @@ import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionSingle;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.DefinedValue;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.EventField;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.EventHandler;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadOutput;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ObjectFactory;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateAttribute;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateChange;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateProvider;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateValue;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.TimeGraphView;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.Tmfxml;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadOutput.Analysis;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider.Label;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider.TraceType;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ViewEntry;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -397,8 +403,13 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 			stateProvider.getEventHandler().add(eventHandler.getValue());
 		}
 		
+		// Create XY views
+		// TODO
+		
 		Tmfxml tmfXml = factory.createTmfxml();
 		tmfXml.getTimeGraphViewOrStateProvider().add(stateProvider);
+		// Create control flow views
+		tmfXml.getTimeGraphViewOrStateProvider().addAll(createTimeGraphView());
 		File xmlFile = new File(xmlFilePath);
 		try {
 			JAXBContext context = JAXBContext.newInstance("org.eclipse.tracecompass.tmf.xmlconverter.core.model");
@@ -412,6 +423,51 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 			return null;
 		}
 		return xmlFile;
+	}
+	
+	private List<TimeGraphView> createTimeGraphView() {
+		List<TimeGraphView> timeGraphViewList = new ArrayList<>();
+		for (Entry<Integer, Map<Integer, Node>> statemachineStatesEntry : fStatemachineStatesList.entrySet()) {
+			TimeGraphView timeGraphView = factory.createTimeGraphView();
+			timeGraphView.setId("xmlID" + ".view." + fStatemachineList.get(statemachineStatesEntry.getKey()).getAttributes().getNamedItem("name").getNodeValue());
+
+			HeadOutput timeGraphViewHead = factory.createHeadOutput();
+			Analysis analysis = factory.createHeadOutputAnalysis();
+			analysis.setId(xmlID + ".state.provider");
+			org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadOutput.Label label = factory.createHeadOutputLabel();
+			label.setValue(xmlID.replaceAll("[.]", " ") + " view");
+			timeGraphViewHead.getAnalysis().add(analysis);
+			timeGraphViewHead.setLabel(label);
+
+			for (Entry<Integer, Node> state : statemachineStatesEntry.getValue().entrySet()) {
+				if (state.getValue().getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fStateType)) {
+					// Defined Value
+					DefinedValue definedValue = factory.createDefinedValue();
+					definedValue.setName(state.getValue().getAttributes().getNamedItem("name").getNodeValue());
+					Integer definedValueValue;
+					if ((state.getKey() & ((2 << 20) - 1)) == state.getKey()) {
+						definedValueValue = (statemachineStatesEntry.getKey() << 20) + state.getKey();
+					} else {
+						definedValueValue = 50000;
+					}
+					definedValue.setValue(definedValueValue.toString());
+
+					Node colorNode = state.getValue().getAttributes().getNamedItem("stateColor");
+					if (colorNode != null) {
+						definedValue.setColor(colorNode.getNodeValue());
+					} else {
+						definedValue.setColor("#FFFFFF");
+					}
+					timeGraphView.getDefinedValue().add(definedValue);
+				}
+			}
+
+			ViewEntry viewEntry = factory.createViewEntry();
+			String path; // TODO Path
+
+			timeGraphViewList.add(timeGraphView);
+		}
+		return timeGraphViewList;
 	}
 
 //	public static void main(String[] args) {

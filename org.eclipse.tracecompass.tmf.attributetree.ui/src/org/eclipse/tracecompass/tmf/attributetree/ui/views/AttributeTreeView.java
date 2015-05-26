@@ -260,9 +260,13 @@ public class AttributeTreeView extends TmfView {
 	}
 	
 	private void setViewInformation(File file) {
-		String fileName = file.getName();
-		String viewTitle = fileName.substring(0, fileName.indexOf(".")) + " (" + file.getAbsolutePath() + ")";
-		setPartName(viewTitle);
+		if(file == null) {
+			setPartName("Attribute Tree View");
+		} else {
+			String fileName = file.getName();
+			String viewTitle = fileName.substring(0, fileName.indexOf(".")) + " (" + file.getAbsolutePath() + ")";
+			setPartName(viewTitle);
+		}
 	}
 
 	@Override

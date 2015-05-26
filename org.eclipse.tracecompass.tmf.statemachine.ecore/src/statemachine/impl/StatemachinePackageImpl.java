@@ -356,6 +356,15 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EAttribute getState_StateColor() {
+		return (EAttribute)stateEClass.getEStructuralFeatures().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public EClass getTransition() {
 		return transitionEClass;
 	}
@@ -615,6 +624,7 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		finalStateEClass = createEClass(FINAL_STATE);
 
 		stateEClass = createEClass(STATE);
+		createEAttribute(stateEClass, STATE__STATE_COLOR);
 
 		transitionEClass = createEClass(TRANSITION);
 
@@ -713,6 +723,7 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		initEClass(finalStateEClass, FinalState.class, "FinalState", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 
 		initEClass(stateEClass, State.class, "State", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+		initEAttribute(getState_StateColor(), ecorePackage.getEString(), "stateColor", null, 0, 1, State.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(transitionEClass, Transition.class, "Transition", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 

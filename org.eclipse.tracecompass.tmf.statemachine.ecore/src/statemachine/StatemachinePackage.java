@@ -380,13 +380,22 @@ public interface StatemachinePackage extends EPackage {
 	int STATE__TRANSITIONS = ABSTRACT_STATE__TRANSITIONS;
 
 	/**
+	 * The feature id for the '<em><b>State Color</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int STATE__STATE_COLOR = ABSTRACT_STATE_FEATURE_COUNT + 0;
+
+	/**
 	 * The number of structural features of the '<em>State</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int STATE_FEATURE_COUNT = ABSTRACT_STATE_FEATURE_COUNT + 0;
+	int STATE_FEATURE_COUNT = ABSTRACT_STATE_FEATURE_COUNT + 1;
 
 	/**
 	 * The number of operations of the '<em>State</em>' class.
@@ -1043,6 +1052,17 @@ public interface StatemachinePackage extends EPackage {
 	EClass getState();
 
 	/**
+	 * Returns the meta object for the attribute '{@link statemachine.State#getStateColor <em>State Color</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>State Color</em>'.
+	 * @see statemachine.State#getStateColor()
+	 * @see #getState()
+	 * @generated
+	 */
+	EAttribute getState_StateColor();
+
+	/**
 	 * Returns the meta object for class '{@link statemachine.Transition <em>Transition</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1443,6 +1463,14 @@ public interface StatemachinePackage extends EPackage {
 		 * @generated
 		 */
 		EClass STATE = eINSTANCE.getState();
+
+		/**
+		 * The meta object literal for the '<em><b>State Color</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute STATE__STATE_COLOR = eINSTANCE.getState_StateColor();
 
 		/**
 		 * The meta object literal for the '{@link statemachine.impl.TransitionImpl <em>Transition</em>}' class.

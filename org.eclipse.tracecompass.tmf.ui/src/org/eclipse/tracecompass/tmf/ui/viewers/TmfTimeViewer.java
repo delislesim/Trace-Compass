@@ -121,42 +121,32 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     }
 
     /**
-     * Sets the start time of the current time range window (visible range)
+     * Sets the start time and end of the current time range window (visible range)
      *
      * @param windowStartTime
      *            The start time to set
-     */
-    protected void setWindowStartTime(long windowStartTime) {
-        fWindowStartTime = windowStartTime;
-    }
-
-    /**
-     * Sets the end time of the current time range window (visible range)
-     *
      * @param windowEndTime
      *            The start time to set
+     * @since 1.0
      */
-    protected void setWindowEndTime(long windowEndTime) {
+    protected void setWindowRange(long windowStartTime, long windowEndTime) {
+        fWindowStartTime = windowStartTime;
         fWindowEndTime = windowEndTime;
     }
 
     /**
-     * Sets the begin time of the selected range.
+     * Sets the begin and end time of the selected range without sending the
+     * {@link TmfSelectionRangeUpdatedSignal} signal.
      *
      * @param selectionBeginTime
      *            The begin time to set
-     */
-    protected void setSelectionBeginTime(long selectionBeginTime) {
-        fSelectionBeginTime = selectionBeginTime;
-    }
-
-    /**
-     * Sets the end time of the selected range.
-     *
      * @param selectionEndTime
      *            The end time to set
+     *
+     * @since 1.0
      */
-    protected void setSelectionEndTime(long selectionEndTime) {
+    protected void setSelectionRange(long selectionBeginTime, long selectionEndTime) {
+        fSelectionBeginTime = selectionBeginTime;
         fSelectionEndTime = selectionEndTime;
     }
 
@@ -221,8 +211,7 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     @Override
     public void updateSelectionRange(final long currentBeginTime, final long currentEndTime) {
         if (fTrace != null) {
-            setSelectionBeginTime(currentBeginTime);
-            setSelectionEndTime(currentEndTime);
+            setSelectionRange(currentBeginTime, currentEndTime);
 
             final ITmfTimestamp startTimestamp = new TmfTimestamp(getSelectionBeginTime(), ITmfTimestamp.NANOSECOND_SCALE);
             final ITmfTimestamp endTimestamp = new TmfTimestamp(getSelectionEndTime(), ITmfTimestamp.NANOSECOND_SCALE);
@@ -235,8 +224,7 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
     @Override
     public void updateWindow(long windowStartTime, long windowEndTime) {
 
-        setWindowStartTime(windowStartTime);
-        setWindowEndTime(windowEndTime);
+        setWindowRange(windowStartTime, windowEndTime);
 
         // Build the new time range; keep the current time
         TmfTimeRange timeRange = new TmfTimeRange(
@@ -261,7 +249,8 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
         fTrace = trace;
 
         TmfTraceContext ctx = TmfTraceManager.getInstance().getCurrentTraceContext();
-        long timestamp = ctx.getSelectionRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        long selectionStart = ctx.getSelectionRange().getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        long selectionEnd = ctx.getSelectionRange().getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
         TmfTimeRange windowRange = ctx.getWindowRange();
 
         long windowStartTime = windowRange.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
@@ -269,11 +258,10 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
         long startTime = fTrace.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
         long endTime = fTrace.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
 
-        setSelectionBeginTime(timestamp);
-        setSelectionEndTime(timestamp);
+        setSelectionRange(selectionStart, selectionEnd);
+
         setStartTime(startTime);
-        setWindowStartTime(windowStartTime);
-        setWindowEndTime(windowEndTime);
+        setWindowRange(windowStartTime, windowEndTime);
         setEndTime(endTime);
     }
 
@@ -282,12 +270,10 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
      */
     public void reset() {
         // Reset the internal data
-        setSelectionBeginTime(0);
-        setSelectionEndTime(0);
+        setSelectionRange(0, 0);
         setStartTime(0);
-        setWindowStartTime(0);
+        setWindowRange(0, 0);
         setEndTime(0);
-        setWindowEndTime(0);
         setTrace(null);
     }
 
@@ -351,8 +337,7 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
         if ((signal.getSource() != this) && (fTrace != null)) {
             ITmfTimestamp selectedTime = signal.getBeginTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE);
             ITmfTimestamp selectedEndTime = signal.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE);
-            setSelectionBeginTime(selectedTime.getValue());
-            setSelectionEndTime(selectedEndTime.getValue());
+            setSelectionRange(selectedTime.getValue(), selectedEndTime.getValue());
         }
     }
 
@@ -378,8 +363,7 @@ public abstract class TmfTimeViewer extends TmfViewer implements ITmfTimeProvide
                 long windowStartTime = range.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
                 long windowEndTime = range.getEndTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
 
-                setWindowStartTime(windowStartTime);
-                setWindowEndTime(windowEndTime);
+                setWindowRange(windowStartTime, windowEndTime);
             }
         }
     }

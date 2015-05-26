@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Ericsson
+ * Copyright (c) 2011, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -36,6 +36,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -50,6 +51,8 @@ import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestampDelta;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestampFormat;
+import org.eclipse.tracecompass.tmf.ui.signal.TmfTimeViewAlignmentSignal;
+import org.eclipse.tracecompass.tmf.ui.views.ITmfTimeAligned;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 
 /**
@@ -62,11 +65,9 @@ import org.eclipse.tracecompass.tmf.ui.views.TmfView;
  * <li>a histogram displaying the distribution of values over time (note that
  * the histogram might not necessarily fill the whole canvas)
  * </ul>
- * The widget also has 2 'markers' to identify:
+ * The widget also has 1 'marker' to identify:
  * <ul>
- * <li>a red dashed line over the bar that contains the currently selected event
- * <li>a dark red dashed line that delimits the right end of the histogram (if
- * it doesn't fill the canvas)
+ * <li>a blue dashed line over the bar that contains the currently selected event
  * </ul>
  * Clicking on the histogram will select the current event at the mouse
  * location.
@@ -101,7 +102,6 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
     private final Color fBackgroundColor = Display.getCurrent().getSystemColor(SWT.COLOR_WHITE);
     private final Color fSelectionForegroundColor = Display.getCurrent().getSystemColor(SWT.COLOR_BLUE);
     private final Color fSelectionBackgroundColor = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-    private final Color fLastEventColor = Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED);
 
     // Application colors, they need to be disposed
     private final Color[] fHistoBarColors = new Color[] { new Color(Display.getDefault(), 90, 90, 255), // blue
@@ -172,6 +172,8 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
      */
     protected Canvas fCanvas;
 
+    private Composite canvasComposite;
+
     /**
      * The histogram data model.
      */
@@ -222,9 +224,24 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
      */
     static boolean showTraces = true;
 
+
+    private boolean fSendTimeAlignSignals = false;
+
     // ------------------------------------------------------------------------
     // Construction
     // ------------------------------------------------------------------------
+
+    /**
+     * Constructor.
+     *
+     * @param view
+     *            A reference to the parent TMF view.
+     * @param parent
+     *            A parent composite
+     */
+    public Histogram(final TmfView view, final Composite parent) {
+        this(view, parent, false);
+    }
 
     /**
      * Full constructor.
@@ -233,10 +250,13 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
      *            A reference to the parent TMF view.
      * @param parent
      *            A parent composite
+     * @param sendTimeAlignSignals
+     *            Flag to send time alignment signals or not
+     * @since 1.0
      */
-    public Histogram(final TmfView view, final Composite parent) {
+    public Histogram(final TmfView view, final Composite parent, final boolean sendTimeAlignSignals) {
         fParentView = view;
-
+        fSendTimeAlignSignals = sendTimeAlignSignals;
         fComposite = createWidget(parent);
         fDataModel = new HistogramDataModel();
         fDataModel.addHistogramListener(this);
@@ -307,7 +327,7 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
         fMaxNbEventsLabel.setLayoutData(gridData);
 
         // Histogram itself
-        Composite canvasComposite = new Composite(composite, SWT.BORDER);
+        canvasComposite = new Composite(composite, SWT.BORDER);
         gridData = new GridData();
         gridData.horizontalSpan = 2;
         gridData.verticalSpan = 2;
@@ -513,7 +533,7 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
     public synchronized long getTimestamp(final int offset) {
         assert offset > 0 && offset < fScaledData.fWidth;
         try {
-            return fScaledData.fFirstBucketTime + fScaledData.fBucketDuration * offset;
+            return fScaledData.fFirstBucketTime + (long) (fScaledData.fBucketDuration * offset);
         } catch (final Exception e) {
             return 0; // TODO: Fix that racing condition (NPE)
         }
@@ -628,11 +648,17 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
                                 // Display histogram and update X-,Y-axis labels
                                 updateRangeTextControls();
                                 long maxNbEvents = HistogramScaledData.hideLostEvents ? fScaledData.fMaxValue : fScaledData.fMaxCombinedValue;
+                                String old = fMaxNbEventsLabel.getText();
                                 fMaxNbEventsLabel.setText(Long.toString(maxNbEvents));
                                 // The Y-axis area might need to be re-sized
                                 GridData gd = (GridData) fMaxNbEventsLabel.getLayoutData();
                                 gd.widthHint = Math.max(gd.widthHint, fMaxNbEventsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
                                 fMaxNbEventsLabel.getParent().layout();
+                                if (old.length() < fMaxNbEventsLabel.getText().length()) {
+                                    if ((fSendTimeAlignSignals) && (fParentView instanceof ITmfTimeAligned)) {
+                                        TmfSignalManager.dispatchSignal(new TmfTimeViewAlignmentSignal(this, ((ITmfTimeAligned) fParentView).getTimeViewAlignmentInfo(), true));
+                                    }
+                                }
                             }
                         }
                     }
@@ -698,7 +724,7 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
      * Update the range text controls
      */
     private void updateRangeTextControls() {
-        if (fDataModel.getStartTime() < fDataModel.getEndTime()) {
+        if (fDataModel.getNbEvents() != 0) {
             fTimeRangeStartLabel.setText(TmfTimestampFormat.getDefaulTimeFormat().format(fDataModel.getStartTime()));
             fTimeRangeEndLabel.setText(TmfTimestampFormat.getDefaulTimeFormat().format(fDataModel.getEndTime()));
         } else {
@@ -753,8 +779,6 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
         final HistogramScaledData scaledData = new HistogramScaledData(fScaledData);
 
         try {
-            // Get drawing boundaries
-            final int width = image.getBounds().width;
             final int height = image.getBounds().height;
 
             // Clear the drawing area
@@ -762,7 +786,7 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
             imageGC.fillRectangle(0, 0, image.getBounds().width + 1, image.getBounds().height + 1);
 
             // Draw the histogram bars
-            final int limit = width < scaledData.fWidth ? width : scaledData.fWidth;
+            final int limit = scaledData.fWidth;
             double factor = HistogramScaledData.hideLostEvents ? scaledData.fScalingFactor : scaledData.fScalingFactorCombined;
             final boolean showTracesColors = showTraces();
             for (int i = 0; i < limit; i++) {
@@ -829,28 +853,9 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
                 }
             }
             imageGC.setAlpha(alpha);
-
-            // Add a dashed line as a delimiter
-            int delimiterIndex = (int) ((getDataModel().getEndTime() - scaledData.getFirstBucketTime()) / scaledData.fBucketDuration) + 1;
-            drawDelimiter(imageGC, fLastEventColor, height, delimiterIndex);
-
-            // Fill the area to the right of delimiter with background color
-            imageGC.setBackground(fComposite.getBackground());
-            imageGC.fillRectangle(delimiterIndex + 1, 0, width - (delimiterIndex + 1), height);
-
         } catch (final Exception e) {
             // Do nothing
         }
-    }
-
-    private static void drawDelimiter(final GC imageGC, final Color color,
-            final int height, final int index) {
-        imageGC.setBackground(color);
-        final int dash = height / 4;
-        imageGC.fillRectangle(index, 0 * dash, 1, dash - 1);
-        imageGC.fillRectangle(index, 1 * dash, 1, dash - 1);
-        imageGC.fillRectangle(index, 2 * dash, 1, dash - 1);
-        imageGC.fillRectangle(index, 3 * dash, 1, height - 3 * dash);
     }
 
     /**
@@ -870,26 +875,26 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
         }
 
         // Map times to histogram coordinates
-        long bucketSpan = Math.max(fScaledData.fBucketDuration, 1);
+        double bucketSpan = fScaledData.fBucketDuration;
         long startTime = Math.min(rangeStartTime, rangeStartTime + rangeDuration);
-        int rangeWidth = (int) (Math.abs(rangeDuration) / bucketSpan);
+        double rangeWidth = (Math.abs(rangeDuration) / bucketSpan);
 
         int left = (int) ((startTime - fDataModel.getFirstBucketTime()) / bucketSpan);
-        int right = left + rangeWidth;
+        int right = (int) (left + rangeWidth);
         int center = (left + right) / 2;
         int height = fCanvas.getSize().y;
-        int arc = Math.min(15, rangeWidth);
+        int arc = Math.min(15, (int) rangeWidth);
 
         // Draw the selection window
         imageGC.setForeground(fTimeRangeColor);
         imageGC.setLineWidth(1);
         imageGC.setLineStyle(SWT.LINE_SOLID);
-        imageGC.drawRoundRectangle(left, 0, rangeWidth, height - 1, arc, arc);
+        imageGC.drawRoundRectangle(left, 0, (int) rangeWidth, height - 1, arc, arc);
 
         // Fill the selection window
         imageGC.setBackground(fTimeRangeColor);
         imageGC.setAlpha(35);
-        imageGC.fillRoundRectangle(left + 1, 1, rangeWidth - 1, height - 2, arc, arc);
+        imageGC.fillRoundRectangle(left + 1, 1, (int) rangeWidth - 1, height - 2, arc, arc);
         imageGC.setAlpha(255);
 
         // Draw the cross hair
@@ -897,9 +902,43 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
         imageGC.setLineWidth(1);
         imageGC.setLineStyle(SWT.LINE_SOLID);
 
-        int chHalfWidth = ((rangeWidth < 60) ? (rangeWidth * 2) / 3 : 40) / 2;
+        int chHalfWidth = ((rangeWidth < 60) ? (int) ((rangeWidth * 2) / 3) : 40) / 2;
         imageGC.drawLine(center - chHalfWidth, height / 2, center + chHalfWidth, height / 2);
         imageGC.drawLine(center, (height / 2) - chHalfWidth, center, (height / 2) + chHalfWidth);
+    }
+
+    /**
+     * Get the offset of the point area, relative to the histogram canvas
+     * We consider the point area to be from where the first point could
+     * be drawn to where the last point could be drawn.
+     *
+     * @return the offset in pixels
+     *
+     * @since 1.0
+     */
+    public int getPointAreaOffset() {
+        Point absCanvas = fCanvas.toDisplay(0, 0);
+        Point viewPoint = fComposite.getParent().toDisplay(0, 0);
+        return absCanvas.x - viewPoint.x;
+    }
+
+    /**
+     * Get the width of the point area. We consider the point area to be from
+     * where the first point could be drawn to where the last point could be
+     * drawn. The point area differs from the plot area because there might be a
+     * gap between where the plot area start and where the fist point is drawn.
+     * This also matches the width that the use can select.
+     *
+     * @return the width in pixels
+     *
+     * @since 1.0
+     */
+    public int getPointAreaWidth() {
+        if (!fCanvas.isDisposed()) {
+            // Retrieve and normalize the data
+            return fComposite.getBounds().width;
+        }
+        return 0;
     }
 
     // ------------------------------------------------------------------------
@@ -933,7 +972,7 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
                     fScaledData.fSelectionBeginBucket = fScaledData.fSelectionEndBucket;
                     fSelectionBegin = fSelectionEnd;
                 }
-                fSelectionEnd = Math.min(getTimestamp(event.x), getEndTime());
+                fSelectionEnd = getTimestamp(event.x);
                 fScaledData.fSelectionEndBucket = (int) ((fSelectionEnd - fScaledData.fFirstBucketTime) / fScaledData.fBucketDuration);
             } else {
                 fSelectionBegin = Math.min(getTimestamp(event.x), getEndTime());
@@ -981,13 +1020,10 @@ public abstract class Histogram implements ControlListener, PaintListener, KeyLi
 
     @Override
     public void mouseHover(final MouseEvent event) {
-        if (fDataModel.getStartTime() < fDataModel.getEndTime() && fScaledData != null) {
-            int delimiterIndex = (int) ((fDataModel.getEndTime() - fScaledData.getFirstBucketTime()) / fScaledData.fBucketDuration) + 1;
-            if (event.x < delimiterIndex) {
-                final String tooltip = formatToolTipLabel(event.x - fOffset);
-                fCanvas.setToolTipText(tooltip);
-                return;
-            }
+        if (fDataModel.getNbEvents() != 0 && fScaledData != null) {
+            final String tooltip = formatToolTipLabel(event.x - fOffset);
+            fCanvas.setToolTipText(tooltip);
+            return;
         }
         fCanvas.setToolTipText(null);
     }

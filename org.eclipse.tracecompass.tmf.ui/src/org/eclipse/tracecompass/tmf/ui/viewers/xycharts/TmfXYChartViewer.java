@@ -9,10 +9,13 @@
  * Contributors:
  *   Bernd Hufmann - Initial API and implementation
  *   Geneviève Bastien - Moved some methods to TmfTimeViewer
+ *   Patrick Tasse - Fix setFocus
  **********************************************************************/
 package org.eclipse.tracecompass.tmf.ui.viewers.xycharts;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -76,7 +79,18 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
      */
     public TmfXYChartViewer(Composite parent, String title, String xLabel, String yLabel) {
         super(parent, title);
-        fSwtChart = new Chart(parent, SWT.NONE);
+        fSwtChart = new Chart(parent, SWT.NONE) {
+            @Override
+            public boolean setFocus() {
+                return fSwtChart.getPlotArea().setFocus();
+            }
+        };
+        fSwtChart.getPlotArea().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseDown(MouseEvent e) {
+                fSwtChart.getPlotArea().setFocus();
+            }
+        });
 
         IAxis xAxis = fSwtChart.getAxisSet().getXAxis(0);
         IAxis yAxis = fSwtChart.getAxisSet().getYAxis(0);
@@ -370,12 +384,16 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
      * @since 1.0
      */
     public int getPointAreaOffset() {
+
         int pixelCoordinate = 0;
         IAxis[] xAxes = getSwtChart().getAxisSet().getXAxes();
-        if (xAxes.length > 0) {
+        ISeries[] series = fSwtChart.getSeriesSet().getSeries();
+        if ((xAxes.length > 0) && (series.length > 0) &&
+                (series[0].getXSeries() != null) && (series[0].getXSeries().length > 0)) {
             IAxis axis = xAxes[0];
-            long windowStartTime = getWindowStartTime() - getTimeOffset();
-            pixelCoordinate = axis.getPixelCoordinate(windowStartTime - 1);
+            // All series have the same X series
+            double[] xSeries = series[0].getXSeries();
+            pixelCoordinate = axis.getPixelCoordinate(xSeries[0]);
         }
         return getSwtChart().toControl(getSwtChart().getPlotArea().toDisplay(pixelCoordinate, 0)).x;
     }
@@ -393,11 +411,14 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
      */
     public int getPointAreaWidth() {
         IAxis[] xAxes = getSwtChart().getAxisSet().getXAxes();
-        if (xAxes.length > 0 && fSwtChart.getSeriesSet().getSeries().length > 0) {
+        ISeries[] series = fSwtChart.getSeriesSet().getSeries();
+        if ((xAxes.length > 0) && (series.length > 0) &&
+                (series[0].getXSeries() != null) && (series[0].getXSeries().length > 0)) {
             IAxis axis = xAxes[0];
+            // All series have the same X series
+            double[] xSeries = series[0].getXSeries();
             int x1 = getPointAreaOffset();
-            long windowEndTime = getWindowEndTime() - getTimeOffset();
-            int x2 = axis.getPixelCoordinate(windowEndTime - 1);
+            int x2 = axis.getPixelCoordinate(xSeries[xSeries.length - 1]);
             x2 = getSwtChart().toControl(getSwtChart().getPlotArea().toDisplay(x2, 0)).x;
             int width = x2 - x1;
             return width;
@@ -405,7 +426,6 @@ public abstract class TmfXYChartViewer extends TmfTimeViewer implements ITmfChar
 
         return getSwtChart().getPlotArea().getSize().x;
     }
-
 
     /**
      * Sets whether or not to send time alignment signals. This should be set to

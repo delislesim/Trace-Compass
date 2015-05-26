@@ -395,8 +395,6 @@ public class TimeGraphCombo extends Composite {
 
         // Feature in Windows. The tree vertical bar reappears when
         // the control is resized so we need to hide it again.
-        // Bug in Linux. The tree header height is 0 in constructor,
-        // so we need to reset it later when the control is resized.
         tree.addControlListener(new ControlAdapter() {
             private int depth = 0;
             @Override
@@ -408,7 +406,20 @@ public class TimeGraphCombo extends Composite {
                     tree.getVerticalBar().setVisible(false);
                     depth--;
                 }
-                fTimeGraphViewer.setHeaderHeight(tree.getHeaderHeight());
+            }
+        });
+        // Bug in Linux. The tree header height is 0 in constructor,
+        // so we need to reset it later when the control is painted.
+        // This work around used to be done on control resized but the header
+        // height was not initialized on the initial resize on GTK3.
+        tree.addPaintListener(new PaintListener() {
+            @Override
+            public void paintControl(PaintEvent e) {
+                int headerHeight = tree.getHeaderHeight();
+                if (headerHeight > 0) {
+                    fTimeGraphViewer.setHeaderHeight(headerHeight);
+                    tree.removePaintListener(this);
+                }
             }
         });
 
@@ -1184,10 +1195,9 @@ public class TimeGraphCombo extends Composite {
      * @since 1.0
      */
     public TmfTimeViewAlignmentInfo getTimeViewAlignmentInfo() {
-        int[] weights = fSashForm.getWeights();
-        int leftWidth = (int) (((float) weights[0] / (weights[0] + weights[1])) * fSashForm.getBounds().width) + fSashForm.getSashWidth();
         Point location = fSashForm.toDisplay(0, 0);
-        return new TmfTimeViewAlignmentInfo(fSashForm.getShell(), location, leftWidth);
+        int timeAxisOffset = fTreeViewer.getControl().getSize().x + fSashForm.getSashWidth();
+        return new TmfTimeViewAlignmentInfo(fSashForm.getShell(), location, timeAxisOffset);
     }
 
     /**
@@ -1202,8 +1212,9 @@ public class TimeGraphCombo extends Composite {
      * @since 1.0
      */
     public int getAvailableWidth(int requestedOffset) {
+        int vBarWidth = ((fTimeGraphViewer.getVerticalBar() != null) && (fTimeGraphViewer.getVerticalBar().isVisible())) ? fTimeGraphViewer.getVerticalBar().getSize().x : 0;
         int totalWidth = fSashForm.getBounds().width;
-        return Math.min(totalWidth, Math.max(0, totalWidth - requestedOffset));
+        return Math.min(totalWidth, Math.max(0, totalWidth - requestedOffset - vBarWidth));
     }
 
     /**
@@ -1221,9 +1232,9 @@ public class TimeGraphCombo extends Composite {
     public void performAlign(int offset, int width) {
         int total = fSashForm.getBounds().width;
         int timeAxisOffset = Math.min(offset, total);
-        int sash1Width = (int) (timeAxisOffset / (float) total * 1000);
-        int sash2Width = (int) ((total - timeAxisOffset) / (float) total * 1000);
-        fSashForm.setWeights(new int[] { sash1Width, sash2Width });
+        int width1 = Math.max(0, timeAxisOffset - fSashForm.getSashWidth());
+        int width2 = total - timeAxisOffset;
+        fSashForm.setWeights(new int[] { width1, width2 });
         fSashForm.layout();
 
         Composite composite = fTimeGraphViewer.getTimeAlignedComposite();

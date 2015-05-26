@@ -21,6 +21,7 @@ import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.CTFStrings;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
+import org.eclipse.tracecompass.ctf.core.event.LostEventDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.io.BitBuffer;
 import org.eclipse.tracecompass.ctf.core.event.scope.IDefinitionScope;
 import org.eclipse.tracecompass.ctf.core.event.scope.ILexicalScope;
@@ -37,10 +38,7 @@ import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.VariantDefinition;
 import org.eclipse.tracecompass.internal.ctf.core.SafeMappedByteBuffer;
-import org.eclipse.tracecompass.internal.ctf.core.event.EventDeclaration;
 import org.eclipse.tracecompass.internal.ctf.core.event.types.composite.EventHeaderDefinition;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * CTF trace packet reader. Reads the events of a packet of a trace file.
@@ -313,11 +311,11 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
     public EventDefinition readNextEvent() throws CTFException {
         /* Default values for those fields */
         // compromise since we cannot have 64 bit addressing of arrays yet.
-        int eventID = (int) EventDeclaration.UNSET_EVENT_ID;
+        int eventID = (int) IEventDeclaration.UNSET_EVENT_ID;
         long timestamp = 0;
         if (fHasLost) {
             fHasLost = false;
-            EventDeclaration lostEventDeclaration = EventDeclaration.getLostEventDeclaration();
+            IEventDeclaration lostEventDeclaration = LostEventDeclaration.INSTANCE;
             StructDeclaration lostFields = lostEventDeclaration.getFields();
             // this is a hard coded map, we know it's not null
             IntegerDeclaration lostFieldsDecl = (IntegerDeclaration) lostFields.getField(CTFStrings.LOST_EVENTS_FIELD);
@@ -332,8 +330,6 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
             IntegerDefinition lostDurationDef = new IntegerDefinition(lostFieldsDecl, null, CTFStrings.LOST_EVENTS_DURATION, fLostEventsDuration);
             IntegerDefinition lostCountDef = new IntegerDefinition(lostEventsDurationDecl, null, CTFStrings.LOST_EVENTS_FIELD, fLostEventsInThisPacket);
             IntegerDefinition[] fields = new IntegerDefinition[] { lostCountDef, lostDurationDef };
-            /* this is weird notation, but it's the java notation */
-            final ImmutableList<String> fieldNameList = ImmutableList.<String> builder().add(CTFStrings.LOST_EVENTS_FIELD).add(CTFStrings.LOST_EVENTS_DURATION).build();
             return new EventDefinition(
                     lostEventDeclaration,
                     fStreamInputReader,
@@ -344,7 +340,6 @@ public class CTFStreamInputPacketReader implements IDefinitionScope, AutoCloseab
                     new StructDefinition(
                             lostFields,
                             this, "fields", //$NON-NLS-1$
-                            fieldNameList,
                             fields
                     ));
 

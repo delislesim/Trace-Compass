@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2013, 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -37,6 +37,8 @@ import org.eclipse.tracecompass.tmf.ui.viewers.xycharts.TmfXYChartViewer;
  * @author Bernd Hufmann
  */
 public abstract class TmfChartView extends TmfView implements ITmfTimeAligned {
+
+    private static final int[] DEFAULT_WEIGHTS = {1, 3};
 
     // ------------------------------------------------------------------------
     // Attributes
@@ -123,7 +125,6 @@ public abstract class TmfChartView extends TmfView implements ITmfTimeAligned {
         fChartViewer.setSendTimeAlignSignals(true);
         fChartViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-
         fChartViewer.getControl().addPaintListener(new PaintListener() {
             @Override
             public void paintControl(PaintEvent e) {
@@ -148,7 +149,7 @@ public abstract class TmfChartView extends TmfView implements ITmfTimeAligned {
                 }
             }
         });
-
+        fSashForm.setWeights(DEFAULT_WEIGHTS);
         ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
         if (trace != null) {
             setTrace(trace);
@@ -161,6 +162,11 @@ public abstract class TmfChartView extends TmfView implements ITmfTimeAligned {
         if (fChartViewer != null) {
             fChartViewer.dispose();
         }
+    }
+
+    @Override
+    public void setFocus() {
+        fChartViewer.getControl().setFocus();
     }
 
     /**
@@ -185,10 +191,7 @@ public abstract class TmfChartView extends TmfView implements ITmfTimeAligned {
     }
 
     private int getTimeAxisOffset() {
-        int[] weights = fSashForm.getWeights();
-        int width = (int) (((float) weights[0] / (weights[0] + weights[1])) * fSashForm.getBounds().width);
-        int curTimeAxisOffset = width + fSashForm.getSashWidth() + fChartViewer.getPointAreaOffset();
-        return curTimeAxisOffset;
+        return fSashForm.getChildren()[0].getSize().x + fSashForm.getSashWidth() + fChartViewer.getPointAreaOffset();
     }
 
     /**
@@ -220,11 +223,10 @@ public abstract class TmfChartView extends TmfView implements ITmfTimeAligned {
      */
     @Override
     public void performAlign(int offset, int width) {
-        int plotAreaOffset = fChartViewer.getPointAreaOffset();
-        int sashOffset = Math.max(1, offset - plotAreaOffset);
         int total = fSashForm.getBounds().width;
-        int width1 = (int) (sashOffset / (float) total * 1000);
-        int width2 = (int) ((total - sashOffset) / (float) total * 1000);
+        int plotAreaOffset = fChartViewer.getPointAreaOffset();
+        int width1 = Math.max(0, offset - plotAreaOffset - fSashForm.getSashWidth());
+        int width2 = Math.max(0, total - width1 - fSashForm.getSashWidth());
         fSashForm.setWeights(new int[] { width1, width2 });
         fSashForm.layout();
 

@@ -23,6 +23,7 @@ import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.EventDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.Definition;
 import org.eclipse.tracecompass.ctf.core.event.types.Encoding;
+import org.eclipse.tracecompass.ctf.core.event.types.ICompositeDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.StringDeclaration;
 import org.eclipse.tracecompass.ctf.core.event.types.StringDefinition;
 import org.eclipse.tracecompass.ctf.core.event.types.StructDeclaration;
@@ -37,8 +38,6 @@ import org.eclipse.tracecompass.internal.ctf.core.event.EventDeclaration;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * The class <code>StreamInputReaderTest</code> contains tests for the class
  * <code>{@link CTFStreamInputReader}</code>.
@@ -52,10 +51,6 @@ public class CTFStreamInputReaderTest {
     private static final CtfTestTrace testTrace = CtfTestTrace.KERNEL;
 
     private CTFStreamInputReader fixture;
-
-    private static ImmutableList<String> wrap(String s) {
-        return ImmutableList.<String> builder().add(s).build();
-    }
 
     /**
      * Perform pre-test initialization.
@@ -72,7 +67,6 @@ public class CTFStreamInputReaderTest {
                         new StructDeclaration(0),
                         null,
                         "packet",
-                        wrap("field"),
                         new Definition[] { new StringDefinition(StringDeclaration.getStringDeclaration(Encoding.UTF8), null, "field", "test") }),
                 null)
                 );
@@ -144,7 +138,7 @@ public class CTFStreamInputReaderTest {
      */
     @Test
     public void testGetCurrentPacketContext() {
-        StructDefinition result = fixture.getCurrentEvent().getPacketContext();
+        ICompositeDefinition result = fixture.getCurrentEvent().getPacketContext();
         assertNotNull(result);
     }
 

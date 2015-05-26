@@ -51,6 +51,8 @@ public class CpuUsageView extends TmfView implements ITmfTimeAligned {
     /** ID string */
     public static final String ID = "org.eclipse.tracecompass.analysis.os.linux.views.cpuusage"; //$NON-NLS-1$
 
+    private static final int[] DEFAULT_WEIGHTS = {1, 3};
+
     private CpuUsageComposite fTreeViewer = null;
     private CpuUsageXYViewer fXYViewer = null;
 
@@ -82,6 +84,7 @@ public class CpuUsageView extends TmfView implements ITmfTimeAligned {
 
         /* Build the XY chart part of the view */
         fXYViewer = new CpuUsageXYViewer(fXYViewerContainer);
+        fXYViewer.setSendTimeAlignSignals(true);
         fXYViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         /* Add selection listener to tree viewer */
@@ -138,10 +141,13 @@ public class CpuUsageView extends TmfView implements ITmfTimeAligned {
                 }
             }
         });
+
+        fSashForm.setWeights(DEFAULT_WEIGHTS);
     }
 
     @Override
     public void setFocus() {
+        fXYViewer.getControl().setFocus();
     }
 
     @Override
@@ -168,10 +174,7 @@ public class CpuUsageView extends TmfView implements ITmfTimeAligned {
     }
 
     private int getTimeAxisOffset() {
-        int[] weights = fSashForm.getWeights();
-        int width = (int) (((float) weights[0] / (weights[0] + weights[1])) * fSashForm.getBounds().width);
-        int curTimeAxisOffset = width + fSashForm.getSashWidth() + fXYViewer.getPointAreaOffset();
-        return curTimeAxisOffset;
+        return fTreeViewer.getControl().getSize().x + fSashForm.getSashWidth() + fXYViewer.getPointAreaOffset();
     }
 
     /**
@@ -198,11 +201,10 @@ public class CpuUsageView extends TmfView implements ITmfTimeAligned {
      */
     @Override
     public void performAlign(int offset, int width) {
-        int plotAreaOffset = fXYViewer.getPointAreaOffset();
-        int sashOffset = Math.max(1, offset - plotAreaOffset);
         int total = fSashForm.getBounds().width;
-        int width1 = (int) (sashOffset / (float) total * 1000);
-        int width2 = (int) ((total - sashOffset) / (float) total * 1000);
+        int plotAreaOffset = fXYViewer.getPointAreaOffset();
+        int width1 = Math.max(0, offset - plotAreaOffset - fSashForm.getSashWidth());
+        int width2 = Math.max(0, total - width1 - fSashForm.getSashWidth());
         fSashForm.setWeights(new int[] { width1, width2 });
         fSashForm.layout();
 

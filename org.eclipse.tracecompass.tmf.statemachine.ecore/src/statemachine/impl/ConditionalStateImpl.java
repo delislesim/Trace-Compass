@@ -30,6 +30,7 @@ import statemachine.StatemachinePackage;
  * <ul>
  *   <li>{@link statemachine.impl.ConditionalStateImpl#getCondition <em>Condition</em>}</li>
  *   <li>{@link statemachine.impl.ConditionalStateImpl#isAndExpression <em>And Expression</em>}</li>
+ *   <li>{@link statemachine.impl.ConditionalStateImpl#getConditionsOrganization <em>Conditions Organization</em>}</li>
  * </ul>
  * </p>
  *
@@ -65,6 +66,26 @@ public class ConditionalStateImpl extends AbstractStateImpl implements Condition
 	 * @ordered
 	 */
 	protected boolean andExpression = AND_EXPRESSION_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getConditionsOrganization() <em>Conditions Organization</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getConditionsOrganization()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String CONDITIONS_ORGANIZATION_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getConditionsOrganization() <em>Conditions Organization</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getConditionsOrganization()
+	 * @generated
+	 * @ordered
+	 */
+	protected String conditionsOrganization = CONDITIONS_ORGANIZATION_EDEFAULT;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -123,6 +144,27 @@ public class ConditionalStateImpl extends AbstractStateImpl implements Condition
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public String getConditionsOrganization() {
+		return conditionsOrganization;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public void setConditionsOrganization(String newConditionsOrganization) {
+		String oldConditionsOrganization = conditionsOrganization;
+		conditionsOrganization = newConditionsOrganization;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, StatemachinePackage.CONDITIONAL_STATE__CONDITIONS_ORGANIZATION, oldConditionsOrganization, conditionsOrganization));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
@@ -144,6 +186,8 @@ public class ConditionalStateImpl extends AbstractStateImpl implements Condition
 				return getCondition();
 			case StatemachinePackage.CONDITIONAL_STATE__AND_EXPRESSION:
 				return isAndExpression();
+			case StatemachinePackage.CONDITIONAL_STATE__CONDITIONS_ORGANIZATION:
+				return getConditionsOrganization();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -164,6 +208,9 @@ public class ConditionalStateImpl extends AbstractStateImpl implements Condition
 			case StatemachinePackage.CONDITIONAL_STATE__AND_EXPRESSION:
 				setAndExpression((Boolean)newValue);
 				return;
+			case StatemachinePackage.CONDITIONAL_STATE__CONDITIONS_ORGANIZATION:
+				setConditionsOrganization((String)newValue);
+				return;
 		}
 		super.eSet(featureID, newValue);
 	}
@@ -182,6 +229,9 @@ public class ConditionalStateImpl extends AbstractStateImpl implements Condition
 			case StatemachinePackage.CONDITIONAL_STATE__AND_EXPRESSION:
 				setAndExpression(AND_EXPRESSION_EDEFAULT);
 				return;
+			case StatemachinePackage.CONDITIONAL_STATE__CONDITIONS_ORGANIZATION:
+				setConditionsOrganization(CONDITIONS_ORGANIZATION_EDEFAULT);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -198,6 +248,8 @@ public class ConditionalStateImpl extends AbstractStateImpl implements Condition
 				return condition != null && !condition.isEmpty();
 			case StatemachinePackage.CONDITIONAL_STATE__AND_EXPRESSION:
 				return andExpression != AND_EXPRESSION_EDEFAULT;
+			case StatemachinePackage.CONDITIONAL_STATE__CONDITIONS_ORGANIZATION:
+				return CONDITIONS_ORGANIZATION_EDEFAULT == null ? conditionsOrganization != null : !CONDITIONS_ORGANIZATION_EDEFAULT.equals(conditionsOrganization);
 		}
 		return super.eIsSet(featureID);
 	}
@@ -214,6 +266,8 @@ public class ConditionalStateImpl extends AbstractStateImpl implements Condition
 		StringBuffer result = new StringBuffer(super.toString());
 		result.append(" (andExpression: ");
 		result.append(andExpression);
+		result.append(", conditionsOrganization: ");
+		result.append(conditionsOrganization);
 		result.append(')');
 		return result.toString();
 	}

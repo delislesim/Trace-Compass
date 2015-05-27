@@ -14,6 +14,7 @@ import org.eclipse.emf.common.util.EList;
  * <ul>
  *   <li>{@link statemachine.ConditionalState#getCondition <em>Condition</em>}</li>
  *   <li>{@link statemachine.ConditionalState#isAndExpression <em>And Expression</em>}</li>
+ *   <li>{@link statemachine.ConditionalState#getConditionsOrganization <em>Conditions Organization</em>}</li>
  * </ul>
  * </p>
  *
@@ -64,5 +65,31 @@ public interface ConditionalState extends AbstractState {
 	 * @generated
 	 */
 	void setAndExpression(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Conditions Organization</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <p>
+	 * If the meaning of the '<em>Conditions Organization</em>' attribute isn't clear,
+	 * there really should be more of a description here...
+	 * </p>
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Conditions Organization</em>' attribute.
+	 * @see #setConditionsOrganization(String)
+	 * @see statemachine.StatemachinePackage#getConditionalState_ConditionsOrganization()
+	 * @model
+	 * @generated
+	 */
+	String getConditionsOrganization();
+
+	/**
+	 * Sets the value of the '{@link statemachine.ConditionalState#getConditionsOrganization <em>Conditions Organization</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Conditions Organization</em>' attribute.
+	 * @see #getConditionsOrganization()
+	 * @generated
+	 */
+	void setConditionsOrganization(String value);
 
 } // ConditionalState

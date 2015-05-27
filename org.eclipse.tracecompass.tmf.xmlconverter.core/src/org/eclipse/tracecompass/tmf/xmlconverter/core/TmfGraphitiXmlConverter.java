@@ -18,6 +18,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTree;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.AttributeTreePath;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.ConstantAttributeNode;
+import org.eclipse.tracecompass.tmf.attributetree.core.model.VariableAttributeNode;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.Condition;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ConditionMultiple;
@@ -34,6 +39,7 @@ import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateProvider;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.StateValue;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.TimeGraphView;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.Tmfxml;
+import org.eclipse.tracecompass.tmf.xmlconverter.core.model.ViewStateAttribute;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadOutput.Analysis;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider.Label;
 import org.eclipse.tracecompass.tmf.xmlconverter.core.model.HeadProvider.TraceType;
@@ -429,7 +435,7 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		List<TimeGraphView> timeGraphViewList = new ArrayList<>();
 		for (Entry<Integer, Map<Integer, Node>> statemachineStatesEntry : fStatemachineStatesList.entrySet()) {
 			TimeGraphView timeGraphView = factory.createTimeGraphView();
-			timeGraphView.setId("xmlID" + ".view." + fStatemachineList.get(statemachineStatesEntry.getKey()).getAttributes().getNamedItem("name").getNodeValue());
+			timeGraphView.setId(xmlID + ".view." + fStatemachineList.get(statemachineStatesEntry.getKey()).getAttributes().getNamedItem("name").getNodeValue().replace(" ", ""));
 
 			HeadOutput timeGraphViewHead = factory.createHeadOutput();
 			Analysis analysis = factory.createHeadOutputAnalysis();
@@ -462,23 +468,49 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 				}
 			}
 
+			// Get the associated path from statemachine
+			String statemachinePath = fStatemachineList.get(statemachineStatesEntry.getKey()).getAttributes().getNamedItem("associatedAttribute").getNodeValue();
+			String statemachineTree = fStatemachineList.get(statemachineStatesEntry.getKey()).getAttributes().getNamedItem("associatedTree").getNodeValue();
+			AbstractAttributeNode leafNode = AttributeTree.getInstance().getNodeFromPath(new File(statemachineTree), statemachinePath);
+			AttributeTreePath treePath = new AttributeTreePath(leafNode);
+			Vector<AbstractAttributeNode> pathVector = treePath.getPath();
+			
+			String path = "";
+			for(int i = pathVector.size() - 2; i >= 0; i--) { //Skip root element
+				AbstractAttributeNode node = pathVector.get(i);
+				if ( node instanceof ConstantAttributeNode) {
+					path += (node.getName() + "/");
+				} else if (node instanceof VariableAttributeNode) {
+					path += "*";
+					break;
+				}
+			}
+			
 			ViewEntry viewEntry = factory.createViewEntry();
-			String path; // TODO Path
+			viewEntry.setPath(path);
+			
+			ViewStateAttribute viewStateAttribute = factory.createViewStateAttribute();
+			viewStateAttribute.setType("constant");
+			viewStateAttribute.setValue(pathVector.get(0).getName());
+			viewEntry.setDisplay(viewStateAttribute);
+			// TODO Entry name ?
+			
+			timeGraphView.getEntry().add(viewEntry);
 
 			timeGraphViewList.add(timeGraphView);
 		}
 		return timeGraphViewList;
 	}
 
-//	public static void main(String[] args) {
-//		String xmlPath = "/home/simon/runtime-Tracecompass/Trace/Statemachine/Diagrams/kernel_statemachine.diagram";
-//		//String xmlPath = "C:\\Users\\Simon\\Downloads\\kernel_statemachine.diagram";
-//		File xmlFile = new File(xmlPath);
-//		TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
-//		File convertedFile = converter.convertDiagram(xmlFile);
-//		if(convertedFile.exists()) {
-//			Boolean exist = true;
-//		}
-//	}
+	public static void main(String[] args) {
+		String xmlPath = "/home/esideli/Eclipse-workspace/runtime-TraceCompass/Statemachine_analysis/Statemachine/Diagrams/statemachine_color_test.diagram"; //"/home/simon/runtime-Tracecompass/Trace/Statemachine/Diagrams/kernel_statemachine.diagram";
+		//String xmlPath = "C:\\Users\\Simon\\Downloads\\kernel_statemachine.diagram";
+		File xmlFile = new File(xmlPath);
+		TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
+		File convertedFile = converter.convertDiagram(xmlFile);
+		if(convertedFile.exists()) {
+			Boolean exist = true;
+		}
+	}
 
 }

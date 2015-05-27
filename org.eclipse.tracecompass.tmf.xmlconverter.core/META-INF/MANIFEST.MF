@@ -5,7 +5,8 @@ Bundle-SymbolicName: org.eclipse.tracecompass.tmf.xmlconverter.core
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.eclipse.tracecompass.tmf.xmlconverter.core.Activator
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.tracecompass.tmf.core
+ org.eclipse.tracecompass.tmf.core,
+ org.eclipse.tracecompass.tmf.attributetree.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: org.eclipse.tracecompass.tmf.xmlconverter.core

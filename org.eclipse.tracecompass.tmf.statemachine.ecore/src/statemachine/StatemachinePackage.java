@@ -664,13 +664,22 @@ public interface StatemachinePackage extends EPackage {
 	int CONDITIONAL_STATE__AND_EXPRESSION = ABSTRACT_STATE_FEATURE_COUNT + 1;
 
 	/**
+	 * The feature id for the '<em><b>Conditions Organization</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int CONDITIONAL_STATE__CONDITIONS_ORGANIZATION = ABSTRACT_STATE_FEATURE_COUNT + 2;
+
+	/**
 	 * The number of structural features of the '<em>Conditional State</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int CONDITIONAL_STATE_FEATURE_COUNT = ABSTRACT_STATE_FEATURE_COUNT + 2;
+	int CONDITIONAL_STATE_FEATURE_COUNT = ABSTRACT_STATE_FEATURE_COUNT + 3;
 
 	/**
 	 * The number of operations of the '<em>Conditional State</em>' class.
@@ -1190,6 +1199,17 @@ public interface StatemachinePackage extends EPackage {
 	EAttribute getConditionalState_AndExpression();
 
 	/**
+	 * Returns the meta object for the attribute '{@link statemachine.ConditionalState#getConditionsOrganization <em>Conditions Organization</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Conditions Organization</em>'.
+	 * @see statemachine.ConditionalState#getConditionsOrganization()
+	 * @see #getConditionalState()
+	 * @generated
+	 */
+	EAttribute getConditionalState_ConditionsOrganization();
+
+	/**
 	 * Returns the meta object for class '{@link statemachine.StateChange <em>State Change</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1577,6 +1597,14 @@ public interface StatemachinePackage extends EPackage {
 		 * @generated
 		 */
 		EAttribute CONDITIONAL_STATE__AND_EXPRESSION = eINSTANCE.getConditionalState_AndExpression();
+
+		/**
+		 * The meta object literal for the '<em><b>Conditions Organization</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute CONDITIONAL_STATE__CONDITIONS_ORGANIZATION = eINSTANCE.getConditionalState_ConditionsOrganization();
 
 		/**
 		 * The meta object literal for the '{@link statemachine.impl.StateChangeImpl <em>State Change</em>}' class.

@@ -473,6 +473,15 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EAttribute getConditionalState_ConditionsOrganization() {
+		return (EAttribute)conditionalStateEClass.getEStructuralFeatures().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public EClass getStateChange() {
 		return stateChangeEClass;
 	}
@@ -642,6 +651,7 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		conditionalStateEClass = createEClass(CONDITIONAL_STATE);
 		createEReference(conditionalStateEClass, CONDITIONAL_STATE__CONDITION);
 		createEAttribute(conditionalStateEClass, CONDITIONAL_STATE__AND_EXPRESSION);
+		createEAttribute(conditionalStateEClass, CONDITIONAL_STATE__CONDITIONS_ORGANIZATION);
 
 		stateChangeEClass = createEClass(STATE_CHANGE);
 		createEReference(stateChangeEClass, STATE_CHANGE__STATE_ATTRIBUTE);
@@ -741,6 +751,7 @@ public class StatemachinePackageImpl extends EPackageImpl implements Statemachin
 		initEClass(conditionalStateEClass, ConditionalState.class, "ConditionalState", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getConditionalState_Condition(), this.getAbstractCondition(), null, "condition", null, 0, -1, ConditionalState.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getConditionalState_AndExpression(), ecorePackage.getEBoolean(), "andExpression", "true", 0, 1, ConditionalState.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getConditionalState_ConditionsOrganization(), ecorePackage.getEString(), "conditionsOrganization", null, 0, 1, ConditionalState.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(stateChangeEClass, StateChange.class, "StateChange", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getStateChange_StateAttribute(), this.getStateAttribute(), null, "stateAttribute", null, 0, -1, StateChange.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

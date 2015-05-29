@@ -16,6 +16,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.tracecompass.tmf.attributetree.core.model.AbstractAttributeNode;
@@ -291,9 +292,9 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		
 		StateChange stateChange = factory.createStateChange();
 		ConditionSingle conditionSingle = new ConditionSingle();
+		ConditionSingle notConditionSingle = new ConditionSingle();
 		if(ifCondition.size() == 1) {
 			if(ifCondition.firstElement().getSecond()) {
-				ConditionSingle notConditionSingle = new ConditionSingle();
 				notConditionSingle.setCondition(ifCondition.firstElement().getFirst());
 				conditionSingle.setNot(notConditionSingle);
 			} else {
@@ -310,9 +311,42 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 			ConditionMultiple conditionMultiple = new ConditionMultiple();
 			for(Pair<Condition, Boolean> multipleCondition : ifCondition) {
 				Condition AndOrCondition = multipleCondition.getFirst();
-				JAXBElement<Condition> conditionElement = factory.createConditionMultipleCondition(AndOrCondition);
-				conditionMultiple.getConditionAndOrAndAnd().add(conditionElement);
+				if(multipleCondition.getSecond()) {
+					notConditionSingle.setCondition(AndOrCondition);
+					JAXBElement<ConditionSingle> notConditionElement = factory.createConditionMultipleNot(notConditionSingle);
+					conditionMultiple.getConditionAndOrAndAnd().add(notConditionElement);
+				} else {
+					JAXBElement<Condition> conditionElement = factory.createConditionMultipleCondition(AndOrCondition);
+					conditionMultiple.getConditionAndOrAndAnd().add(conditionElement);
+				}
 			}
+			
+//			// TODO Test only
+//			Condition condition1 = ifCondition.get(0).getFirst();
+//			Condition condition2 = ifCondition.get(1).getFirst();
+//			Condition condition3 = ifCondition.get(2).getFirst();
+//			Condition condition4 = ifCondition.get(3).getFirst();
+//			
+//			// (0 AND 1) OR (2 AND 3)
+//			ConditionMultiple condition1_2 = new ConditionMultiple();
+//			JAXBElement<Condition> element1 = factory.createConditionMultipleCondition(condition1);
+//			JAXBElement<Condition> element2 = factory.createConditionMultipleCondition(condition2);
+//			condition1_2.getConditionAndOrAndAnd().add(element1);
+//			condition1_2.getConditionAndOrAndAnd().add(element2);
+//			
+//			ConditionMultiple condition2_3 = new ConditionMultiple();
+//			JAXBElement<Condition> element3 = factory.createConditionMultipleCondition(condition3);
+//			JAXBElement<Condition> element4 = factory.createConditionMultipleCondition(condition4);
+//			condition2_3.getConditionAndOrAndAnd().add(element3);
+//			condition2_3.getConditionAndOrAndAnd().add(element4);
+//			
+//			ConditionMultiple conditionAll = new ConditionMultiple();
+//			JAXBElement<ConditionMultiple> element1_2 = factory.createConditionMultipleAnd(condition1_2);
+//			JAXBElement<ConditionMultiple> element3_4 = factory.createConditionMultipleAnd(condition2_3);
+//			conditionAll.getConditionAndOrAndAnd().add(element1_2);
+//			conditionAll.getConditionAndOrAndAnd().add(element3_4);
+//			conditionSingle.setOr(conditionAll);
+			
 			
 			if(isAndExpression) {
 				conditionSingle.setAnd(conditionMultiple);
@@ -444,6 +478,7 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 			label.setValue(xmlID.replaceAll("[.]", " ") + " view");
 			timeGraphViewHead.getAnalysis().add(analysis);
 			timeGraphViewHead.setLabel(label);
+			timeGraphView.setHead(timeGraphViewHead);
 
 			for (Entry<Integer, Node> state : statemachineStatesEntry.getValue().entrySet()) {
 				if (state.getValue().getAttributes().getNamedItem("xsi:type").getNodeValue().equals(fStateType)) {
@@ -502,15 +537,15 @@ public class TmfGraphitiXmlConverter implements ITmfXmlConverter {
 		return timeGraphViewList;
 	}
 
-	public static void main(String[] args) {
-		String xmlPath = "/home/esideli/Eclipse-workspace/runtime-TraceCompass/Statemachine_analysis/Statemachine/Diagrams/statemachine_color_test.diagram"; //"/home/simon/runtime-Tracecompass/Trace/Statemachine/Diagrams/kernel_statemachine.diagram";
-		//String xmlPath = "C:\\Users\\Simon\\Downloads\\kernel_statemachine.diagram";
-		File xmlFile = new File(xmlPath);
-		TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
-		File convertedFile = converter.convertDiagram(xmlFile);
-		if(convertedFile.exists()) {
-			Boolean exist = true;
-		}
-	}
+//	public static void main(String[] args) {
+//		String xmlPath = "/home/esideli/Downloads/tracecompass_rcp_backup/Tracing/Statemachine/Diagrams/RequestAnalysis.diagram"; //"/home/simon/runtime-Tracecompass/Trace/Statemachine/Diagrams/kernel_statemachine.diagram";
+//		//String xmlPath = "C:\\Users\\Simon\\Downloads\\kernel_statemachine.diagram";
+//		File xmlFile = new File(xmlPath);
+//		TmfGraphitiXmlConverter converter = new TmfGraphitiXmlConverter();
+//		File convertedFile = converter.convertDiagram(xmlFile);
+//		if(convertedFile.exists()) {
+//			Boolean exist = true;
+//		}
+//	}
 
 }
